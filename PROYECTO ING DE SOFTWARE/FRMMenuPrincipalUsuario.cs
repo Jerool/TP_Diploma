@@ -12,10 +12,10 @@ using System.Windows.Forms;
 
 namespace PROYECTO_ING_DE_SOFTWARE
 {
-    public partial class FRMMenuPrincipalUsuario : Form, IObservadorIdioma_GV42
+    public partial class FRMMenuPrincipalUsuario : Form, IObservadorIdioma_GO44
     {
         private Form _formularioActual = null;
-        private readonly BLLUsuario_GV42 _bllUsuario;
+        private readonly BLLUsuario_GO44 _bllUsuario;
 
         private ToolStripMenuItem _menuIdioma;
         private ToolStripMenuItem _itemEspanol;
@@ -24,10 +24,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
         public FRMMenuPrincipalUsuario()
         {
             InitializeComponent();
-            _bllUsuario = new BLLUsuario_GV42();
+            _bllUsuario = new BLLUsuario_GO44();
 
-            IdiomaManager_GV42.Instancia.Suscribir(this);
-            this.FormClosed += (s, e) => IdiomaManager_GV42.Instancia.Desuscribir(this);
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
 
             ConstruirMenuIdioma();
             ActualizarIdioma();
@@ -39,10 +39,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (menu == null) return;
 
             _itemEspanol = new ToolStripMenuItem("Español");
-            _itemEspanol.Click += (s, e) => _bllUsuario.CambiarIdioma(IdiomaManager_GV42.ES);
+            _itemEspanol.Click += (s, e) => _bllUsuario.CambiarIdioma(IdiomaManager_GO44.ES);
 
             _itemIngles = new ToolStripMenuItem("English");
-            _itemIngles.Click += (s, e) => _bllUsuario.CambiarIdioma(IdiomaManager_GV42.EN);
+            _itemIngles.Click += (s, e) => _bllUsuario.CambiarIdioma(IdiomaManager_GO44.EN);
 
             _menuIdioma = new ToolStripMenuItem("Idioma");
             _menuIdioma.DropDownItems.Add(_itemEspanol);
@@ -53,18 +53,42 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         public void ActualizarIdioma()
         {
-            if (usuarioToolStripMenuItem != null) usuarioToolStripMenuItem.Text = IdiomaManager_GV42.T("menu.usuario");
-            if (cambiarClaveToolStripMenuItem != null) cambiarClaveToolStripMenuItem.Text = IdiomaManager_GV42.T("menu.cambiarClave");
-            if (logOutToolStripMenuItem != null) logOutToolStripMenuItem.Text = IdiomaManager_GV42.T("menu.logout");
+            if (usuarioToolStripMenuItem != null) usuarioToolStripMenuItem.Text = IdiomaManager_GO44.T("menu.usuario");
+            if (cambiarClaveToolStripMenuItem != null) cambiarClaveToolStripMenuItem.Text = IdiomaManager_GO44.T("menu.cambiarClave");
+            if (logOutToolStripMenuItem != null) logOutToolStripMenuItem.Text = IdiomaManager_GO44.T("menu.logout");
 
-            if (_menuIdioma != null) _menuIdioma.Text = IdiomaManager_GV42.T("menu.idioma");
-            if (_itemEspanol != null) _itemEspanol.Text = IdiomaManager_GV42.T("general.espanol");
-            if (_itemIngles != null) _itemIngles.Text = IdiomaManager_GV42.T("general.ingles");
+            if (_menuIdioma != null) _menuIdioma.Text = IdiomaManager_GO44.T("menu.idioma");
+            if (_itemEspanol != null) _itemEspanol.Text = IdiomaManager_GO44.T("general.espanol");
+            if (_itemIngles != null) _itemIngles.Text = IdiomaManager_GO44.T("general.ingles");
+
+            // Menús nuevos GO44 (fallback a texto en español si no está la clave)
+            if (maestrosToolStripMenuItem != null)  maestrosToolStripMenuItem.Text  = "Maestros";
+            if (clientesToolStripMenuItem != null)  clientesToolStripMenuItem.Text  = "Clientes";
+            if (productosToolStripMenuItem != null) productosToolStripMenuItem.Text = "Productos";
+            if (ventasToolStripMenuItem != null)    ventasToolStripMenuItem.Text    = "Ventas";
+            if (carritoToolStripMenuItem != null)   carritoToolStripMenuItem.Text   = "Cargar Carrito";
+        }
+
+        // ------------------ Handlers de los menús nuevos GO44 ------------------
+
+        private void clientesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AbrirFormularioHijo(new FRMGestionClientes_GO44());
+        }
+
+        private void productosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AbrirFormularioHijo(new FRMGestionProductos_GO44());
+        }
+
+        private void carritoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AbrirFormularioHijo(new FRMCargarCarrito_GO44());
         }
 
         private void FRMMenuPrincipalUsuario_Load(object sender, EventArgs e)
         {
-            Usuario_GV42 actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             if (actual != null)
                 lblUsuarioActual.Text = $"Sesión: {actual.Nombre} {actual.Apellido} ({actual.Login})";
         }
@@ -102,13 +126,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void logOutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show(
-                IdiomaManager_GV42.T("menu.confirmarLogout"),
-                IdiomaManager_GV42.T("menu.tituloLogout"),
+                IdiomaManager_GO44.T("menu.confirmarLogout"),
+                IdiomaManager_GO44.T("menu.tituloLogout"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
-                BLLUsuario_GV42.CerrarSesión();
+                BLLUsuario_GO44.CerrarSesión();
                 FRMIniciarSesion frm = new FRMIniciarSesion();
                 frm.Show();
                 this.Close();

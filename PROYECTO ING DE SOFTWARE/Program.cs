@@ -16,7 +16,24 @@ namespace PROYECTO_ING_DE_SOFTWARE
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            IdiomaManager_GV42.Instancia.CambiarIdioma(IdiomaManager_GV42.IDIOMA_POR_DEFECTO);
+            // Captura global de excepciones no manejadas — evita que la app crashee
+            // y muestra el mensaje + stack trace en un MessageBox.
+            Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (s, ex) =>
+            {
+                MessageBox.Show(
+                    "Error no manejado:\n\n" + ex.Exception.Message + "\n\n" + ex.Exception.StackTrace,
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
+            AppDomain.CurrentDomain.UnhandledException += (s, ex) =>
+            {
+                Exception e = ex.ExceptionObject as Exception;
+                MessageBox.Show(
+                    "Error crítico:\n\n" + (e != null ? e.Message + "\n\n" + e.StackTrace : ex.ExceptionObject.ToString()),
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
+
+            IdiomaManager_GO44.Instancia.CambiarIdioma(IdiomaManager_GO44.IDIOMA_POR_DEFECTO);
 
             if (!ConfigurarConexionBD()) return;
 
@@ -25,7 +42,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private static bool ConfigurarConexionBD()
         {
-            string instancia = ConfiguracionBD_GV42.LeerInstanciaGuardada();
+            string instancia = ConfiguracionBD_GO44.LeerInstanciaGuardada();
 
 #if DEBUG
             if (string.IsNullOrEmpty(instancia))
@@ -36,17 +53,17 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 try
                 {
-                    if (BLLInstalador_GV42.ExisteBaseDatos(instancia))
+                    if (BLLInstalador_GO44.ExisteBaseDatos(instancia))
                     {
-                        BLLInstalador_GV42.ConfigurarConexion(instancia);
+                        BLLInstalador_GO44.ConfigurarConexion(instancia);
                         return true;
                     }
 
 #if DEBUG
                     try
                     {
-                        BLLInstalador_GV42.InstalarBaseDatos(instancia);
-                        BLLInstalador_GV42.ConfigurarConexion(instancia);
+                        BLLInstalador_GO44.InstalarBaseDatos(instancia);
+                        BLLInstalador_GO44.ConfigurarConexion(instancia);
                         return true;
                     }
                     catch { }
@@ -63,7 +80,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 if (r != DialogResult.OK || string.IsNullOrEmpty(frm.InstanciaElegida))
                     return false;
 
-                BLLInstalador_GV42.ConfigurarConexion(frm.InstanciaElegida);
+                BLLInstalador_GO44.ConfigurarConexion(frm.InstanciaElegida);
                 return true;
             }
         }

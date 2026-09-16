@@ -9,35 +9,35 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static BLL.BLLUsuario_GV42;
+using static BLL.BLLUsuario_GO44;
 
 namespace PROYECTO_ING_DE_SOFTWARE
 {
 
-    public partial class FRMIniciarSesion : Form, IObservadorIdioma_GV42
+    public partial class FRMIniciarSesion : Form, IObservadorIdioma_GO44
     {
-        private readonly BLLUsuario_GV42 _bllUsuario;
+        private readonly BLLUsuario_GO44 _bllUsuario;
         private ResultadoIntegridad _resultadoIntegridadPrelogin;
 
         public FRMIniciarSesion()
         {
             InitializeComponent();
-            _bllUsuario = new BLLUsuario_GV42();
+            _bllUsuario = new BLLUsuario_GO44();
 
-            IdiomaManager_GV42.Instancia.Suscribir(this);
-            this.FormClosed += (s, e) => IdiomaManager_GV42.Instancia.Desuscribir(this);
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
 
             ActualizarIdioma();
         }
 
         public void ActualizarIdioma()
         {
-            this.Text = IdiomaManager_GV42.T("login.titulo");
-            if (lblTitulo != null) lblTitulo.Text = IdiomaManager_GV42.T("login.titulo");
-            if (lblSubtitulo != null) lblSubtitulo.Text = IdiomaManager_GV42.T("login.subtitulo");
-            if (label1 != null) label1.Text = IdiomaManager_GV42.T("login.login");
-            if (label2 != null) label2.Text = IdiomaManager_GV42.T("login.contrasena");
-            if (btnIngresar != null) btnIngresar.Text = IdiomaManager_GV42.T("login.btnIngresar");
+            this.Text = IdiomaManager_GO44.T("login.titulo");
+            if (lblTitulo != null) lblTitulo.Text = IdiomaManager_GO44.T("login.titulo");
+            if (lblSubtitulo != null) lblSubtitulo.Text = IdiomaManager_GO44.T("login.subtitulo");
+            if (label1 != null) label1.Text = IdiomaManager_GO44.T("login.login");
+            if (label2 != null) label2.Text = IdiomaManager_GO44.T("login.contrasena");
+            if (btnIngresar != null) btnIngresar.Text = IdiomaManager_GO44.T("login.btnIngresar");
         }
 
         private void btnIngresar_Click(object sender, EventArgs e)
@@ -47,16 +47,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(contrasena))
             {
-                MessageBox.Show(IdiomaManager_GV42.T("general.completarCampos"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("general.completarCampos"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (!Validaciones_GV42.EsLoginValido(login))
+            if (!Validaciones_GO44.EsLoginValido(login))
             {
-                MessageBox.Show(Validaciones_GV42.MENSAJE_LOGIN,
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(Validaciones_GO44.MENSAJE_LOGIN,
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtLogIn.Focus();
                 return;
@@ -64,7 +64,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             try
             {
-                _resultadoIntegridadPrelogin = new BLLIntegridad_GV42().Verificar();
+                _resultadoIntegridadPrelogin = new BLLIntegridad_GO44().Verificar();
             }
             catch
             {
@@ -80,33 +80,33 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     break;
                 case ResultadoLogin.UsuarioBloqueado:
                 case ResultadoLogin.BloqueadoPorIntentos:
-                    MessageBox.Show(IdiomaManager_GV42.T("login.bloqueado"),
-                                    IdiomaManager_GV42.T("general.accesoDenegado"),
+                    MessageBox.Show(IdiomaManager_GO44.T("login.bloqueado"),
+                                    IdiomaManager_GO44.T("general.accesoDenegado"),
                                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case ResultadoLogin.UsuarioInactivo:
-                    MessageBox.Show(IdiomaManager_GV42.T("login.inactivo"),
-                                    IdiomaManager_GV42.T("general.accesoDenegado"),
+                    MessageBox.Show(IdiomaManager_GO44.T("login.inactivo"),
+                                    IdiomaManager_GO44.T("general.accesoDenegado"),
                                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case ResultadoLogin.ContrasenaIncorrecta:
-                    MessageBox.Show(IdiomaManager_GV42.T("login.contrasenaIncorrecta"),
-                                    IdiomaManager_GV42.T("general.error"),
+                    MessageBox.Show(IdiomaManager_GO44.T("login.contrasenaIncorrecta"),
+                                    IdiomaManager_GO44.T("general.error"),
                                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                     break;
                 case ResultadoLogin.UsuarioInexistente:
-                    MessageBox.Show(IdiomaManager_GV42.T("login.usuarioInexistente"),
-                                    IdiomaManager_GV42.T("general.error"),
+                    MessageBox.Show(IdiomaManager_GO44.T("login.usuarioInexistente"),
+                                    IdiomaManager_GO44.T("general.error"),
                                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                     break;
                 case ResultadoLogin.SesionActiva:
-                    MessageBox.Show(IdiomaManager_GV42.T("login.sesionActiva"),
-                                    IdiomaManager_GV42.T("general.advertencia"),
+                    MessageBox.Show(IdiomaManager_GO44.T("login.sesionActiva"),
+                                    IdiomaManager_GO44.T("general.advertencia"),
                                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case ResultadoLogin.Error:
-                    MessageBox.Show(IdiomaManager_GV42.T("login.errorUsuario"),
-                                    IdiomaManager_GV42.T("general.error"),
+                    MessageBox.Show(IdiomaManager_GO44.T("login.errorUsuario"),
+                                    IdiomaManager_GO44.T("general.error"),
                                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                     break;
             }
@@ -114,18 +114,18 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void AbrirFormularioSegunRol()
         {
-            Usuario_GV42 actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
 
             if (!VerificarIntegridad(actual))
             {
-                BLLUsuario_GV42.CerrarSesión();
+                BLLUsuario_GO44.CerrarSesión();
                 return;
             }
 
             if (actual != null && actual.DebeCambiarContrasena)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("login.cambioRequeridoMensaje"),
-                                IdiomaManager_GV42.T("login.cambioRequeridoTitulo"),
+                MessageBox.Show(IdiomaManager_GO44.T("login.cambioRequeridoMensaje"),
+                                IdiomaManager_GO44.T("login.cambioRequeridoTitulo"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 FRMCambiarContrasenia cambio = new FRMCambiarContrasenia(primerLogin: true);
@@ -139,11 +139,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.Hide();
         }
 
-        private bool VerificarIntegridad(Usuario_GV42 actual)
+        private bool VerificarIntegridad(Usuario_GO44 actual)
         {
             try
             {
-                var bllInt = new BLLIntegridad_GV42();
+                var bllInt = new BLLIntegridad_GO44();
                 ResultadoIntegridad res = _resultadoIntegridadPrelogin ?? bllInt.Verificar();
 
                 if (res.EsIntegra)
@@ -163,12 +163,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     detalleBitacora = string.Join(", ", res.TablasComprometidas);
                 }
 
-                BLLBitacora_GV42.Instancia.RegistrarEvento(
+                BLLBitacora_GO44.Instancia.RegistrarEvento(
                     actual.Login, "Admin", "Integridad comprometida",
                     detalleBitacora, "Alta");
 
-                var bllPermisos = new BLLPermisos_GV42();
-                Rol_GV42 rolCompleto = bllPermisos.ObtenerArbolRol(actual.Rol.Id);
+                var bllPermisos = new BLLPermisos_GO44();
+                Rol_GO44 rolCompleto = bllPermisos.ObtenerArbolRol(actual.Rol.Id);
                 var dataKeys = rolCompleto != null
                     ? rolCompleto.ObtenerPatentes().Select(p => p.DataKey ?? string.Empty).ToList()
                     : new List<string>();
@@ -179,8 +179,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 if (!puedeRecalcular && !puedeRestaurar)
                 {
                     MessageBox.Show(
-                        IdiomaManager_GV42.T("integridad.sistemaInactivoMensaje"),
-                        IdiomaManager_GV42.T("integridad.sistemaInactivoTitulo"),
+                        IdiomaManager_GO44.T("integridad.sistemaInactivoMensaje"),
+                        IdiomaManager_GO44.T("integridad.sistemaInactivoTitulo"),
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
@@ -192,8 +192,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     if (frm.SeRestauroBackup)
                     {
                         MessageBox.Show(
-                            IdiomaManager_GV42.T("integridad.cerrandoAppBackup"),
-                            IdiomaManager_GV42.T("integridad.titulo"),
+                            IdiomaManager_GO44.T("integridad.cerrandoAppBackup"),
+                            IdiomaManager_GO44.T("integridad.titulo"),
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
                         Application.Exit();
                         return false;
@@ -201,7 +201,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
                     if (frm.SeRecalcularon)
                     {
-                        BLLBitacora_GV42.Instancia.RegistrarEvento(
+                        BLLBitacora_GO44.Instancia.RegistrarEvento(
                             actual.Login, "Admin", "Integridad recalculada",
                             "Admin aceptó los cambios externos como válidos.", "Alta");
                         try { bllInt.IniciarBackupsProgramados(); } catch { }
@@ -214,8 +214,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    IdiomaManager_GV42.T("integridad.errorVerificacion") + "\n\n" + ex.Message,
-                    IdiomaManager_GV42.T("general.error"),
+                    IdiomaManager_GO44.T("integridad.errorVerificacion") + "\n\n" + ex.Message,
+                    IdiomaManager_GO44.T("general.error"),
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }

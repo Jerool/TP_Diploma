@@ -1,10 +1,10 @@
 <Solution>
-  <Project Path="BE/BE_GV42.csproj" Id="0d838138-d123-4171-bca0-31731f79ccf0" />
-  <Project Path="BLL/BLL_GV42.csproj" Id="51387f40-c979-4dd9-b502-9b33a3969b9f" />
-  <Project Path="DAL/DAL_GV42.csproj" Id="74c66ea0-3ca0-4293-8f82-bb3b9af764c8" />
-  <Project Path="PROYECTO ING DE SOFTWARE/UI_GV42.csproj" Id="4312ec5d-0c95-4837-96db-871e3ec4bd68" />
+  <Project Path="BE/BE_GO44.csproj" Id="0d838138-d123-4171-bca0-31731f79ccf0" />
+  <Project Path="BLL/BLL_GO44.csproj" Id="51387f40-c979-4dd9-b502-9b33a3969b9f" />
+  <Project Path="DAL/DAL_GO44.csproj" Id="74c66ea0-3ca0-4293-8f82-bb3b9af764c8" />
+  <Project Path="PROYECTO ING DE SOFTWARE/UI_GO44.csproj" Id="4312ec5d-0c95-4837-96db-871e3ec4bd68" />
   <Project Path="PROYECTO_ING_DE_SOFTWARE_Setup/PROYECTO_ING_DE_SOFTWARE_Setup.vdproj" Type="Installer">
     <Build />
   </Project>
-  <Project Path="Servicios/Servicios_GV42.csproj" Id="662e6a38-a516-4610-ae55-4a12fc4f0fcb" />
+  <Project Path="Servicios/Servicios_GO44.csproj" Id="662e6a38-a516-4610-ae55-4a12fc4f0fcb" />
 </Solution>

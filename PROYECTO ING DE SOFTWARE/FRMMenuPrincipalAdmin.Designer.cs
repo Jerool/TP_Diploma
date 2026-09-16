@@ -34,6 +34,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.bitacoraToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gestionDePermisosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.backupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.maestrosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clientesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.productosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ventasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.carritoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.usuarioToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.reLoginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cambiarClaveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,6 +58,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.adminToolStripMenuItem,
+            this.maestrosToolStripMenuItem,
+            this.ventasToolStripMenuItem,
             this.usuarioToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -108,7 +115,55 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.backupToolStripMenuItem.Size = new System.Drawing.Size(205, 24);
             this.backupToolStripMenuItem.Text = "Backup";
             this.backupToolStripMenuItem.Click += new System.EventHandler(this.backupToolStripMenuItem_Click);
-            // 
+            //
+            // maestrosToolStripMenuItem
+            //
+            this.maestrosToolStripMenuItem.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(71)))), ((int)(((byte)(161)))));
+            this.maestrosToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.clientesToolStripMenuItem,
+            this.productosToolStripMenuItem});
+            this.maestrosToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.maestrosToolStripMenuItem.Name = "maestrosToolStripMenuItem";
+            this.maestrosToolStripMenuItem.Size = new System.Drawing.Size(85, 23);
+            this.maestrosToolStripMenuItem.Text = "Maestros";
+            //
+            // clientesToolStripMenuItem
+            //
+            this.clientesToolStripMenuItem.BackColor = System.Drawing.Color.White;
+            this.clientesToolStripMenuItem.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(71)))), ((int)(((byte)(161)))));
+            this.clientesToolStripMenuItem.Name = "clientesToolStripMenuItem";
+            this.clientesToolStripMenuItem.Size = new System.Drawing.Size(205, 24);
+            this.clientesToolStripMenuItem.Text = "Clientes";
+            this.clientesToolStripMenuItem.Click += new System.EventHandler(this.clientesToolStripMenuItem_Click);
+            //
+            // productosToolStripMenuItem
+            //
+            this.productosToolStripMenuItem.BackColor = System.Drawing.Color.White;
+            this.productosToolStripMenuItem.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(71)))), ((int)(((byte)(161)))));
+            this.productosToolStripMenuItem.Name = "productosToolStripMenuItem";
+            this.productosToolStripMenuItem.Size = new System.Drawing.Size(205, 24);
+            this.productosToolStripMenuItem.Text = "Productos";
+            this.productosToolStripMenuItem.Click += new System.EventHandler(this.productosToolStripMenuItem_Click);
+            //
+            // ventasToolStripMenuItem
+            //
+            this.ventasToolStripMenuItem.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(71)))), ((int)(((byte)(161)))));
+            this.ventasToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.carritoToolStripMenuItem});
+            this.ventasToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.ventasToolStripMenuItem.Name = "ventasToolStripMenuItem";
+            this.ventasToolStripMenuItem.Size = new System.Drawing.Size(70, 23);
+            this.ventasToolStripMenuItem.Text = "Ventas";
+            //
+            // carritoToolStripMenuItem
+            //
+            this.carritoToolStripMenuItem.BackColor = System.Drawing.Color.White;
+            this.carritoToolStripMenuItem.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(71)))), ((int)(((byte)(161)))));
+            this.carritoToolStripMenuItem.Name = "carritoToolStripMenuItem";
+            this.carritoToolStripMenuItem.Size = new System.Drawing.Size(205, 24);
+            this.carritoToolStripMenuItem.Text = "Cargar Carrito";
+            this.carritoToolStripMenuItem.Click += new System.EventHandler(this.carritoToolStripMenuItem_Click);
+            //
             // usuarioToolStripMenuItem
             // 
             this.usuarioToolStripMenuItem.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(71)))), ((int)(((byte)(161)))));
@@ -215,5 +270,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.Panel pnlContenido;
         private System.Windows.Forms.ToolStripMenuItem gestionDePermisosToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem backupToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem maestrosToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clientesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem productosToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ventasToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem carritoToolStripMenuItem;
     }
 }

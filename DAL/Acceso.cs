@@ -202,5 +202,146 @@ namespace DAL
             }
             return resultado;
         }
+
+        // =====================================================================
+        // MÉTODOS PARA STORED PROCEDURES (usados por la capa de negocio GO44)
+        // =====================================================================
+
+        /// <summary>
+        /// Ejecuta un SP de lectura (SELECT) y retorna un DataTable.
+        /// </summary>
+        public DataTable leerSP(string nombreSP, SqlParameter[] parametros)
+        {
+            DataTable dt = new DataTable();
+            SqlCommand comando = new SqlCommand();
+            SqlDataAdapter adaptador = new SqlDataAdapter();
+            try
+            {
+                conectar();
+                comando.Connection = conexion;
+                comando.CommandType = CommandType.StoredProcedure;
+                comando.CommandText = nombreSP;
+                if (parametros != null)
+                {
+                    foreach (SqlParameter p in parametros)
+                        comando.Parameters.AddWithValue(p.ParameterName, p.Value ?? DBNull.Value);
+                }
+                adaptador.SelectCommand = comando;
+                adaptador.Fill(dt);
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception("Error en leerSP (" + nombreSP + "): " + ex.Message, ex);
+            }
+            finally
+            {
+                desconectar();
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// Ejecuta un SP de escritura (INSERT/UPDATE/DELETE) con su propia transacción.
+        /// Retorna filas afectadas.
+        /// </summary>
+        public int escribirSP(string nombreSP, SqlParameter[] parametros)
+        {
+            SqlTransaction tx = null;
+            SqlCommand comando = new SqlCommand();
+            int filas = 0;
+            try
+            {
+                tx = IniciarTransaccion();
+                comando.Connection = tx.Connection;
+                comando.Transaction = tx;
+                comando.CommandType = CommandType.StoredProcedure;
+                comando.CommandText = nombreSP;
+                if (parametros != null)
+                {
+                    foreach (SqlParameter p in parametros)
+                        comando.Parameters.AddWithValue(p.ParameterName, p.Value ?? DBNull.Value);
+                }
+                filas = comando.ExecuteNonQuery();
+                ConfirmarTransaccion(tx);
+                return filas;
+            }
+            catch (Exception ex)
+            {
+                CancelarTransaccion(tx);
+                throw new Exception("Error en escribirSP (" + nombreSP + "): " + ex.Message, ex);
+            }
+        }
+
+        /// <summary>
+        /// Ejecuta un SP escalar (típicamente para SCOPE_IDENTITY o COUNT) con su propia conexión.
+        /// </summary>
+        public object leerEscalarSP(string nombreSP, SqlParameter[] parametros)
+        {
+            SqlCommand comando = new SqlCommand();
+            object resultado = null;
+            try
+            {
+                conectar();
+                comando.Connection = conexion;
+                comando.CommandType = CommandType.StoredProcedure;
+                comando.CommandText = nombreSP;
+                if (parametros != null)
+                {
+                    foreach (SqlParameter p in parametros)
+                        comando.Parameters.AddWithValue(p.ParameterName, p.Value ?? DBNull.Value);
+                }
+                resultado = comando.ExecuteScalar();
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception("Error en leerEscalarSP (" + nombreSP + "): " + ex.Message, ex);
+            }
+            finally
+            {
+                desconectar();
+            }
+            return resultado;
+        }
+
+        // ----- Variantes que participan de una transacción externa (para CU01 Cargar Carrito) -----
+
+        /// <summary>
+        /// Ejecuta un SP de escritura dentro de una transacción ya iniciada por el llamador.
+        /// El llamador es responsable de hacer Commit/Rollback y de cerrar la conexión.
+        /// </summary>
+        public int escribirSPEnTx(string nombreSP, SqlParameter[] parametros, SqlTransaction tx)
+        {
+            if (tx == null) throw new ArgumentNullException("tx");
+            SqlCommand comando = new SqlCommand();
+            comando.Connection = tx.Connection;
+            comando.Transaction = tx;
+            comando.CommandType = CommandType.StoredProcedure;
+            comando.CommandText = nombreSP;
+            if (parametros != null)
+            {
+                foreach (SqlParameter p in parametros)
+                    comando.Parameters.AddWithValue(p.ParameterName, p.Value ?? DBNull.Value);
+            }
+            return comando.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Ejecuta un SP escalar dentro de una transacción ya iniciada. Útil para SCOPE_IDENTITY.
+        /// </summary>
+        public object leerEscalarSPEnTx(string nombreSP, SqlParameter[] parametros, SqlTransaction tx)
+        {
+            if (tx == null) throw new ArgumentNullException("tx");
+            SqlCommand comando = new SqlCommand();
+            comando.Connection = tx.Connection;
+            comando.Transaction = tx;
+            comando.CommandType = CommandType.StoredProcedure;
+            comando.CommandText = nombreSP;
+            if (parametros != null)
+            {
+                foreach (SqlParameter p in parametros)
+                    comando.Parameters.AddWithValue(p.ParameterName, p.Value ?? DBNull.Value);
+            }
+            return comando.ExecuteScalar();
+        }
     }
 }

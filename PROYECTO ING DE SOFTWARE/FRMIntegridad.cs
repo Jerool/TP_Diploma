@@ -7,9 +7,9 @@ using System.Windows.Forms;
 
 namespace PROYECTO_ING_DE_SOFTWARE
 {
-    public partial class FRMIntegridad : Form, IObservadorIdioma_GV42
+    public partial class FRMIntegridad : Form, IObservadorIdioma_GO44
     {
-        private readonly BLLIntegridad_GV42 _bll;
+        private readonly BLLIntegridad_GO44 _bll;
         private readonly ResultadoIntegridad _resultado;
 
         public bool SeRestauroBackup { get; private set; }
@@ -23,11 +23,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
         public FRMIntegridad(ResultadoIntegridad resultado, bool puedeRecalcular, bool puedeRestaurar)
         {
             InitializeComponent();
-            _bll = new BLLIntegridad_GV42();
+            _bll = new BLLIntegridad_GO44();
             _resultado = resultado;
 
-            IdiomaManager_GV42.Instancia.Suscribir(this);
-            this.FormClosed += (s, e) => IdiomaManager_GV42.Instancia.Desuscribir(this);
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
 
             AplicarEstilos();
             CargarTablas();
@@ -118,34 +118,34 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             switch (tipo)
             {
-                case TipoTampering.Insertado: return IdiomaManager_GV42.T("integridad.tipoInsertado");
-                case TipoTampering.Modificado: return IdiomaManager_GV42.T("integridad.tipoModificado");
-                case TipoTampering.Eliminado: return IdiomaManager_GV42.T("integridad.tipoEliminado");
+                case TipoTampering.Insertado: return IdiomaManager_GO44.T("integridad.tipoInsertado");
+                case TipoTampering.Modificado: return IdiomaManager_GO44.T("integridad.tipoModificado");
+                case TipoTampering.Eliminado: return IdiomaManager_GO44.T("integridad.tipoEliminado");
                 default: return tipo.ToString();
             }
         }
 
         public void ActualizarIdioma()
         {
-            this.Text = IdiomaManager_GV42.T("integridad.titulo");
-            if (lblTitulo != null) lblTitulo.Text = IdiomaManager_GV42.T("integridad.tituloAlerta");
-            if (lblMensaje != null) lblMensaje.Text = IdiomaManager_GV42.T("integridad.mensaje");
+            this.Text = IdiomaManager_GO44.T("integridad.titulo");
+            if (lblTitulo != null) lblTitulo.Text = IdiomaManager_GO44.T("integridad.tituloAlerta");
+            if (lblMensaje != null) lblMensaje.Text = IdiomaManager_GO44.T("integridad.mensaje");
             if (lblTablas != null)
             {
                 lblTablas.Text = (_resultado?.Detalles != null && _resultado.Detalles.Count > 0)
-                    ? IdiomaManager_GV42.T("integridad.detallesTitulo")
-                    : IdiomaManager_GV42.T("integridad.tablasAfectadas");
+                    ? IdiomaManager_GO44.T("integridad.detallesTitulo")
+                    : IdiomaManager_GO44.T("integridad.tablasAfectadas");
             }
-            if (btnRestore != null) btnRestore.Text = IdiomaManager_GV42.T("integridad.botonRestore");
-            if (btnBackup != null) btnBackup.Text = IdiomaManager_GV42.T("integridad.botonBackup");
-            if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GV42.T("general.cancelar");
+            if (btnRestore != null) btnRestore.Text = IdiomaManager_GO44.T("integridad.botonRestore");
+            if (btnBackup != null) btnBackup.Text = IdiomaManager_GO44.T("integridad.botonBackup");
+            if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GO44.T("general.cancelar");
         }
 
         private void btnRestore_Click(object sender, EventArgs e)
         {
             DialogResult r = MessageBox.Show(
-                IdiomaManager_GV42.T("integridad.confirmRestore"),
-                IdiomaManager_GV42.T("integridad.titulo"),
+                IdiomaManager_GO44.T("integridad.confirmRestore"),
+                IdiomaManager_GO44.T("integridad.titulo"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
@@ -153,15 +153,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 _bll.Recalcular();
                 SeRecalcularon = true;
-                MessageBox.Show(IdiomaManager_GV42.T("integridad.restoreOk"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("integridad.restoreOk"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(ex.Message, IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -172,8 +172,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                ofd.Title  = IdiomaManager_GV42.T("backup.ofdTitulo");
-                ofd.Filter = IdiomaManager_GV42.T("backup.ofdFiltro");
+                ofd.Title  = IdiomaManager_GO44.T("backup.ofdTitulo");
+                ofd.Filter = IdiomaManager_GO44.T("backup.ofdFiltro");
                 ofd.CheckFileExists = true;
 
                 string ultimo = _bll.ObtenerUltimoBackup();
@@ -187,11 +187,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 rutaSeleccionada = ofd.FileName;
             }
 
-            string mensaje = IdiomaManager_GV42.T("integridad.confirmBackup") +
-                             "\n\n" + IdiomaManager_GV42.T("integridad.archivoARestaurar") + "\n" + rutaSeleccionada;
+            string mensaje = IdiomaManager_GO44.T("integridad.confirmBackup") +
+                             "\n\n" + IdiomaManager_GO44.T("integridad.archivoARestaurar") + "\n" + rutaSeleccionada;
 
             DialogResult r = MessageBox.Show(mensaje,
-                                             IdiomaManager_GV42.T("integridad.titulo"),
+                                             IdiomaManager_GO44.T("integridad.titulo"),
                                              MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (r != DialogResult.Yes) return;
 
@@ -199,16 +199,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 _bll.RestaurarBackupDesdeRuta(rutaSeleccionada);
                 SeRestauroBackup = true;
-                MessageBox.Show(IdiomaManager_GV42.T("integridad.backupOk"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("integridad.backupOk"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("integridad.backupError") + "\n\n" + ex.Message,
-                                IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(IdiomaManager_GO44.T("integridad.backupError") + "\n\n" + ex.Message,
+                                IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

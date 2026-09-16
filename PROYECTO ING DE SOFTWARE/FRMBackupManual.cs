@@ -7,9 +7,9 @@ using System.Windows.Forms;
 
 namespace PROYECTO_ING_DE_SOFTWARE
 {
-    public partial class FRMBackupManual : Form, IObservadorIdioma_GV42
+    public partial class FRMBackupManual : Form, IObservadorIdioma_GO44
     {
-        private readonly BLLIntegridad_GV42 _bll;
+        private readonly BLLIntegridad_GO44 _bll;
 
         private Label lblTitulo;
         private Label lblSubtitulo;
@@ -19,12 +19,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         public FRMBackupManual()
         {
-            _bll = new BLLIntegridad_GV42();
+            _bll = new BLLIntegridad_GO44();
 
             InicializarComponentes();
 
-            IdiomaManager_GV42.Instancia.Suscribir(this);
-            this.FormClosed += (s, e) => IdiomaManager_GV42.Instancia.Desuscribir(this);
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
 
             AplicarPermisos();
             ActualizarIdioma();
@@ -92,10 +92,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void AplicarPermisos()
         {
-            var actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            var actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             if (actual == null || actual.Rol == null) return;
 
-            var bllPermisos = new BLLPermisos_GV42();
+            var bllPermisos = new BLLPermisos_GO44();
             var rol = bllPermisos.ObtenerArbolRol(actual.Rol.Id);
             if (rol == null) return;
 
@@ -109,11 +109,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         public void ActualizarIdioma()
         {
-            if (lblTitulo != null)    lblTitulo.Text    = IdiomaManager_GV42.T("backup.titulo");
-            if (lblSubtitulo != null) lblSubtitulo.Text = IdiomaManager_GV42.T("backup.subtitulo");
-            if (btnCrear != null)     btnCrear.Text     = IdiomaManager_GV42.T("backup.btnCrear");
-            if (btnRestaurar != null) btnRestaurar.Text = IdiomaManager_GV42.T("backup.btnRestaurar");
-            if (btnCerrar != null)    btnCerrar.Text    = IdiomaManager_GV42.T("backup.btnCerrar");
+            if (lblTitulo != null)    lblTitulo.Text    = IdiomaManager_GO44.T("backup.titulo");
+            if (lblSubtitulo != null) lblSubtitulo.Text = IdiomaManager_GO44.T("backup.subtitulo");
+            if (btnCrear != null)     btnCrear.Text     = IdiomaManager_GO44.T("backup.btnCrear");
+            if (btnRestaurar != null) btnRestaurar.Text = IdiomaManager_GO44.T("backup.btnRestaurar");
+            if (btnCerrar != null)    btnCerrar.Text    = IdiomaManager_GO44.T("backup.btnCerrar");
         }
 
         private void BtnCrear_Click(object sender, EventArgs e)
@@ -123,14 +123,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 string ruta = _bll.HacerBackupAutomatico();
                 MessageBox.Show(
-                    string.Format(IdiomaManager_GV42.T("backup.crearExito"), ruta),
-                    IdiomaManager_GV42.T("general.exito"),
+                    string.Format(IdiomaManager_GO44.T("backup.crearExito"), ruta),
+                    IdiomaManager_GO44.T("general.exito"),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message,
-                    IdiomaManager_GV42.T("general.error"),
+                    IdiomaManager_GO44.T("general.error"),
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -143,8 +143,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                ofd.Title  = IdiomaManager_GV42.T("backup.ofdTitulo");
-                ofd.Filter = IdiomaManager_GV42.T("backup.ofdFiltro");
+                ofd.Title  = IdiomaManager_GO44.T("backup.ofdTitulo");
+                ofd.Filter = IdiomaManager_GO44.T("backup.ofdFiltro");
                 ofd.CheckFileExists = true;
 
                 string ultimo = _bll.ObtenerUltimoBackup();
@@ -157,8 +157,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 if (ofd.ShowDialog() != DialogResult.OK) return;
 
                 DialogResult r = MessageBox.Show(
-                    IdiomaManager_GV42.T("backup.confirmRestaurarMensaje"),
-                    IdiomaManager_GV42.T("backup.confirmRestaurarTitulo"),
+                    IdiomaManager_GO44.T("backup.confirmRestaurarMensaje"),
+                    IdiomaManager_GO44.T("backup.confirmRestaurarTitulo"),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (r != DialogResult.Yes) return;
 
@@ -167,15 +167,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 {
                     _bll.RestaurarBackupDesdeRuta(ofd.FileName);
                     MessageBox.Show(
-                        IdiomaManager_GV42.T("backup.restaurarExito"),
-                        IdiomaManager_GV42.T("general.exito"),
+                        IdiomaManager_GO44.T("backup.restaurarExito"),
+                        IdiomaManager_GO44.T("general.exito"),
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     Application.Exit();
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message,
-                        IdiomaManager_GV42.T("general.error"),
+                        IdiomaManager_GO44.T("general.error"),
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 finally

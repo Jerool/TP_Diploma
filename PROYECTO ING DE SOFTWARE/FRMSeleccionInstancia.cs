@@ -29,7 +29,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void InicializarComponentes()
         {
-            this.Text = IdiomaManager_GV42.T("instalacion.titulo");
+            this.Text = IdiomaManager_GO44.T("instalacion.titulo");
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Size = new Size(560, 320);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -45,7 +45,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             lblTitulo = new Label
             {
-                Text = IdiomaManager_GV42.T("instalacion.encabezado"),
+                Text = IdiomaManager_GO44.T("instalacion.encabezado"),
                 ForeColor = azulOscuro,
                 Font = fuenteTit,
                 AutoSize = true,
@@ -54,7 +54,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             lblSubtitulo = new Label
             {
-                Text = IdiomaManager_GV42.T("instalacion.subtitulo"),
+                Text = IdiomaManager_GO44.T("instalacion.subtitulo"),
                 ForeColor = Color.Black,
                 Font = fuenteSub,
                 AutoSize = true,
@@ -63,7 +63,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             lblInstancia = new Label
             {
-                Text = IdiomaManager_GV42.T("instalacion.instancia"),
+                Text = IdiomaManager_GO44.T("instalacion.instancia"),
                 ForeColor = azulOscuro,
                 Font = fuenteBase,
                 AutoSize = true,
@@ -80,7 +80,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             btnDetectar = new Button
             {
-                Text = IdiomaManager_GV42.T("instalacion.btnDetectar"),
+                Text = IdiomaManager_GO44.T("instalacion.btnDetectar"),
                 Location = new Point(430, 121),
                 Size = new Size(95, 30),
                 BackColor = Color.White,
@@ -103,7 +103,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             btnContinuar = new Button
             {
-                Text = IdiomaManager_GV42.T("instalacion.btnContinuar"),
+                Text = IdiomaManager_GO44.T("instalacion.btnContinuar"),
                 Location = new Point(320, 235),
                 Size = new Size(115, 35),
                 BackColor = azulOscuro,
@@ -116,7 +116,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             btnCancelar = new Button
             {
-                Text = IdiomaManager_GV42.T("instalacion.btnCancelar"),
+                Text = IdiomaManager_GO44.T("instalacion.btnCancelar"),
                 Location = new Point(445, 235),
                 Size = new Size(80, 35),
                 BackColor = Color.White,
@@ -137,24 +137,24 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void RecargarLista()
         {
-            lblEstado.Text = IdiomaManager_GV42.T("instalacion.detectando");
+            lblEstado.Text = IdiomaManager_GO44.T("instalacion.detectando");
             Application.DoEvents();
 
-            List<string> instancias = DetectorInstancias_GV42.DetectarInstancias();
+            List<string> instancias = DetectorInstancias_GO44.DetectarInstancias();
 
             cboInstancias.Items.Clear();
             foreach (var i in instancias) cboInstancias.Items.Add(i);
             if (cboInstancias.Items.Count > 0) cboInstancias.SelectedIndex = 0;
 
-            lblEstado.Text = string.Format(IdiomaManager_GV42.T("instalacion.detectadas"), instancias.Count);
+            lblEstado.Text = string.Format(IdiomaManager_GO44.T("instalacion.detectadas"), instancias.Count);
         }
 
         private void BtnContinuar_Click(object sender, EventArgs e)
         {
             if (cboInstancias.SelectedItem == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("instalacion.elegirInstancia"),
-                    IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("instalacion.elegirInstancia"),
+                    IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -168,25 +168,25 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             try
             {
-                lblEstado.Text = IdiomaManager_GV42.T("instalacion.verificando");
+                lblEstado.Text = IdiomaManager_GO44.T("instalacion.verificando");
                 Application.DoEvents();
 
-                bool existe = BLLInstalador_GV42.ExisteBaseDatos(instancia);
+                bool existe = BLLInstalador_GO44.ExisteBaseDatos(instancia);
 
                 if (!existe)
                 {
-                    lblEstado.Text = IdiomaManager_GV42.T("instalacion.instalando");
+                    lblEstado.Text = IdiomaManager_GO44.T("instalacion.instalando");
                     Application.DoEvents();
 
-                    BLLInstalador_GV42.InstalarBaseDatos(instancia);
+                    BLLInstalador_GO44.InstalarBaseDatos(instancia);
 
                     MessageBox.Show(
-                        IdiomaManager_GV42.T("instalacion.exitoMensaje"),
-                        IdiomaManager_GV42.T("instalacion.exitoTitulo"),
+                        IdiomaManager_GO44.T("instalacion.exitoMensaje"),
+                        IdiomaManager_GO44.T("instalacion.exitoTitulo"),
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                ConfiguracionBD_GV42.GuardarInstancia(instancia);
+                ConfiguracionBD_GO44.GuardarInstancia(instancia);
                 InstanciaElegida = instancia;
                 this.DialogResult = DialogResult.OK;
                 this.Close();
@@ -194,10 +194,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    IdiomaManager_GV42.T("instalacion.errorMensaje") + "\n\n" + ex.Message,
-                    IdiomaManager_GV42.T("general.error"),
+                    IdiomaManager_GO44.T("instalacion.errorMensaje") + "\n\n" + ex.Message,
+                    IdiomaManager_GO44.T("general.error"),
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
-                lblEstado.Text = IdiomaManager_GV42.T("instalacion.error");
+                lblEstado.Text = IdiomaManager_GO44.T("instalacion.error");
             }
             finally
             {

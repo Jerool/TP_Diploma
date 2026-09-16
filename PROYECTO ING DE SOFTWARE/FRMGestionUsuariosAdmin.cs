@@ -13,21 +13,21 @@ using BLL;
 namespace PROYECTO_ING_DE_SOFTWARE
 {
 
-    public partial class FRMGestionUsuariosAdmin : Form, IObservadorIdioma_GV42
+    public partial class FRMGestionUsuariosAdmin : Form, IObservadorIdioma_GO44
     {
-        private readonly BLLUsuario_GV42 _bll;
+        private readonly BLLUsuario_GO44 _bll;
 
         private string _modo = "Consulta";
 
-        private Usuario_GV42 _usuarioSeleccionado = null;
+        private Usuario_GO44 _usuarioSeleccionado = null;
 
         public FRMGestionUsuariosAdmin()
         {
             InitializeComponent();
-            _bll = new BLLUsuario_GV42();
+            _bll = new BLLUsuario_GO44();
 
-            IdiomaManager_GV42.Instancia.Suscribir(this);
-            this.FormClosed += (s, e) => IdiomaManager_GV42.Instancia.Desuscribir(this);
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
 
             ActualizarIdioma();
             AplicarPermisos();
@@ -36,11 +36,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void AplicarPermisos()
         {
-            Usuario_GV42 actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             if (actual == null || actual.Rol == null) return;
 
-            var bllPermisos = new BLLPermisos_GV42();
-            Rol_GV42 rolCompleto = bllPermisos.ObtenerArbolRol(actual.Rol.Id);
+            var bllPermisos = new BLLPermisos_GO44();
+            Rol_GO44 rolCompleto = bllPermisos.ObtenerArbolRol(actual.Rol.Id);
             if (rolCompleto == null) return;
 
             if (btnCrear != null)
@@ -55,27 +55,27 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         public void ActualizarIdioma()
         {
-            this.Text = IdiomaManager_GV42.T("usuarios.titulo");
+            this.Text = IdiomaManager_GO44.T("usuarios.titulo");
 
-            if (label1 != null) label1.Text = IdiomaManager_GV42.T("usuarios.dni");
-            if (label2 != null) label2.Text = IdiomaManager_GV42.T("usuarios.apellido");
-            if (label3 != null) label3.Text = IdiomaManager_GV42.T("usuarios.nombre");
-            if (label4 != null) label4.Text = IdiomaManager_GV42.T("usuarios.email");
-            if (label5 != null) label5.Text = IdiomaManager_GV42.T("usuarios.rol");
-            if (label6 != null) label6.Text = IdiomaManager_GV42.T("usuarios.userName");
-            if (label7 != null) label7.Text = IdiomaManager_GV42.T("usuarios.bloqueado");
-            if (label8 != null) label8.Text = IdiomaManager_GV42.T("usuarios.activo");
+            if (label1 != null) label1.Text = IdiomaManager_GO44.T("usuarios.dni");
+            if (label2 != null) label2.Text = IdiomaManager_GO44.T("usuarios.apellido");
+            if (label3 != null) label3.Text = IdiomaManager_GO44.T("usuarios.nombre");
+            if (label4 != null) label4.Text = IdiomaManager_GO44.T("usuarios.email");
+            if (label5 != null) label5.Text = IdiomaManager_GO44.T("usuarios.rol");
+            if (label6 != null) label6.Text = IdiomaManager_GO44.T("usuarios.userName");
+            if (label7 != null) label7.Text = IdiomaManager_GO44.T("usuarios.bloqueado");
+            if (label8 != null) label8.Text = IdiomaManager_GO44.T("usuarios.activo");
 
-            if (btnCrear != null) btnCrear.Text = IdiomaManager_GV42.T("usuarios.crear");
-            if (btnModificar != null) btnModificar.Text = IdiomaManager_GV42.T("usuarios.modificar");
-            if (btnDesbloquear != null) btnDesbloquear.Text = IdiomaManager_GV42.T("usuarios.desbloquear");
-            if (btnActivarDesactivar != null) btnActivarDesactivar.Text = IdiomaManager_GV42.T("usuarios.activarDesactivar");
-            if (btnAplicar != null) btnAplicar.Text = IdiomaManager_GV42.T("usuarios.aplicar");
-            if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GV42.T("usuarios.cancelar");
-            if (btnSalir != null) btnSalir.Text = IdiomaManager_GV42.T("usuarios.salir");
+            if (btnCrear != null) btnCrear.Text = IdiomaManager_GO44.T("usuarios.crear");
+            if (btnModificar != null) btnModificar.Text = IdiomaManager_GO44.T("usuarios.modificar");
+            if (btnDesbloquear != null) btnDesbloquear.Text = IdiomaManager_GO44.T("usuarios.desbloquear");
+            if (btnActivarDesactivar != null) btnActivarDesactivar.Text = IdiomaManager_GO44.T("usuarios.activarDesactivar");
+            if (btnAplicar != null) btnAplicar.Text = IdiomaManager_GO44.T("usuarios.aplicar");
+            if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GO44.T("usuarios.cancelar");
+            if (btnSalir != null) btnSalir.Text = IdiomaManager_GO44.T("usuarios.salir");
 
-            if (rbActivos != null) rbActivos.Text = IdiomaManager_GV42.T("usuarios.activos");
-            if (rbTodos != null) rbTodos.Text = IdiomaManager_GV42.T("usuarios.todos");
+            if (rbActivos != null) rbActivos.Text = IdiomaManager_GO44.T("usuarios.activos");
+            if (rbTodos != null) rbTodos.Text = IdiomaManager_GO44.T("usuarios.todos");
 
             if (lblMensaje != null) lblMensaje.Text = TraducirModo(_modo);
 
@@ -84,7 +84,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private string TraducirModo(string modo)
         {
-            string etiquetaModo = IdiomaManager_GV42.T("usuarios.modo");
+            string etiquetaModo = IdiomaManager_GO44.T("usuarios.modo");
             return etiquetaModo + " " + modo;
         }
 
@@ -123,7 +123,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void CargarGrilla(bool soloActivos)
         {
-            List<Usuario_GV42> lista = soloActivos ? _bll.ListarActivos() : _bll.ListarTodos();
+            List<Usuario_GO44> lista = soloActivos ? _bll.ListarActivos() : _bll.ListarTodos();
             dgvUsuarios.DataSource = null;
             dgvUsuarios.DataSource = lista;
 
@@ -149,21 +149,21 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     dgvUsuarios.Columns[col].Visible = false;
 
             if (dgvUsuarios.Columns.Contains("DNI"))
-                dgvUsuarios.Columns["DNI"].HeaderText = IdiomaManager_GV42.T("usuarios.dni");
+                dgvUsuarios.Columns["DNI"].HeaderText = IdiomaManager_GO44.T("usuarios.dni");
             if (dgvUsuarios.Columns.Contains("Apellido"))
-                dgvUsuarios.Columns["Apellido"].HeaderText = IdiomaManager_GV42.T("usuarios.apellido");
+                dgvUsuarios.Columns["Apellido"].HeaderText = IdiomaManager_GO44.T("usuarios.apellido");
             if (dgvUsuarios.Columns.Contains("Nombre"))
-                dgvUsuarios.Columns["Nombre"].HeaderText = IdiomaManager_GV42.T("usuarios.nombre");
+                dgvUsuarios.Columns["Nombre"].HeaderText = IdiomaManager_GO44.T("usuarios.nombre");
             if (dgvUsuarios.Columns.Contains("Login"))
-                dgvUsuarios.Columns["Login"].HeaderText = IdiomaManager_GV42.T("usuarios.login");
+                dgvUsuarios.Columns["Login"].HeaderText = IdiomaManager_GO44.T("usuarios.login");
             if (dgvUsuarios.Columns.Contains("RolNombre"))
-                dgvUsuarios.Columns["RolNombre"].HeaderText = IdiomaManager_GV42.T("usuarios.rol");
+                dgvUsuarios.Columns["RolNombre"].HeaderText = IdiomaManager_GO44.T("usuarios.rol");
             if (dgvUsuarios.Columns.Contains("Email"))
-                dgvUsuarios.Columns["Email"].HeaderText = IdiomaManager_GV42.T("usuarios.email");
+                dgvUsuarios.Columns["Email"].HeaderText = IdiomaManager_GO44.T("usuarios.email");
             if (dgvUsuarios.Columns.Contains("Bloqueo"))
-                dgvUsuarios.Columns["Bloqueo"].HeaderText = IdiomaManager_GV42.T("usuarios.bloqueado");
+                dgvUsuarios.Columns["Bloqueo"].HeaderText = IdiomaManager_GO44.T("usuarios.bloqueado");
             if (dgvUsuarios.Columns.Contains("Activo"))
-                dgvUsuarios.Columns["Activo"].HeaderText = IdiomaManager_GV42.T("usuarios.activo");
+                dgvUsuarios.Columns["Activo"].HeaderText = IdiomaManager_GO44.T("usuarios.activo");
         }
 
         private void ModoConsulta()
@@ -248,11 +248,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             bool nuevoEstado = !_usuarioSeleccionado.Activo;
 
-            Usuario_GV42 actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             if (actual != null && _usuarioSeleccionado.Login == actual.Login)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.noAutoDesactivar"),
-                                IdiomaManager_GV42.T("general.accionNoPermitida"),
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.noAutoDesactivar"),
+                                IdiomaManager_GO44.T("general.accionNoPermitida"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 ModoConsulta();
                 CargarGrilla(rbActivos.Checked);
@@ -261,8 +261,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             _bll.ActivarDesactivar(_usuarioSeleccionado.DNI, nuevoEstado);
             string claveMsj = nuevoEstado ? "usuarios.usuarioActivado" : "usuarios.usuarioDesactivado";
-            MessageBox.Show(string.Format(IdiomaManager_GV42.T(claveMsj), _usuarioSeleccionado.Login),
-                            IdiomaManager_GV42.T("general.exito"),
+            MessageBox.Show(string.Format(IdiomaManager_GO44.T(claveMsj), _usuarioSeleccionado.Login),
+                            IdiomaManager_GO44.T("general.exito"),
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
             ModoConsulta();
             CargarGrilla(rbActivos.Checked);
@@ -272,15 +272,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_usuarioSeleccionado.Bloqueo == false)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.usuarioYaDesbloqueado"),
-                                IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.usuarioYaDesbloqueado"),
+                                IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             _bll.Desbloquear(_usuarioSeleccionado.DNI, _usuarioSeleccionado.Login);
-            MessageBox.Show(string.Format(IdiomaManager_GV42.T("usuarios.usuarioDesbloqueado"), _usuarioSeleccionado.Login),
-                            IdiomaManager_GV42.T("general.exito"),
+            MessageBox.Show(string.Format(IdiomaManager_GO44.T("usuarios.usuarioDesbloqueado"), _usuarioSeleccionado.Login),
+                            IdiomaManager_GO44.T("general.exito"),
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
             ModoConsulta();
             CargarGrilla(rbActivos.Checked);
@@ -289,20 +289,20 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void Modificar()
         {
             string email = txtEmail.Text.Trim();
-            Rol_GV42 rol = comboBox1.SelectedItem as Rol_GV42;
+            Rol_GO44 rol = comboBox1.SelectedItem as Rol_GO44;
 
-            if (!Validaciones_GV42.EsEmailValido(email))
+            if (!Validaciones_GO44.EsEmailValido(email))
             {
-                MessageBox.Show(Validaciones_GV42.MENSAJE_EMAIL,
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL,
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtEmail.Focus();
                 return;
             }
             if (rol == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.rolVacio"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.rolVacio"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -313,8 +313,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (_usuarioSeleccionado.Rol == null || rol.Id != _usuarioSeleccionado.Rol.Id)
                 _bll.ModificarRol(_usuarioSeleccionado.DNI, rol);
 
-            MessageBox.Show(IdiomaManager_GV42.T("usuarios.confirmarModificado"),
-                            IdiomaManager_GV42.T("general.exito"),
+            MessageBox.Show(IdiomaManager_GO44.T("usuarios.confirmarModificado"),
+                            IdiomaManager_GO44.T("general.exito"),
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
             ModoConsulta();
             CargarGrilla(rbActivos.Checked);
@@ -326,42 +326,42 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string apellido = txtApellido.Text.Trim();
             string nombre = txtNombre.Text.Trim();
             string email = txtEmail.Text.Trim();
-            Rol_GV42 rol = comboBox1.SelectedItem as Rol_GV42;
+            Rol_GO44 rol = comboBox1.SelectedItem as Rol_GO44;
 
             if (string.IsNullOrEmpty(dni) || string.IsNullOrEmpty(apellido) ||string.IsNullOrEmpty(nombre) || string.IsNullOrEmpty(email) ||rol == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("general.completarCampos"),IdiomaManager_GV42.T("general.advertencia"),MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("general.completarCampos"),IdiomaManager_GO44.T("general.advertencia"),MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (!Validaciones_GV42.EsDniValido(dni))
+            if (!Validaciones_GO44.EsDniValido(dni))
             {
-                MessageBox.Show(Validaciones_GV42.MENSAJE_DNI,
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI,
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtDni.Focus();
                 return;
             }
 
-            if (!Validaciones_GV42.EsApellidoValido(apellido))
+            if (!Validaciones_GO44.EsApellidoValido(apellido))
             {
-                MessageBox.Show(Validaciones_GV42.MENSAJE_APELLIDO,IdiomaManager_GV42.T("general.advertencia"),MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Validaciones_GO44.MENSAJE_APELLIDO,IdiomaManager_GO44.T("general.advertencia"),MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtApellido.Focus();
                 return;
             }
-            if (!Validaciones_GV42.EsNombreValido(nombre))
+            if (!Validaciones_GO44.EsNombreValido(nombre))
             {
-                MessageBox.Show(Validaciones_GV42.MENSAJE_NOMBRE,
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(Validaciones_GO44.MENSAJE_NOMBRE,
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtNombre.Focus();
                 return;
             }
 
-            if (!Validaciones_GV42.EsEmailValido(email))
+            if (!Validaciones_GO44.EsEmailValido(email))
             {
-                MessageBox.Show(Validaciones_GV42.MENSAJE_EMAIL,
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL,
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtEmail.Focus();
                 return;
@@ -369,8 +369,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             if (_bll.ExisteDNI(dni))
             {
-                MessageBox.Show($"{IdiomaManager_GV42.T("usuarios.dniDuplicado")} '{dni}'.",
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show($"{IdiomaManager_GO44.T("usuarios.dniDuplicado")} '{dni}'.",
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtDni.Focus();
                 return;
@@ -380,16 +380,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 _bll.CrearUsuario(dni, apellido, nombre, email, rol);
 
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.confirmarCreado"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.confirmarCreado"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ModoConsulta();
                 CargarGrilla(rbActivos.Checked);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.errorCrear") + "\n\n" + ex.Message,
-                                IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.errorCrear") + "\n\n" + ex.Message,
+                                IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -398,7 +398,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvUsuarios.CurrentRow == null) return;
 
-            _usuarioSeleccionado = dgvUsuarios.CurrentRow.DataBoundItem as Usuario_GV42;
+            _usuarioSeleccionado = dgvUsuarios.CurrentRow.DataBoundItem as Usuario_GO44;
             if (_usuarioSeleccionado == null) return;
 
             txtDni.Text = _usuarioSeleccionado.DNI;
@@ -411,13 +411,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             txtActivo.Text = _usuarioSeleccionado.Activo ? "Sí" : "No";
         }
 
-        private void SeleccionarRolEnCombo(Rol_GV42 rol)
+        private void SeleccionarRolEnCombo(Rol_GO44 rol)
         {
             if (rol == null) { comboBox1.SelectedIndex = -1; return; }
 
             for (int i = 0; i < comboBox1.Items.Count; i++)
             {
-                Rol_GV42 r = comboBox1.Items[i] as Rol_GV42;
+                Rol_GO44 r = comboBox1.Items[i] as Rol_GO44;
                 if (r != null && r.Id == rol.Id)
                 {
                     comboBox1.SelectedIndex = i;
@@ -452,8 +452,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_usuarioSeleccionado == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.seleccionarUsuario"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.seleccionarUsuario"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -466,7 +466,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_usuarioSeleccionado == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.seleccionarUsuario"),IdiomaManager_GV42.T("general.advertencia"),MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.seleccionarUsuario"),IdiomaManager_GO44.T("general.advertencia"),MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -481,8 +481,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_usuarioSeleccionado == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("usuarios.seleccionarUsuario"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("usuarios.seleccionarUsuario"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }

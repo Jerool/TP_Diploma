@@ -9,9 +9,9 @@ using System.Windows.Forms;
 namespace PROYECTO_ING_DE_SOFTWARE
 {
 
-    public partial class FRMGestionPermisos : Form, IObservadorIdioma_GV42
+    public partial class FRMGestionPermisos : Form, IObservadorIdioma_GO44
     {
-        private readonly BLLPermisos_GV42 _bll;
+        private readonly BLLPermisos_GO44 _bll;
 
         private string _modoFamilia = "Crear";
         private int _idFamiliaEdicion = 0;
@@ -22,10 +22,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
         public FRMGestionPermisos()
         {
             InitializeComponent();
-            _bll = new BLLPermisos_GV42();
+            _bll = new BLLPermisos_GO44();
 
-            IdiomaManager_GV42.Instancia.Suscribir(this);
-            this.FormClosed += (s, e) => IdiomaManager_GV42.Instancia.Desuscribir(this);
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
 
             AplicarEstilos();
         }
@@ -175,10 +175,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void AplicarPermisosTabs()
         {
-            Usuario_GV42 actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             if (actual == null || actual.Rol == null) return;
 
-            Rol_GV42 rolCompleto = _bll.ObtenerArbolRol(actual.Rol.Id);
+            Rol_GO44 rolCompleto = _bll.ObtenerArbolRol(actual.Rol.Id);
             if (rolCompleto == null) return;
 
             var dataKeys = rolCompleto.ObtenerPatentes()
@@ -207,7 +207,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void CargarPatentes()
         {
-            List<Patente_GV42> patentes = _bll.ListarPatentes();
+            List<Patente_GO44> patentes = _bll.ListarPatentes();
 
             foreach (var p in patentes)
                 p.Nombre = TraducirNombrePatente(p);
@@ -229,37 +229,37 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
         }
 
-        private string TraducirNombrePatente(Patente_GV42 p)
+        private string TraducirNombrePatente(Patente_GO44 p)
         {
             if (p == null || string.IsNullOrEmpty(p.DataKey)) return p?.Nombre ?? string.Empty;
             string clave = "patente." + p.DataKey;
-            string traducido = IdiomaManager_GV42.T(clave);
+            string traducido = IdiomaManager_GO44.T(clave);
             return traducido == clave ? p.Nombre : traducido;
         }
 
         private void AplicarHeadersPatentes()
         {
             if (dgvPatentes.Columns.Contains("Nombre"))
-                dgvPatentes.Columns["Nombre"].HeaderText = IdiomaManager_GV42.T("permisos.colNombre");
+                dgvPatentes.Columns["Nombre"].HeaderText = IdiomaManager_GO44.T("permisos.colNombre");
             if (dgvPatentes.Columns.Contains("DataKey"))
-                dgvPatentes.Columns["DataKey"].HeaderText = IdiomaManager_GV42.T("permisos.colDataKey");
+                dgvPatentes.Columns["DataKey"].HeaderText = IdiomaManager_GO44.T("permisos.colDataKey");
         }
 
         private void AplicarHeadersFamilias()
         {
             if (dgvFamilias.Columns.Contains("Nombre"))
-                dgvFamilias.Columns["Nombre"].HeaderText = IdiomaManager_GV42.T("permisos.colNombre");
+                dgvFamilias.Columns["Nombre"].HeaderText = IdiomaManager_GO44.T("permisos.colNombre");
         }
 
         private void AplicarHeadersRoles()
         {
             if (dgvRoles.Columns.Contains("Nombre"))
-                dgvRoles.Columns["Nombre"].HeaderText = IdiomaManager_GV42.T("permisos.colNombre");
+                dgvRoles.Columns["Nombre"].HeaderText = IdiomaManager_GO44.T("permisos.colNombre");
         }
 
         private void CargarFamilias()
         {
-            List<Familia_GV42> familias = _bll.ListarFamilias();
+            List<Familia_GO44> familias = _bll.ListarFamilias();
 
             dgvFamilias.DataSource = null;
             dgvFamilias.DataSource = familias;
@@ -280,7 +280,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void CargarRoles()
         {
-            List<Rol_GV42> roles = _bll.ListarRoles();
+            List<Rol_GO44> roles = _bll.ListarRoles();
             dgvRoles.DataSource = null;
             dgvRoles.DataSource = roles;
             if (dgvRoles.Columns.Contains("Id"))
@@ -309,28 +309,28 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string nombre = txtNombreFamilia.Text.Trim();
             if (string.IsNullOrEmpty(nombre))
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.ingresaNombreFamilia"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.ingresaNombreFamilia"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtNombreFamilia.Focus();
                 return;
             }
 
-            List<int> idsPatentes    = clbPatentesFamilia.CheckedItems.Cast<Patente_GV42>().Select(p => p.Id).ToList();
-            List<int> idsSubfamilias = clbSubfamilias.CheckedItems.Cast<Familia_GV42>().Select(f => f.Id).ToList();
+            List<int> idsPatentes    = clbPatentesFamilia.CheckedItems.Cast<Patente_GO44>().Select(p => p.Id).ToList();
+            List<int> idsSubfamilias = clbSubfamilias.CheckedItems.Cast<Familia_GO44>().Select(f => f.Id).ToList();
 
             try
             {
                 _bll.CrearFamilia(nombre, idsPatentes, idsSubfamilias);
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.familiaCreada"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.familiaCreada"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 VolverAModoCrearFamilia();
                 RecargarTodo();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(ex.Message, IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -340,55 +340,55 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string nombre = txtNombreFamilia.Text.Trim();
             if (string.IsNullOrEmpty(nombre))
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.ingresaNombreFamilia"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.ingresaNombreFamilia"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtNombreFamilia.Focus();
                 return;
             }
 
-            List<int> idsPatentes    = clbPatentesFamilia.CheckedItems.Cast<Patente_GV42>().Select(p => p.Id).ToList();
-            List<int> idsSubfamilias = clbSubfamilias.CheckedItems.Cast<Familia_GV42>().Select(f => f.Id).ToList();
+            List<int> idsPatentes    = clbPatentesFamilia.CheckedItems.Cast<Patente_GO44>().Select(p => p.Id).ToList();
+            List<int> idsSubfamilias = clbSubfamilias.CheckedItems.Cast<Familia_GO44>().Select(f => f.Id).ToList();
 
             try
             {
                 _bll.ModificarFamilia(_idFamiliaEdicion, nombre, idsPatentes, idsSubfamilias);
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.familiaModificada"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.familiaModificada"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 VolverAModoCrearFamilia();
                 RecargarTodo();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(ex.Message, IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void EliminarFamilia()
         {
-            Familia_GV42 fam = dgvFamilias.CurrentRow?.DataBoundItem as Familia_GV42;
+            Familia_GO44 fam = dgvFamilias.CurrentRow?.DataBoundItem as Familia_GO44;
             if (fam == null) return;
 
             DialogResult r = MessageBox.Show(
-                $"{IdiomaManager_GV42.T("permisos.confirmEliminarFamilia")} '{fam.Nombre}'?",
-                IdiomaManager_GV42.T("permisos.tituloEliminar"),
+                $"{IdiomaManager_GO44.T("permisos.confirmEliminarFamilia")} '{fam.Nombre}'?",
+                IdiomaManager_GO44.T("permisos.tituloEliminar"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) { VolverAModoCrearFamilia(); return; }
 
             try
             {
                 _bll.EliminarFamilia(fam.Id);
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.familiaEliminada"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.familiaEliminada"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 VolverAModoCrearFamilia();
                 RecargarTodo();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, IdiomaManager_GV42.T("permisos.noSePuedeEliminar"),
+                MessageBox.Show(ex.Message, IdiomaManager_GO44.T("permisos.noSePuedeEliminar"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -397,31 +397,31 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvFamilias.CurrentRow == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.seleccioneFamilia"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.seleccioneFamilia"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            Familia_GV42 fam = dgvFamilias.CurrentRow.DataBoundItem as Familia_GV42;
+            Familia_GO44 fam = dgvFamilias.CurrentRow.DataBoundItem as Familia_GO44;
             if (fam == null) return;
 
-            Familia_GV42 arbol = _bll.ObtenerArbolFamilia(fam.Id);
+            Familia_GO44 arbol = _bll.ObtenerArbolFamilia(fam.Id);
             if (arbol == null) return;
 
             txtNombreFamilia.Text = arbol.Nombre;
 
-            HashSet<int> idsPat = new HashSet<int>(arbol.Hijos.OfType<Patente_GV42>().Select(p => p.Id));
-            HashSet<int> idsSub = new HashSet<int>(arbol.Hijos.OfType<Familia_GV42>().Select(f => f.Id));
+            HashSet<int> idsPat = new HashSet<int>(arbol.Hijos.OfType<Patente_GO44>().Select(p => p.Id));
+            HashSet<int> idsSub = new HashSet<int>(arbol.Hijos.OfType<Familia_GO44>().Select(f => f.Id));
 
             for (int i = 0; i < clbPatentesFamilia.Items.Count; i++)
             {
-                var p = (Patente_GV42)clbPatentesFamilia.Items[i];
+                var p = (Patente_GO44)clbPatentesFamilia.Items[i];
                 clbPatentesFamilia.SetItemChecked(i, idsPat.Contains(p.Id));
             }
             for (int i = 0; i < clbSubfamilias.Items.Count; i++)
             {
-                var f = (Familia_GV42)clbSubfamilias.Items[i];
+                var f = (Familia_GO44)clbSubfamilias.Items[i];
                 clbSubfamilias.SetItemChecked(i, idsSub.Contains(f.Id));
             }
 
@@ -432,12 +432,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvFamilias.CurrentRow == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.seleccioneFamilia"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.seleccioneFamilia"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            EntrarAModoFamilia("Eliminar", ((Familia_GV42)dgvFamilias.CurrentRow.DataBoundItem).Id);
+            EntrarAModoFamilia("Eliminar", ((Familia_GO44)dgvFamilias.CurrentRow.DataBoundItem).Id);
         }
 
         private void btnLimpiarFamilia_Click(object sender, EventArgs e)
@@ -452,12 +452,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
             btnEliminarFamilia.Enabled = false;
             btnModificarFamilia.Enabled = false;
             dgvFamilias.Enabled = false;
-            btnLimpiarFamilia.Text = IdiomaManager_GV42.T("general.cancelar");
+            btnLimpiarFamilia.Text = IdiomaManager_GO44.T("general.cancelar");
             gbCrearFamilia.Text = modo == "Modificar"
-                ? $"{IdiomaManager_GV42.T("permisos.editandoFamilia")} {txtNombreFamilia.Text}"
+                ? $"{IdiomaManager_GO44.T("permisos.editandoFamilia")} {txtNombreFamilia.Text}"
                 : (modo == "Eliminar"
-                    ? IdiomaManager_GV42.T("permisos.confirmarEliminacion")
-                    : IdiomaManager_GV42.T("permisos.crearFamilia"));
+                    ? IdiomaManager_GO44.T("permisos.confirmarEliminacion")
+                    : IdiomaManager_GO44.T("permisos.crearFamilia"));
         }
 
         private void VolverAModoCrearFamilia()
@@ -470,8 +470,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             btnEliminarFamilia.Enabled = true;
             btnModificarFamilia.Enabled = true;
             dgvFamilias.Enabled = true;
-            btnLimpiarFamilia.Text = IdiomaManager_GV42.T("permisos.limpiar");
-            gbCrearFamilia.Text = IdiomaManager_GV42.T("permisos.crearFamilia");
+            btnLimpiarFamilia.Text = IdiomaManager_GO44.T("permisos.limpiar");
+            gbCrearFamilia.Text = IdiomaManager_GO44.T("permisos.crearFamilia");
         }
 
 
@@ -491,28 +491,28 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string nombre = txtNombreRol.Text.Trim();
             if (string.IsNullOrEmpty(nombre))
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.ingresaNombreRol"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.ingresaNombreRol"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtNombreRol.Focus();
                 return;
             }
 
-            List<int> idsPatentes = clbPatentesRol.CheckedItems.Cast<Patente_GV42>().Select(p => p.Id).ToList();
-            List<int> idsFamilias = clbFamiliasRol.CheckedItems.Cast<Familia_GV42>().Select(f => f.Id).ToList();
+            List<int> idsPatentes = clbPatentesRol.CheckedItems.Cast<Patente_GO44>().Select(p => p.Id).ToList();
+            List<int> idsFamilias = clbFamiliasRol.CheckedItems.Cast<Familia_GO44>().Select(f => f.Id).ToList();
 
             try
             {
                 _bll.CrearRol(nombre, idsPatentes, idsFamilias);
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.rolCreado"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.rolCreado"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 VolverAModoCrearRol();
                 RecargarTodo();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(ex.Message, IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -522,15 +522,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string nombre = txtNombreRol.Text.Trim();
             if (string.IsNullOrEmpty(nombre))
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.ingresaNombreRol"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.ingresaNombreRol"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtNombreRol.Focus();
                 return;
             }
 
-            List<int> idsPatentes = clbPatentesRol.CheckedItems.Cast<Patente_GV42>().Select(p => p.Id).ToList();
-            List<int> idsFamilias = clbFamiliasRol.CheckedItems.Cast<Familia_GV42>().Select(f => f.Id).ToList();
+            List<int> idsPatentes = clbPatentesRol.CheckedItems.Cast<Patente_GO44>().Select(p => p.Id).ToList();
+            List<int> idsFamilias = clbFamiliasRol.CheckedItems.Cast<Familia_GO44>().Select(f => f.Id).ToList();
 
             try
             {
@@ -542,33 +542,33 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     return;
                 }
 
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.rolModificado"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.rolModificado"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 VolverAModoCrearRol();
                 RecargarTodo();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, IdiomaManager_GV42.T("general.error"),
+                MessageBox.Show(ex.Message, IdiomaManager_GO44.T("general.error"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private bool EsRolDelUsuarioActual(int idRol)
         {
-            Usuario_GV42 actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             return actual != null && actual.Rol != null && actual.Rol.Id == idRol;
         }
 
         private void ForzarReloginPorCambioDePropioRol()
         {
             MessageBox.Show(
-                IdiomaManager_GV42.T("permisos.mensajeRolPropio"),
-                IdiomaManager_GV42.T("permisos.tituloRolPropio"),
+                IdiomaManager_GO44.T("permisos.mensajeRolPropio"),
+                IdiomaManager_GO44.T("permisos.tituloRolPropio"),
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            BLLUsuario_GV42.CerrarSesión();
+            BLLUsuario_GO44.CerrarSesión();
 
             var login = new FRMIniciarSesion();
             login.Show();
@@ -582,27 +582,27 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void EliminarRol()
         {
-            Rol_GV42 rol = dgvRoles.CurrentRow?.DataBoundItem as Rol_GV42;
+            Rol_GO44 rol = dgvRoles.CurrentRow?.DataBoundItem as Rol_GO44;
             if (rol == null) return;
 
             DialogResult r = MessageBox.Show(
-                $"{IdiomaManager_GV42.T("permisos.confirmEliminarRol")} '{rol.Nombre}'?",
-                IdiomaManager_GV42.T("permisos.tituloEliminar"),
+                $"{IdiomaManager_GO44.T("permisos.confirmEliminarRol")} '{rol.Nombre}'?",
+                IdiomaManager_GO44.T("permisos.tituloEliminar"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) { VolverAModoCrearRol(); return; }
 
             try
             {
                 _bll.EliminarRol(rol.Id);
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.rolEliminado"),
-                                IdiomaManager_GV42.T("general.exito"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.rolEliminado"),
+                                IdiomaManager_GO44.T("general.exito"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 VolverAModoCrearRol();
                 RecargarTodo();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, IdiomaManager_GV42.T("permisos.noSePuedeEliminar"),
+                MessageBox.Show(ex.Message, IdiomaManager_GO44.T("permisos.noSePuedeEliminar"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -613,12 +613,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvRoles.CurrentRow == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.seleccioneRol"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.seleccioneRol"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            EntrarAModoRol("Eliminar", ((Rol_GV42)dgvRoles.CurrentRow.DataBoundItem).Id);
+            EntrarAModoRol("Eliminar", ((Rol_GO44)dgvRoles.CurrentRow.DataBoundItem).Id);
         }
 
         private void btnLimpiarRol_Click(object sender, EventArgs e)
@@ -634,12 +634,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
             btnEliminarRol.Enabled = false;
             btnModificarRol.Enabled = false;
             dgvRoles.Enabled = false;
-            btnLimpiarRol.Text = IdiomaManager_GV42.T("general.cancelar");
+            btnLimpiarRol.Text = IdiomaManager_GO44.T("general.cancelar");
             gbCrearRol.Text = modo == "Modificar"
-                ? $"{IdiomaManager_GV42.T("permisos.editandoRol")} {txtNombreRol.Text}"
+                ? $"{IdiomaManager_GO44.T("permisos.editandoRol")} {txtNombreRol.Text}"
                 : (modo == "Eliminar"
-                    ? IdiomaManager_GV42.T("permisos.confirmarEliminacion")
-                    : IdiomaManager_GV42.T("permisos.crearRol"));
+                    ? IdiomaManager_GO44.T("permisos.confirmarEliminacion")
+                    : IdiomaManager_GO44.T("permisos.crearRol"));
         }
 
         private void VolverAModoCrearRol()
@@ -652,8 +652,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             btnEliminarRol.Enabled = true;
             btnModificarRol.Enabled = true;
             dgvRoles.Enabled = true;
-            btnLimpiarRol.Text = IdiomaManager_GV42.T("permisos.limpiar");
-            gbCrearRol.Text = IdiomaManager_GV42.T("permisos.crearRol");
+            btnLimpiarRol.Text = IdiomaManager_GO44.T("permisos.limpiar");
+            gbCrearRol.Text = IdiomaManager_GO44.T("permisos.crearRol");
         }
 
 
@@ -685,33 +685,33 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         public void ActualizarIdioma()
         {
-            this.Text = IdiomaManager_GV42.T("permisos.titulo");
+            this.Text = IdiomaManager_GO44.T("permisos.titulo");
 
-            if (tabPatentes != null) tabPatentes.Text = IdiomaManager_GV42.T("permisos.tabPatentes");
-            if (tabFamilias != null) tabFamilias.Text = IdiomaManager_GV42.T("permisos.tabFamilias");
-            if (tabRoles != null) tabRoles.Text = IdiomaManager_GV42.T("permisos.tabRoles");
+            if (tabPatentes != null) tabPatentes.Text = IdiomaManager_GO44.T("permisos.tabPatentes");
+            if (tabFamilias != null) tabFamilias.Text = IdiomaManager_GO44.T("permisos.tabFamilias");
+            if (tabRoles != null) tabRoles.Text = IdiomaManager_GO44.T("permisos.tabRoles");
 
-            if (lblTitPatentes != null) lblTitPatentes.Text = IdiomaManager_GV42.T("permisos.titPatentes");
+            if (lblTitPatentes != null) lblTitPatentes.Text = IdiomaManager_GO44.T("permisos.titPatentes");
 
-            if (lblTitFamilias != null) lblTitFamilias.Text = IdiomaManager_GV42.T("permisos.titFamilias");
-            if (btnModificarFamilia != null) btnModificarFamilia.Text = IdiomaManager_GV42.T("permisos.modificarFamilia");
-            if (btnEliminarFamilia != null) btnEliminarFamilia.Text = IdiomaManager_GV42.T("permisos.eliminarFamilia");
-            if (gbCrearFamilia != null) gbCrearFamilia.Text = IdiomaManager_GV42.T("permisos.crearFamilia");
-            if (lblNombreFamilia != null) lblNombreFamilia.Text = IdiomaManager_GV42.T("permisos.nombre");
-            if (lblPatentesFamilia != null) lblPatentesFamilia.Text = IdiomaManager_GV42.T("permisos.patentesAIncluir");
-            if (lblSubfamilias != null) lblSubfamilias.Text = IdiomaManager_GV42.T("permisos.subfamilias");
-            if (btnGuardarFamilia != null) btnGuardarFamilia.Text = IdiomaManager_GV42.T("permisos.guardar");
-            if (btnLimpiarFamilia != null) btnLimpiarFamilia.Text = IdiomaManager_GV42.T("permisos.limpiar");
+            if (lblTitFamilias != null) lblTitFamilias.Text = IdiomaManager_GO44.T("permisos.titFamilias");
+            if (btnModificarFamilia != null) btnModificarFamilia.Text = IdiomaManager_GO44.T("permisos.modificarFamilia");
+            if (btnEliminarFamilia != null) btnEliminarFamilia.Text = IdiomaManager_GO44.T("permisos.eliminarFamilia");
+            if (gbCrearFamilia != null) gbCrearFamilia.Text = IdiomaManager_GO44.T("permisos.crearFamilia");
+            if (lblNombreFamilia != null) lblNombreFamilia.Text = IdiomaManager_GO44.T("permisos.nombre");
+            if (lblPatentesFamilia != null) lblPatentesFamilia.Text = IdiomaManager_GO44.T("permisos.patentesAIncluir");
+            if (lblSubfamilias != null) lblSubfamilias.Text = IdiomaManager_GO44.T("permisos.subfamilias");
+            if (btnGuardarFamilia != null) btnGuardarFamilia.Text = IdiomaManager_GO44.T("permisos.guardar");
+            if (btnLimpiarFamilia != null) btnLimpiarFamilia.Text = IdiomaManager_GO44.T("permisos.limpiar");
 
-            if (lblTitRoles != null) lblTitRoles.Text = IdiomaManager_GV42.T("permisos.titRoles");
-            if (btnModificarRol != null) btnModificarRol.Text = IdiomaManager_GV42.T("permisos.modificarRol");
-            if (btnEliminarRol != null) btnEliminarRol.Text = IdiomaManager_GV42.T("permisos.eliminarRol");
-            if (gbCrearRol != null) gbCrearRol.Text = IdiomaManager_GV42.T("permisos.crearRol");
-            if (lblNombreRol != null) lblNombreRol.Text = IdiomaManager_GV42.T("permisos.nombre");
-            if (lblPatentesRol != null) lblPatentesRol.Text = IdiomaManager_GV42.T("permisos.patentesIndividuales");
-            if (lblFamiliasRol != null) lblFamiliasRol.Text = IdiomaManager_GV42.T("permisos.familias");
-            if (btnGuardarRol != null) btnGuardarRol.Text = IdiomaManager_GV42.T("permisos.guardar");
-            if (btnLimpiarRol != null) btnLimpiarRol.Text = IdiomaManager_GV42.T("permisos.limpiar");
+            if (lblTitRoles != null) lblTitRoles.Text = IdiomaManager_GO44.T("permisos.titRoles");
+            if (btnModificarRol != null) btnModificarRol.Text = IdiomaManager_GO44.T("permisos.modificarRol");
+            if (btnEliminarRol != null) btnEliminarRol.Text = IdiomaManager_GO44.T("permisos.eliminarRol");
+            if (gbCrearRol != null) gbCrearRol.Text = IdiomaManager_GO44.T("permisos.crearRol");
+            if (lblNombreRol != null) lblNombreRol.Text = IdiomaManager_GO44.T("permisos.nombre");
+            if (lblPatentesRol != null) lblPatentesRol.Text = IdiomaManager_GO44.T("permisos.patentesIndividuales");
+            if (lblFamiliasRol != null) lblFamiliasRol.Text = IdiomaManager_GO44.T("permisos.familias");
+            if (btnGuardarRol != null) btnGuardarRol.Text = IdiomaManager_GO44.T("permisos.guardar");
+            if (btnLimpiarRol != null) btnLimpiarRol.Text = IdiomaManager_GO44.T("permisos.limpiar");
 
             if (dgvPatentes != null && dgvPatentes.Columns.Count > 0)
                 RecargarTodo();
@@ -728,31 +728,31 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvRoles.CurrentRow == null)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("permisos.seleccioneRol"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("permisos.seleccioneRol"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            Rol_GV42 rol = dgvRoles.CurrentRow.DataBoundItem as Rol_GV42;
+            Rol_GO44 rol = dgvRoles.CurrentRow.DataBoundItem as Rol_GO44;
             if (rol == null) return;
 
-            Rol_GV42 arbol = _bll.ObtenerArbolRol(rol.Id);
+            Rol_GO44 arbol = _bll.ObtenerArbolRol(rol.Id);
             if (arbol == null) return;
 
             txtNombreRol.Text = arbol.Nombre;
 
-            HashSet<int> idsPat = new HashSet<int>(arbol.Hijos.OfType<Patente_GV42>().Select(p => p.Id));
-            HashSet<int> idsFam = new HashSet<int>(arbol.Hijos.OfType<Familia_GV42>().Select(f => f.Id));
+            HashSet<int> idsPat = new HashSet<int>(arbol.Hijos.OfType<Patente_GO44>().Select(p => p.Id));
+            HashSet<int> idsFam = new HashSet<int>(arbol.Hijos.OfType<Familia_GO44>().Select(f => f.Id));
 
             for (int i = 0; i < clbPatentesRol.Items.Count; i++)
             {
-                var p = (Patente_GV42)clbPatentesRol.Items[i];
+                var p = (Patente_GO44)clbPatentesRol.Items[i];
                 clbPatentesRol.SetItemChecked(i, idsPat.Contains(p.Id));
             }
             for (int i = 0; i < clbFamiliasRol.Items.Count; i++)
             {
-                var f = (Familia_GV42)clbFamiliasRol.Items[i];
+                var f = (Familia_GO44)clbFamiliasRol.Items[i];
                 clbFamiliasRol.SetItemChecked(i, idsFam.Contains(f.Id));
             }
 

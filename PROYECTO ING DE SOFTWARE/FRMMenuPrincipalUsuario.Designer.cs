@@ -28,6 +28,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.usuarioToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cambiarClaveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logOutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.maestrosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clientesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.productosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ventasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.carritoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar = new System.Windows.Forms.StatusStrip();
             this.lblUsuarioActual = new System.Windows.Forms.ToolStripStatusLabel();
             this.pnlContenido = new System.Windows.Forms.Panel();
@@ -41,7 +46,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.menuStrip1.ForeColor = System.Drawing.Color.White;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.usuarioToolStripMenuItem});
+            this.usuarioToolStripMenuItem,
+            this.maestrosToolStripMenuItem,
+            this.ventasToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 4, 0, 4);
@@ -77,6 +84,54 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.logOutToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
             this.logOutToolStripMenuItem.Text = "LogOut";
             this.logOutToolStripMenuItem.Click += new System.EventHandler(this.logOutToolStripMenuItem_Click);
+            //
+            // maestrosToolStripMenuItem
+            //
+            this.maestrosToolStripMenuItem.BackColor = System.Drawing.Color.FromArgb(13, 71, 161);
+            this.maestrosToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.clientesToolStripMenuItem,
+            this.productosToolStripMenuItem});
+            this.maestrosToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.maestrosToolStripMenuItem.Name = "maestrosToolStripMenuItem";
+            this.maestrosToolStripMenuItem.Size = new System.Drawing.Size(85, 24);
+            this.maestrosToolStripMenuItem.Text = "Maestros";
+            //
+            // clientesToolStripMenuItem
+            //
+            this.clientesToolStripMenuItem.BackColor = System.Drawing.Color.White;
+            this.clientesToolStripMenuItem.ForeColor = System.Drawing.Color.FromArgb(13, 71, 161);
+            this.clientesToolStripMenuItem.Name = "clientesToolStripMenuItem";
+            this.clientesToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
+            this.clientesToolStripMenuItem.Text = "Clientes";
+            this.clientesToolStripMenuItem.Click += new System.EventHandler(this.clientesToolStripMenuItem_Click);
+            //
+            // productosToolStripMenuItem
+            //
+            this.productosToolStripMenuItem.BackColor = System.Drawing.Color.White;
+            this.productosToolStripMenuItem.ForeColor = System.Drawing.Color.FromArgb(13, 71, 161);
+            this.productosToolStripMenuItem.Name = "productosToolStripMenuItem";
+            this.productosToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
+            this.productosToolStripMenuItem.Text = "Productos";
+            this.productosToolStripMenuItem.Click += new System.EventHandler(this.productosToolStripMenuItem_Click);
+            //
+            // ventasToolStripMenuItem
+            //
+            this.ventasToolStripMenuItem.BackColor = System.Drawing.Color.FromArgb(13, 71, 161);
+            this.ventasToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.carritoToolStripMenuItem});
+            this.ventasToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.ventasToolStripMenuItem.Name = "ventasToolStripMenuItem";
+            this.ventasToolStripMenuItem.Size = new System.Drawing.Size(70, 24);
+            this.ventasToolStripMenuItem.Text = "Ventas";
+            //
+            // carritoToolStripMenuItem
+            //
+            this.carritoToolStripMenuItem.BackColor = System.Drawing.Color.White;
+            this.carritoToolStripMenuItem.ForeColor = System.Drawing.Color.FromArgb(13, 71, 161);
+            this.carritoToolStripMenuItem.Name = "carritoToolStripMenuItem";
+            this.carritoToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
+            this.carritoToolStripMenuItem.Text = "Cargar Carrito";
+            this.carritoToolStripMenuItem.Click += new System.EventHandler(this.carritoToolStripMenuItem_Click);
             //
             // pnlContenido — panel central donde se hostean los formularios hijos.
             // Igual que en MenuPrincipalAdmin, esto reemplaza el modelo MDI viejo
@@ -137,6 +192,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.ToolStripMenuItem usuarioToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cambiarClaveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logOutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem maestrosToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clientesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem productosToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ventasToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem carritoToolStripMenuItem;
         private System.Windows.Forms.StatusStrip statusBar;
         private System.Windows.Forms.ToolStripStatusLabel lblUsuarioActual;
         private System.Windows.Forms.Panel pnlContenido;

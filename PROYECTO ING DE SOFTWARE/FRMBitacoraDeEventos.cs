@@ -12,22 +12,22 @@ using System.Windows.Forms;
 
 namespace PROYECTO_ING_DE_SOFTWARE
 {
-    public partial class FRMBitacoraDeEventos : Form, IObservadorIdioma_GV42
+    public partial class FRMBitacoraDeEventos : Form, IObservadorIdioma_GO44
     {
-        private readonly BLLBitacora_GV42 _bllBitacora;
+        private readonly BLLBitacora_GO44 _bllBitacora;
 
-        private readonly BLLUsuario_GV42 _bllUsuario;
+        private readonly BLLUsuario_GO44 _bllUsuario;
 
         private const string SIN_FILTRO = "(Todos)";
 
         public FRMBitacoraDeEventos()
         {
             InitializeComponent();
-            _bllBitacora = BLLBitacora_GV42.Instancia;
-            _bllUsuario = new BLLUsuario_GV42();
+            _bllBitacora = BLLBitacora_GO44.Instancia;
+            _bllUsuario = new BLLUsuario_GO44();
 
-            IdiomaManager_GV42.Instancia.Suscribir(this);
-            this.FormClosed += (s, e) => IdiomaManager_GV42.Instancia.Desuscribir(this);
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
 
             ActualizarIdioma();
             AplicarPermisos();
@@ -35,11 +35,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void AplicarPermisos()
         {
-            Usuario_GV42 actual = SessionManager_GV42.Instancia.ObtenerUsuarioActual();
+            Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             if (actual == null || actual.Rol == null) return;
 
-            var bllPermisos = new BLLPermisos_GV42();
-            Rol_GV42 rolCompleto = bllPermisos.ObtenerArbolRol(actual.Rol.Id);
+            var bllPermisos = new BLLPermisos_GO44();
+            Rol_GO44 rolCompleto = bllPermisos.ObtenerArbolRol(actual.Rol.Id);
             if (rolCompleto == null) return;
 
             bool puedeVer = rolCompleto.TienePermiso("Bitacora.Ver");
@@ -71,36 +71,36 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         public void ActualizarIdioma()
         {
-            this.Text = IdiomaManager_GV42.T("bitacora.titulo");
+            this.Text = IdiomaManager_GO44.T("bitacora.titulo");
 
-            if (lblLogin != null) lblLogin.Text = IdiomaManager_GV42.T("bitacora.usuario");
-            if (lblModulo != null) lblModulo.Text = IdiomaManager_GV42.T("bitacora.modulo");
-            if (lblEvento != null) lblEvento.Text = IdiomaManager_GV42.T("bitacora.evento");
-            if (lblFechaInicio != null) lblFechaInicio.Text = IdiomaManager_GV42.T("bitacora.fechaInicio");
-            if (lblFechaFin != null) lblFechaFin.Text = IdiomaManager_GV42.T("bitacora.fechaFin");
-            if (lblCriticidad != null) lblCriticidad.Text = IdiomaManager_GV42.T("bitacora.criticidad");
-            if (lblNombre != null) lblNombre.Text = IdiomaManager_GV42.T("bitacora.nombre");
-            if (lblApellido != null) lblApellido.Text = IdiomaManager_GV42.T("bitacora.apellido");
+            if (lblLogin != null) lblLogin.Text = IdiomaManager_GO44.T("bitacora.usuario");
+            if (lblModulo != null) lblModulo.Text = IdiomaManager_GO44.T("bitacora.modulo");
+            if (lblEvento != null) lblEvento.Text = IdiomaManager_GO44.T("bitacora.evento");
+            if (lblFechaInicio != null) lblFechaInicio.Text = IdiomaManager_GO44.T("bitacora.fechaInicio");
+            if (lblFechaFin != null) lblFechaFin.Text = IdiomaManager_GO44.T("bitacora.fechaFin");
+            if (lblCriticidad != null) lblCriticidad.Text = IdiomaManager_GO44.T("bitacora.criticidad");
+            if (lblNombre != null) lblNombre.Text = IdiomaManager_GO44.T("bitacora.nombre");
+            if (lblApellido != null) lblApellido.Text = IdiomaManager_GO44.T("bitacora.apellido");
 
-            if (btnAplicar != null) btnAplicar.Text = IdiomaManager_GV42.T("bitacora.aplicar");
-            if (btnLimpiar != null) btnLimpiar.Text = IdiomaManager_GV42.T("bitacora.limpiar");
-            if (btnImprimir != null) btnImprimir.Text = IdiomaManager_GV42.T("bitacora.imprimir");
-            if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GV42.T("bitacora.salir");
+            if (btnAplicar != null) btnAplicar.Text = IdiomaManager_GO44.T("bitacora.aplicar");
+            if (btnLimpiar != null) btnLimpiar.Text = IdiomaManager_GO44.T("bitacora.limpiar");
+            if (btnImprimir != null) btnImprimir.Text = IdiomaManager_GO44.T("bitacora.imprimir");
+            if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GO44.T("bitacora.salir");
 
             if (dgvBitacora != null && dgvBitacora.Columns.Count > 0)
             {
                 if (dgvBitacora.Columns.Contains("Login"))
-                    dgvBitacora.Columns["Login"].HeaderText = IdiomaManager_GV42.T("bitacora.usuario");
+                    dgvBitacora.Columns["Login"].HeaderText = IdiomaManager_GO44.T("bitacora.usuario");
                 if (dgvBitacora.Columns.Contains("ModuloNombre"))
-                    dgvBitacora.Columns["ModuloNombre"].HeaderText = IdiomaManager_GV42.T("bitacora.modulo");
+                    dgvBitacora.Columns["ModuloNombre"].HeaderText = IdiomaManager_GO44.T("bitacora.modulo");
                 if (dgvBitacora.Columns.Contains("TipoEventoNombre"))
-                    dgvBitacora.Columns["TipoEventoNombre"].HeaderText = IdiomaManager_GV42.T("bitacora.tipoEvento");
+                    dgvBitacora.Columns["TipoEventoNombre"].HeaderText = IdiomaManager_GO44.T("bitacora.tipoEvento");
                 if (dgvBitacora.Columns.Contains("Detalle"))
-                    dgvBitacora.Columns["Detalle"].HeaderText = IdiomaManager_GV42.T("bitacora.detalle");
+                    dgvBitacora.Columns["Detalle"].HeaderText = IdiomaManager_GO44.T("bitacora.detalle");
                 if (dgvBitacora.Columns.Contains("Criticidad"))
-                    dgvBitacora.Columns["Criticidad"].HeaderText = IdiomaManager_GV42.T("bitacora.criticidad");
+                    dgvBitacora.Columns["Criticidad"].HeaderText = IdiomaManager_GO44.T("bitacora.criticidad");
                 if (dgvBitacora.Columns.Contains("FechaHora"))
-                    dgvBitacora.Columns["FechaHora"].HeaderText = IdiomaManager_GV42.T("bitacora.fechaHora");
+                    dgvBitacora.Columns["FechaHora"].HeaderText = IdiomaManager_GO44.T("bitacora.fechaHora");
             }
         }
 
@@ -169,7 +169,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 fechaFin: fechaFinReal));
         }
 
-        private void CargarGrilla(List<Bitacora_GV42> registros)
+        private void CargarGrilla(List<Bitacora_GO44> registros)
         {
             dgvBitacora.DataSource = null;
             dgvBitacora.DataSource = registros;
@@ -193,15 +193,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
             foreach (string c in aOcultar)
             if (dgvBitacora.Columns.Contains(c)) dgvBitacora.Columns[c].Visible = false;
 
-            if (dgvBitacora.Columns.Contains("Login")) dgvBitacora.Columns["Login"].HeaderText = IdiomaManager_GV42.T("bitacora.usuario");
-            if (dgvBitacora.Columns.Contains("ModuloNombre")) dgvBitacora.Columns["ModuloNombre"].HeaderText = IdiomaManager_GV42.T("bitacora.modulo");
-            if (dgvBitacora.Columns.Contains("TipoEventoNombre")) dgvBitacora.Columns["TipoEventoNombre"].HeaderText = IdiomaManager_GV42.T("bitacora.tipoEvento");
-            if (dgvBitacora.Columns.Contains("Detalle")) dgvBitacora.Columns["Detalle"].HeaderText = IdiomaManager_GV42.T("bitacora.detalle");
+            if (dgvBitacora.Columns.Contains("Login")) dgvBitacora.Columns["Login"].HeaderText = IdiomaManager_GO44.T("bitacora.usuario");
+            if (dgvBitacora.Columns.Contains("ModuloNombre")) dgvBitacora.Columns["ModuloNombre"].HeaderText = IdiomaManager_GO44.T("bitacora.modulo");
+            if (dgvBitacora.Columns.Contains("TipoEventoNombre")) dgvBitacora.Columns["TipoEventoNombre"].HeaderText = IdiomaManager_GO44.T("bitacora.tipoEvento");
+            if (dgvBitacora.Columns.Contains("Detalle")) dgvBitacora.Columns["Detalle"].HeaderText = IdiomaManager_GO44.T("bitacora.detalle");
             if (dgvBitacora.Columns.Contains("Evento")) dgvBitacora.Columns["Evento"].Visible = false;
-            if (dgvBitacora.Columns.Contains("Criticidad")) dgvBitacora.Columns["Criticidad"].HeaderText = IdiomaManager_GV42.T("bitacora.criticidad");
+            if (dgvBitacora.Columns.Contains("Criticidad")) dgvBitacora.Columns["Criticidad"].HeaderText = IdiomaManager_GO44.T("bitacora.criticidad");
             if (dgvBitacora.Columns.Contains("FechaHora"))
             {
-                dgvBitacora.Columns["FechaHora"].HeaderText = IdiomaManager_GV42.T("bitacora.fechaHora");
+                dgvBitacora.Columns["FechaHora"].HeaderText = IdiomaManager_GO44.T("bitacora.fechaHora");
                 dgvBitacora.Columns["FechaHora"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss";
             }
         }
@@ -210,8 +210,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dtpFechaFin.Value < dtpFechaInicio.Value)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("bitacora.fechaInvalida"),
-                                IdiomaManager_GV42.T("general.advertencia"),
+                MessageBox.Show(IdiomaManager_GO44.T("bitacora.fechaInvalida"),
+                                IdiomaManager_GO44.T("general.advertencia"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -221,7 +221,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string evento = ValorCombo(cboEvento);
             string criticidad = ValorCombo(cboCriticidad);
             DateTime fechaFinReal = dtpFechaFin.Value.Date.AddDays(1).AddSeconds(-1);
-            List<Bitacora_GV42> resultados = _bllBitacora.Filtrar(
+            List<Bitacora_GO44> resultados = _bllBitacora.Filtrar(
             login, modulo, evento, criticidad,
             dtpFechaInicio.Value.Date, fechaFinReal);
 
@@ -246,16 +246,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvBitacora.Rows.Count == 0)
             {
-                MessageBox.Show(IdiomaManager_GV42.T("bitacora.sinRegistros"),
-                                IdiomaManager_GV42.T("general.informacion"),
+                MessageBox.Show(IdiomaManager_GO44.T("bitacora.sinRegistros"),
+                                IdiomaManager_GO44.T("general.informacion"),
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
-                sfd.Filter = IdiomaManager_GV42.T("bitacora.sfdFiltro");
-                sfd.Title = IdiomaManager_GV42.T("bitacora.sfdTitulo");
+                sfd.Filter = IdiomaManager_GO44.T("bitacora.sfdFiltro");
+                sfd.Title = IdiomaManager_GO44.T("bitacora.sfdTitulo");
                 sfd.FileName = $"Bitacora_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
 
                 if (sfd.ShowDialog() != DialogResult.OK) return;
@@ -263,12 +263,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 try
                 {
                     string[] headers = {
-                        IdiomaManager_GV42.T("bitacora.usuario"),
-                        IdiomaManager_GV42.T("bitacora.modulo"),
-                        IdiomaManager_GV42.T("bitacora.tipoEvento"),
-                        IdiomaManager_GV42.T("bitacora.detalle"),
-                        IdiomaManager_GV42.T("bitacora.criticidad"),
-                        IdiomaManager_GV42.T("bitacora.fechaHora")
+                        IdiomaManager_GO44.T("bitacora.usuario"),
+                        IdiomaManager_GO44.T("bitacora.modulo"),
+                        IdiomaManager_GO44.T("bitacora.tipoEvento"),
+                        IdiomaManager_GO44.T("bitacora.detalle"),
+                        IdiomaManager_GO44.T("bitacora.criticidad"),
+                        IdiomaManager_GO44.T("bitacora.fechaHora")
                     };
 
                     float[] proporciones = { 0.12f, 0.12f, 0.22f, 0.22f, 0.10f, 0.22f };
@@ -291,13 +291,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     string subtitulo = $"Generado el {DateTime.Now:dd/MM/yyyy HH:mm:ss} - " +
                                        $"Total de registros: {filas.Count}";
 
-                    GeneradorPdf_GV42 generador = new GeneradorPdf_GV42();
+                    GeneradorPdf_GO44 generador = new GeneradorPdf_GO44();
                     generador.Generar(sfd.FileName, "Bitacora de Eventos", subtitulo,
                                       headers, proporciones, filas);
 
-                    string mensaje = $"{IdiomaManager_GV42.T("bitacora.pdfGenerado")}\n{sfd.FileName}\n\n{IdiomaManager_GV42.T("bitacora.pdfAbrirAhora")}";
+                    string mensaje = $"{IdiomaManager_GO44.T("bitacora.pdfGenerado")}\n{sfd.FileName}\n\n{IdiomaManager_GO44.T("bitacora.pdfAbrirAhora")}";
                     DialogResult abrir = MessageBox.Show(mensaje,
-                                                         IdiomaManager_GV42.T("general.exito"),
+                                                         IdiomaManager_GO44.T("general.exito"),
                                                          MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
                     if (abrir == DialogResult.Yes)
@@ -305,8 +305,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(IdiomaManager_GV42.T("bitacora.errorPdf") + "\n\n" + ex.Message,
-                                    IdiomaManager_GV42.T("general.error"),
+                    MessageBox.Show(IdiomaManager_GO44.T("bitacora.errorPdf") + "\n\n" + ex.Message,
+                                    IdiomaManager_GO44.T("general.error"),
                                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -324,12 +324,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void dgvBitacora_SelectionChanged(object sender, EventArgs e)
         {
             if (dgvBitacora.CurrentRow == null) return;
-            Bitacora_GV42 registro = dgvBitacora.CurrentRow.DataBoundItem as Bitacora_GV42;
+            Bitacora_GO44 registro = dgvBitacora.CurrentRow.DataBoundItem as Bitacora_GO44;
             if (registro == null) return;
 
             try
             {
-                Usuario_GV42 usuario = _bllUsuario.BuscarPorLogin(registro.Login);
+                Usuario_GO44 usuario = _bllUsuario.BuscarPorLogin(registro.Login);
                 if (usuario != null)
                 {
                     txtNombreUsuario.Text = usuario.Nombre;
