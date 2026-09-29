@@ -63,6 +63,24 @@ namespace DAL
 
         // ------- Consultas -------
 
+        /// <summary>
+        /// Trae el último carrito Confirmado del cliente que aún no tiene factura asociada.
+        /// Usado por CU04 Generar Factura.
+        /// </summary>
+        public BE_Carrito_GO44 BuscarPendientePorDNI(string dni)
+        {
+            SqlParameter[] p = { new SqlParameter("@DNI", dni) };
+            DataTable dtCab = _acceso.leerSP("sp_Carrito_BuscarPendientePorDNI_GO44", p);
+            if (dtCab.Rows.Count == 0) return null;
+
+            BE_Carrito_GO44 carrito = MapearEncabezado(dtCab.Rows[0]);
+
+            SqlParameter[] p2 = { new SqlParameter("@IdCarrito", carrito.Id) };
+            DataTable dtLin = _acceso.leerSP("sp_LineaCarrito_ListarPorCarrito_GO44", p2);
+            carrito.Lineas = MapearLineas(dtLin);
+            return carrito;
+        }
+
         public BE_Carrito_GO44 BuscarPorId(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };

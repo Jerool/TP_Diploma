@@ -1,7 +1,10 @@
 using System;
+using System.Xml.Serialization;
 
 namespace BE
 {
+    [Serializable]
+    [XmlRoot("Cliente")]
     public class BE_Cliente_GO44
     {
         private string _DNI;
@@ -53,6 +56,7 @@ namespace BE
             set { _Activo = value; }
         }
 
+        [XmlIgnore]  // Es calculado, no se serializa
         public string NombreCompleto
         {
             get { return (_Apellido ?? string.Empty) + ", " + (_Nombre ?? string.Empty); }

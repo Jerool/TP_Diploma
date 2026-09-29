@@ -55,6 +55,19 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 {
                     if (BLLInstalador_GO44.ExisteBaseDatos(instancia))
                     {
+                        // La BD existe → verificar si tiene el esquema de negocio GO44 (Clientes, Componentes...)
+                        // Si NO lo tiene (instalación vieja o migración), correr solo el script de negocio.
+                        try
+                        {
+                            if (!BLLInstalador_GO44.ExisteEsquemaNegocio(instancia))
+                                BLLInstalador_GO44.InstalarEsquemaNegocio(instancia);
+                        }
+                        catch (Exception exNeg)
+                        {
+                            MessageBox.Show("No se pudo instalar el esquema de negocio:\n" + exNeg.Message,
+                                "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+
                         BLLInstalador_GO44.ConfigurarConexion(instancia);
                         return true;
                     }
@@ -62,7 +75,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 #if DEBUG
                     try
                     {
-                        BLLInstalador_GO44.InstalarBaseDatos(instancia);
+                        BLLInstalador_GO44.InstalarBaseDatos(instancia);   // Corre EsquemaCompleto + EsquemaNegocio_GO44
                         BLLInstalador_GO44.ConfigurarConexion(instancia);
                         return true;
                     }
@@ -79,6 +92,21 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 DialogResult r = frm.ShowDialog();
                 if (r != DialogResult.OK || string.IsNullOrEmpty(frm.InstanciaElegida))
                     return false;
+
+                // Si la BD no existe en la instancia elegida, la instala completa (base + negocio)
+                try
+                {
+                    if (!BLLInstalador_GO44.ExisteBaseDatos(frm.InstanciaElegida))
+                        BLLInstalador_GO44.InstalarBaseDatos(frm.InstanciaElegida);
+                    else if (!BLLInstalador_GO44.ExisteEsquemaNegocio(frm.InstanciaElegida))
+                        BLLInstalador_GO44.InstalarEsquemaNegocio(frm.InstanciaElegida);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error instalando la BD:\n" + ex.Message,
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
 
                 BLLInstalador_GO44.ConfigurarConexion(frm.InstanciaElegida);
                 return true;

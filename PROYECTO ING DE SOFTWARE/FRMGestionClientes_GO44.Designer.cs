@@ -31,6 +31,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.btnAplicar = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.btnSalir = new System.Windows.Forms.Button();
+            this.btnExportarXml = new System.Windows.Forms.Button();
+            this.btnImportarXml = new System.Windows.Forms.Button();
             this.dgvClientes = new System.Windows.Forms.DataGridView();
             this.lblMensaje = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvClientes)).BeginInit();
@@ -104,6 +106,22 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.btnSalir.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSalir.Click += new System.EventHandler(this.btnSalir_Click);
             //
+            // Botones de serialización XML
+            //
+            this.btnExportarXml.Location = new System.Drawing.Point(560, 55); this.btnExportarXml.Size = new System.Drawing.Size(120, 30);
+            this.btnExportarXml.Text = "⇩ Exportar XML";
+            this.btnExportarXml.BackColor = System.Drawing.Color.DarkSlateBlue;
+            this.btnExportarXml.ForeColor = System.Drawing.Color.White;
+            this.btnExportarXml.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnExportarXml.Click += new System.EventHandler(this.btnExportarXml_Click);
+
+            this.btnImportarXml.Location = new System.Drawing.Point(560, 90); this.btnImportarXml.Size = new System.Drawing.Size(120, 30);
+            this.btnImportarXml.Text = "⇧ Importar XML";
+            this.btnImportarXml.BackColor = System.Drawing.Color.DarkSlateBlue;
+            this.btnImportarXml.ForeColor = System.Drawing.Color.White;
+            this.btnImportarXml.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnImportarXml.Click += new System.EventHandler(this.btnImportarXml_Click);
+            //
             // lblMensaje
             //
             this.lblMensaje.AutoSize = true;
@@ -147,6 +165,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.Controls.Add(this.btnAplicar);
             this.Controls.Add(this.btnCancelar);
             this.Controls.Add(this.btnSalir);
+            this.Controls.Add(this.btnExportarXml);
+            this.Controls.Add(this.btnImportarXml);
             this.Controls.Add(this.lblMensaje);
             this.Controls.Add(this.dgvClientes);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -178,6 +198,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.Button btnAplicar;
         private System.Windows.Forms.Button btnCancelar;
         private System.Windows.Forms.Button btnSalir;
+        private System.Windows.Forms.Button btnExportarXml;
+        private System.Windows.Forms.Button btnImportarXml;
         private System.Windows.Forms.Label lblMensaje;
         private System.Windows.Forms.DataGridView dgvClientes;
     }

@@ -52,6 +52,7 @@
     <Compile Include="DALCliente_GO44.cs" />
     <Compile Include="DALComponente_GO44.cs" />
     <Compile Include="DALCarrito_GO44.cs" />
+    <Compile Include="DALFactura_GO44.cs" />
     <Compile Include="InstaladorBD_GO44.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

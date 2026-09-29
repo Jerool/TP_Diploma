@@ -1,0 +1,252 @@
+using BE;
+using BLL;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace PROYECTO_ING_DE_SOFTWARE
+{
+    /// <summary>
+    /// Pantalla del CU04 Generar Factura.
+    /// El cajero ingresa el DNI del cliente, ve el carrito pendiente y presiona
+    /// "Cobrar venta" que abre FRMCobrarVenta_GO44 como modal. Al volver, se
+    /// genera la factura + registra el cobro en una única transacción atómica.
+    /// </summary>
+    public partial class FRMFacturar_GO44 : Form
+    {
+        private readonly BLLFactura_GO44 _bllFactura;
+        private readonly BLLCliente_GO44 _bllCliente;
+
+        private BE_Carrito_GO44 _carrito;
+        private BE_Cliente_GO44 _cliente;
+        private BE_Factura_GO44 _ultimaFactura;
+
+        // BindingSource para evitar el bug de Index -1 al rebindar
+        private readonly System.Windows.Forms.BindingSource _bsLineas = new System.Windows.Forms.BindingSource();
+
+        public FRMFacturar_GO44()
+        {
+            InitializeComponent();
+            _bllFactura = new BLLFactura_GO44();
+            _bllCliente = new BLLCliente_GO44();
+        }
+
+        private void FRMFacturar_GO44_Load(object sender, EventArgs e)
+        {
+            ConfigurarGrilla();
+            LimpiarUI();
+        }
+
+        private void ConfigurarGrilla()
+        {
+            dgvLineas.ReadOnly = true;
+            dgvLineas.AllowUserToAddRows = false;
+            dgvLineas.AllowUserToDeleteRows = false;
+            dgvLineas.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvLineas.MultiSelect = false;
+            dgvLineas.RowHeadersVisible = false;
+            dgvLineas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvLineas.BackgroundColor = Color.White;
+            dgvLineas.AutoGenerateColumns = true;
+            dgvLineas.DataSource = _bsLineas;
+        }
+
+        // ============ BUSCAR CLIENTE + CARRITO ============
+
+        private void btnBuscar_Click(object sender, EventArgs e)
+        {
+            string dni = txtDni.Text.Trim();
+            if (string.IsNullOrEmpty(dni))
+            {
+                MessageBox.Show("Ingrese un DNI", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            _cliente = _bllCliente.BuscarPorDNI(dni);
+            if (_cliente == null)
+            {
+                var r = MessageBox.Show(
+                    "El cliente DNI " + dni + " no está registrado.\n¿Registrarlo ahora?",
+                    "Cliente inexistente", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (r == DialogResult.Yes)
+                {
+                    var frmCli = new FRMGestionClientes_GO44();
+                    frmCli.ShowDialog();
+                    _cliente = _bllCliente.BuscarPorDNI(dni);
+                    if (_cliente == null) return;
+                }
+                else return;
+            }
+
+            _carrito = _bllFactura.ObtenerCarritoPendiente(dni);
+            if (_carrito == null)
+            {
+                MessageBox.Show("El cliente " + _cliente.NombreCompleto + " no tiene ningún carrito pendiente de facturar.",
+                    "Sin carrito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LimpiarUI();
+                lblCliente.Text = "Cliente: " + _cliente.NombreCompleto + "  (sin carrito)";
+                lblCliente.ForeColor = Color.Firebrick;
+                return;
+            }
+            _carrito.Cliente = _cliente;
+
+            MostrarCarrito();
+        }
+
+        private void MostrarCarrito()
+        {
+            lblCliente.Text = "Cliente: " + _cliente.NombreCompleto + " · DNI " + _cliente.DNI;
+            lblCliente.ForeColor = Color.DarkGreen;
+
+            _bsLineas.DataSource = _carrito.Lineas;
+            _bsLineas.ResetBindings(false);
+
+            if (dgvLineas.Columns.Count > 0)
+            {
+                if (dgvLineas.Columns.Contains("Componente"))       dgvLineas.Columns["Componente"].Visible = false;
+                if (dgvLineas.Columns.Contains("Id"))               dgvLineas.Columns["Id"].Visible = false;
+                if (dgvLineas.Columns.Contains("IdCarrito"))        dgvLineas.Columns["IdCarrito"].Visible = false;
+                if (dgvLineas.Columns.Contains("ComponenteCodigo")) dgvLineas.Columns["ComponenteCodigo"].HeaderText = "Código";
+                if (dgvLineas.Columns.Contains("ComponenteNombre")) dgvLineas.Columns["ComponenteNombre"].HeaderText = "Componente";
+                if (dgvLineas.Columns.Contains("PrecioUnitario"))
+                {
+                    dgvLineas.Columns["PrecioUnitario"].HeaderText = "Precio Unit.";
+                    dgvLineas.Columns["PrecioUnitario"].DefaultCellStyle.Format = "N2";
+                }
+                if (dgvLineas.Columns.Contains("Subtotal")) dgvLineas.Columns["Subtotal"].DefaultCellStyle.Format = "N2";
+            }
+
+            decimal subtotal = _carrito.Total;
+            decimal iva      = _bllFactura.CalcularIVA(_carrito);
+            decimal total    = _bllFactura.CalcularTotalConIVA(_carrito);
+
+            lblSubtotal.Text = "Subtotal: $ " + subtotal.ToString("N2");
+            lblIVA.Text      = "IVA (" + (_bllFactura.AlicuotaIVA * 100).ToString("0") + "%): $ " + iva.ToString("N2");
+            lblTotal.Text    = "TOTAL: $ " + total.ToString("N2");
+
+            btnCobrar.Enabled = true;
+            btnImprimir.Enabled = false;
+        }
+
+        // ============ COBRAR (CU05 include) ============
+
+        private void btnCobrar_Click(object sender, EventArgs e)
+        {
+            if (_carrito == null)
+            {
+                MessageBox.Show("Primero buscá el carrito del cliente", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            decimal total = _bllFactura.CalcularTotalConIVA(_carrito);
+            using (var frmCobro = new FRMCobrarVenta_GO44(total))
+            {
+                if (frmCobro.ShowDialog() != DialogResult.OK) return;
+
+                BE_Cobro_GO44 cobro = frmCobro.CobroValidado;
+                if (cobro == null) return;
+
+                var vo = _bllFactura.GenerarFacturaYCobrar(_carrito, cobro);
+                if (vo.Resultado == BLLFactura_GO44.ResultadoFactura.Exitoso)
+                {
+                    _ultimaFactura = vo.Factura;
+                    MessageBox.Show(vo.Mensaje, "Factura generada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    btnImprimir.Enabled = true;
+                    btnCobrar.Enabled = false;
+                }
+                else
+                {
+                    MessageBox.Show(vo.Mensaje, "No se pudo facturar", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        // ============ IMPRIMIR ============
+
+        private void btnImprimir_Click(object sender, EventArgs e)
+        {
+            if (_ultimaFactura == null) return;
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Archivo de texto (*.txt)|*.txt";
+                sfd.FileName = _ultimaFactura.NumeroFactura + ".txt";
+                sfd.Title = "Guardar factura";
+                if (sfd.ShowDialog() != DialogResult.OK) return;
+
+                try
+                {
+                    string contenido = GenerarTextoFactura(_ultimaFactura);
+                    System.IO.File.WriteAllText(sfd.FileName, contenido, System.Text.Encoding.UTF8);
+                    MessageBox.Show("Factura guardada:\n" + sfd.FileName,
+                        "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LimpiarUI();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al guardar: " + ex.Message,
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private string GenerarTextoFactura(BE_Factura_GO44 f)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("========================================================");
+            sb.AppendLine("           TECHFLOW - ELECTROPOINT");
+            sb.AppendLine("           FACTURA " + f.NumeroFactura);
+            sb.AppendLine("========================================================");
+            sb.AppendLine("Fecha: " + f.FechaEmision.ToString("dd/MM/yyyy HH:mm"));
+            sb.AppendLine("Cajero: " + f.LoginCajero);
+            sb.AppendLine();
+            sb.AppendLine("Cliente:");
+            sb.AppendLine("  DNI:    " + (f.Cliente != null ? f.Cliente.DNI : ""));
+            sb.AppendLine("  Nombre: " + (f.Cliente != null ? f.Cliente.NombreCompleto : ""));
+            sb.AppendLine();
+            sb.AppendLine("--------------------------------------------------------");
+            sb.AppendLine(string.Format("{0,-10} {1,-30} {2,4} {3,12} {4,12}", "Código", "Componente", "Cant", "Precio", "Subtotal"));
+            sb.AppendLine("--------------------------------------------------------");
+            if (f.Lineas != null)
+            {
+                foreach (var l in f.Lineas)
+                {
+                    string nom = l.ComponenteNombre ?? "";
+                    if (nom.Length > 30) nom = nom.Substring(0, 30);
+                    sb.AppendLine(string.Format("{0,-10} {1,-30} {2,4} {3,12} {4,12}",
+                        l.ComponenteCodigo, nom, l.Cantidad,
+                        l.PrecioUnitario.ToString("N2"), l.Subtotal.ToString("N2")));
+                }
+            }
+            sb.AppendLine("--------------------------------------------------------");
+            sb.AppendLine(string.Format("{0,50} {1,12}", "Subtotal:", f.Subtotal.ToString("N2")));
+            sb.AppendLine(string.Format("{0,50} {1,12}", "IVA:", f.IVA.ToString("N2")));
+            sb.AppendLine(string.Format("{0,50} {1,12}", "TOTAL:", f.Total.ToString("N2")));
+            sb.AppendLine("========================================================");
+            sb.AppendLine();
+            sb.AppendLine("Gracias por su compra.");
+            return sb.ToString();
+        }
+
+        private void btnSalir_Click(object sender, EventArgs e) { this.Close(); }
+
+        // ============ UI ============
+
+        private void LimpiarUI()
+        {
+            _bsLineas.DataSource = null;
+            _carrito = null;
+            _cliente = null;
+            _ultimaFactura = null;
+            txtDni.Text = "";
+            lblCliente.Text = "Cliente: (sin asignar)";
+            lblCliente.ForeColor = Color.Firebrick;
+            lblSubtotal.Text = "Subtotal: $ 0,00";
+            lblIVA.Text = "IVA: $ 0,00";
+            lblTotal.Text = "TOTAL: $ 0,00";
+            btnCobrar.Enabled = false;
+            btnImprimir.Enabled = false;
+        }
+    }
+}

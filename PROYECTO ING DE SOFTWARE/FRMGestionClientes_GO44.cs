@@ -1,9 +1,11 @@
 using BE;
 using BLL;
 using Servicios;
+using Servicios.Serializacion;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace PROYECTO_ING_DE_SOFTWARE
@@ -237,6 +239,95 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void btnSalir_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        // ============ SERIALIZACIÓN XML ============
+
+        private void btnExportarXml_Click(object sender, EventArgs e)
+        {
+            List<BE_Cliente_GO44> lista = _bll.Listar();
+            if (lista == null || lista.Count == 0)
+            {
+                MessageBox.Show("No hay clientes para exportar", "Aviso",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Archivo XML (*.xml)|*.xml";
+                sfd.FileName = "Clientes_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xml";
+                sfd.Title = "Exportar clientes a XML";
+                if (sfd.ShowDialog() != DialogResult.OK) return;
+
+                try
+                {
+                    string origen = Environment.MachineName + " - " +
+                        (SessionManager_GO44.Instancia.ObtenerUsuarioActual()?.Login ?? "desconocido");
+                    SerializadorClientes_GO44.ExportarAXml(lista, sfd.FileName, origen);
+                    MessageBox.Show(
+                        "Se exportaron " + lista.Count + " clientes correctamente.\n\nArchivo: " + sfd.FileName,
+                        "Exportación exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al exportar:\n" + ex.Message,
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void btnImportarXml_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Archivo XML (*.xml)|*.xml";
+                ofd.Title = "Importar clientes desde XML";
+                if (ofd.ShowDialog() != DialogResult.OK) return;
+
+                try
+                {
+                    var export = SerializadorClientes_GO44.ImportarDeXml(ofd.FileName);
+                    if (export == null || export.Clientes == null || export.Clientes.Count == 0)
+                    {
+                        MessageBox.Show("El archivo no contiene clientes", "Aviso",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    var confirm = MessageBox.Show(
+                        "Se encontraron " + export.Clientes.Count + " clientes en el archivo.\n" +
+                        "Origen: " + (export.Origen ?? "s/d") + "\n" +
+                        "Exportado: " + export.FechaExportacion.ToString("dd/MM/yyyy HH:mm") + "\n\n" +
+                        "¿Importar los que no existan en la BD?",
+                        "Confirmar importación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (confirm != DialogResult.Yes) return;
+
+                    int importados = 0, saltados = 0, errores = 0;
+                    foreach (BE_Cliente_GO44 cli in export.Clientes)
+                    {
+                        if (cli == null || string.IsNullOrWhiteSpace(cli.DNI)) { saltados++; continue; }
+                        if (_bll.ExisteDNI(cli.DNI)) { saltados++; continue; }
+
+                        var r = _bll.RegistrarCliente(cli.DNI, cli.Apellido, cli.Nombre, cli.Email, cli.Telefono);
+                        if (r == BLLCliente_GO44.ResultadoRegistroCliente.Exitoso) importados++;
+                        else errores++;
+                    }
+
+                    MessageBox.Show(
+                        "Importación finalizada:\n\n" +
+                        "  ✓ Importados: " + importados + "\n" +
+                        "  ↷ Ya existían (saltados): " + saltados + "\n" +
+                        "  ✗ Errores: " + errores,
+                        "Resultado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    CargarGrilla();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al importar:\n" + ex.Message,
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
     }
 }

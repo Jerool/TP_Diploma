@@ -58,8 +58,14 @@
     <Compile Include="Usuario_GO44.cs" />
     <Compile Include="Validaciones_GO44.cs" />
     <Compile Include="Integridad\CalculadorIntegridad_GO44.cs" />
+    <Compile Include="Serializacion\SerializadorClientes_GO44.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\BE\BE_GO44.csproj">
+      <Project>{0d838138-d123-4171-bca0-31731f79ccf0}</Project>
+      <Name>BE_GO44</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

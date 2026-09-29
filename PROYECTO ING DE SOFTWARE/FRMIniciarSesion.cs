@@ -134,7 +134,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 return;
             }
 
-            Form formulario = new FRMMenuPrincipalAdmin();
+            // Menú único unificado — muestra/oculta módulos según el rol del usuario logueado
+            Form formulario = new FRMMenuPrincipal_GO44();
             formulario.Show();
             this.Hide();
         }

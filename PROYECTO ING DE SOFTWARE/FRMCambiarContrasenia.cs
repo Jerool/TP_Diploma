@@ -106,7 +106,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void AbrirMenuPrincipalSegunRol()
         {
-            Form menu = new FRMMenuPrincipalAdmin();
+            // Menú unificado (ya aplica permisos según rol)
+            Form menu = new FRMMenuPrincipal_GO44();
             menu.Show();
         }
     }

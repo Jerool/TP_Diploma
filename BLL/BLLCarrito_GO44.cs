@@ -134,24 +134,17 @@ namespace BLL
 
                 carrito.Id = idCarrito;
 
-                // 2) Insertar cada línea + descontar stock
+                // 2) Insertar cada línea (SIN descontar stock — el descuento se hace en CU05 Cobrar Venta,
+                //    dentro de la misma tx que la factura y el cobro. Acá solo se persiste la reserva
+                //    del carrito. Si el cliente no llega a cobrar, el stock nunca se descuenta.)
                 foreach (BE_LineaCarrito_GO44 linea in carrito.Lineas)
                 {
                     int filasLinea = _dalCarrito.InsertarLineaEnTx(idCarrito, linea, tx);
                     if (filasLinea == 0)
                         throw new Exception("No se pudo insertar línea para componente " + linea.ComponenteCodigo);
-
-                    // El SP descuenta y devuelve 0 filas si hubo condición de carrera → protección adicional
-                    SqlParameter[] pDesc = {
-                        new SqlParameter("@Id",       linea.Componente.Id),
-                        new SqlParameter("@Cantidad", linea.Cantidad)
-                    };
-                    int filasStock = Acceso.Instancia.escribirSPEnTx("sp_Componente_DescontarStock_GO44", pDesc, tx);
-                    if (filasStock == 0)
-                        throw new Exception("Condición de carrera: se acabó el stock de " + linea.ComponenteCodigo);
                 }
 
-                // 3) Commit atómico (encabezado + líneas + descuento stock)
+                // 3) Commit atómico (encabezado + líneas)
                 Acceso.Instancia.ConfirmarTransaccion(tx);
                 tx = null;
 

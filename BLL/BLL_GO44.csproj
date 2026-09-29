@@ -50,6 +50,8 @@
     <Compile Include="BLLCliente_GO44.cs" />
     <Compile Include="BLLComponente_GO44.cs" />
     <Compile Include="BLLCarrito_GO44.cs" />
+    <Compile Include="BLLFactura_GO44.cs" />
+    <Compile Include="BLLCobro_GO44.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

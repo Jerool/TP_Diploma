@@ -574,7 +574,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             login.Show();
 
             var menuPrincipal = Application.OpenForms
-                .OfType<FRMMenuPrincipalAdmin>()
+                .OfType<FRMMenuPrincipal_GO44>()
                 .FirstOrDefault();
             if (menuPrincipal != null)
                 menuPrincipal.Close();

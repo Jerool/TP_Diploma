@@ -29,6 +29,56 @@ namespace DAL
             return MapearLista(dt);
         }
 
+        public List<BE_Componente_GO44> ListarTodos()
+        {
+            DataTable dt = _acceso.leerSP("sp_Componente_ListarTodos_GO44", null);
+            return MapearLista(dt);
+        }
+
+        public int Insertar(BE_Componente_GO44 c)
+        {
+            SqlParameter[] p = {
+                new SqlParameter("@Codigo",      c.Codigo),
+                new SqlParameter("@Nombre",      c.Nombre),
+                new SqlParameter("@Descripcion", (object)c.Descripcion ?? DBNull.Value),
+                new SqlParameter("@Categoria",   (object)c.Categoria   ?? DBNull.Value),
+                new SqlParameter("@Precio",      c.Precio),
+                new SqlParameter("@StockActual", c.StockActual),
+                new SqlParameter("@StockMinimo", c.StockMinimo)
+            };
+            object r = _acceso.leerEscalarSP("sp_Componente_Insertar_GO44", p);
+            int nuevoId = r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
+            RecalcularIntegridadComponente();
+            return nuevoId;
+        }
+
+        public int ActualizarPrecio(int id, decimal precio)
+        {
+            SqlParameter[] p = {
+                new SqlParameter("@Id",     id),
+                new SqlParameter("@Precio", precio)
+            };
+            int filas = Convert.ToInt32(_acceso.leerEscalarSP("sp_Componente_ActualizarPrecio_GO44", p));
+            RecalcularIntegridadComponente();
+            return filas;
+        }
+
+        public int DarDeBaja(int id)
+        {
+            SqlParameter[] p = { new SqlParameter("@Id", id) };
+            int filas = Convert.ToInt32(_acceso.leerEscalarSP("sp_Componente_DarDeBaja_GO44", p));
+            RecalcularIntegridadComponente();
+            return filas;
+        }
+
+        public int Reactivar(int id)
+        {
+            SqlParameter[] p = { new SqlParameter("@Id", id) };
+            int filas = Convert.ToInt32(_acceso.leerEscalarSP("sp_Componente_Reactivar_GO44", p));
+            RecalcularIntegridadComponente();
+            return filas;
+        }
+
         public BE_Componente_GO44 BuscarPorId(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };

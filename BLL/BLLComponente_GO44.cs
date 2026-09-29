@@ -3,6 +3,7 @@ using DAL;
 using Servicios;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BLL
 {
@@ -130,9 +131,122 @@ namespace BLL
             return _dalComponente.ListarActivos();
         }
 
+        public List<BE_Componente_GO44> ListarTodos()
+        {
+            return _dalComponente.ListarTodos();
+        }
+
         public BE_Componente_GO44 BuscarPorId(int id)
         {
             return _dalComponente.BuscarPorId(id);
+        }
+
+        // ============ ABM Productos ============
+
+        public enum ResultadoAltaProducto
+        {
+            Exitoso,
+            CodigoDuplicado,
+            DatosIncompletos,
+            PrecioInvalido,
+            StockInvalido,
+            Error
+        }
+
+        private void Auditar(string tipoEvento, string detalle, string criticidad)
+        {
+            Usuario_GO44 usuario = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
+            string login = usuario != null ? usuario.Login : "SISTEMA";
+            BLLBitacora_GO44.Instancia.RegistrarEvento(login, "Componente", tipoEvento, detalle, criticidad);
+        }
+
+        public ResultadoAltaProducto RegistrarProducto(string codigo, string nombre, string categoria,
+                                                        string descripcion, decimal precio, int stockActual, int stockMinimo)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codigo) || string.IsNullOrWhiteSpace(nombre))
+                    return ResultadoAltaProducto.DatosIncompletos;
+
+                if (precio < 0) return ResultadoAltaProducto.PrecioInvalido;
+                if (stockActual < 0 || stockMinimo < 0) return ResultadoAltaProducto.StockInvalido;
+
+                // Chequeo de duplicado por Código
+                if (_dalComponente.BuscarPorCodigo(codigo) != null)
+                {
+                    Auditar("Componente rechazado", "Código duplicado: " + codigo, "Media");
+                    return ResultadoAltaProducto.CodigoDuplicado;
+                }
+
+                BE_Componente_GO44 nuevo = new BE_Componente_GO44
+                {
+                    Codigo = codigo,
+                    Nombre = nombre,
+                    Categoria = categoria,
+                    Descripcion = descripcion,
+                    Precio = precio,
+                    StockActual = stockActual,
+                    StockMinimo = stockMinimo,
+                    Activo = true
+                };
+
+                int id = _dalComponente.Insertar(nuevo);
+                if (id <= 0)
+                    return ResultadoAltaProducto.Error;
+
+                Auditar("Componente registrado", "Código " + codigo + " · " + nombre + " · Stock " + stockActual, "Baja");
+                return ResultadoAltaProducto.Exitoso;
+            }
+            catch (Exception ex)
+            {
+                Auditar("Componente registrado", "Error: " + ex.Message, "Alta");
+                return ResultadoAltaProducto.Error;
+            }
+        }
+
+        public bool ActualizarPrecio(int id, decimal nuevoPrecio)
+        {
+            if (nuevoPrecio < 0) return false;
+            BE_Componente_GO44 actual = _dalComponente.BuscarPorId(id);
+            if (actual == null) return false;
+
+            int filas = _dalComponente.ActualizarPrecio(id, nuevoPrecio);
+            if (filas > 0)
+            {
+                Auditar("Componente modificado",
+                    "Precio " + actual.Codigo + ": $" + actual.Precio.ToString("N2") + " → $" + nuevoPrecio.ToString("N2"),
+                    "Media");
+                return true;
+            }
+            return false;
+        }
+
+        public bool DarDeBaja(int id)
+        {
+            BE_Componente_GO44 c = _dalComponente.BuscarPorId(id);
+            if (c == null) return false;
+
+            int filas = _dalComponente.DarDeBaja(id);
+            if (filas > 0)
+            {
+                Auditar("Componente dado de baja", "Código " + c.Codigo + " · " + c.Nombre, "Media");
+                return true;
+            }
+            return false;
+        }
+
+        public bool Reactivar(int id)
+        {
+            BE_Componente_GO44 c = _dalComponente.BuscarPorId(id);
+            if (c == null) return false;
+
+            int filas = _dalComponente.Reactivar(id);
+            if (filas > 0)
+            {
+                Auditar("Componente reactivado", "Código " + c.Codigo + " · " + c.Nombre, "Media");
+                return true;
+            }
+            return false;
         }
     }
 }

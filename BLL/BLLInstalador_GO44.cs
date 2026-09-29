@@ -20,6 +20,16 @@ namespace BLL
             InstaladorBD_GO44.InstalarBaseDatos(instancia);
         }
 
+        public static bool ExisteEsquemaNegocio(string instancia)
+        {
+            return InstaladorBD_GO44.ExisteEsquemaNegocio(instancia);
+        }
+
+        public static void InstalarEsquemaNegocio(string instancia)
+        {
+            InstaladorBD_GO44.InstalarEsquemaNegocio(instancia);
+        }
+
         public static void ConfigurarConexion(string instancia)
         {
             Acceso.InstanciaActual = instancia;
