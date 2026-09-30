@@ -120,11 +120,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _carrito = _bllFactura.ObtenerCarritoPendiente(dni);
             if (_carrito == null)
             {
-                MessageBox.Show(string.Format(IdiomaManager_GO44.T("facturar.sinCarritoMensaje"), _cliente.NombreCompleto),
+                string nombre = _cliente.NombreCompleto;   // capturar antes de LimpiarUI (que setea _cliente = null)
+                MessageBox.Show(string.Format(IdiomaManager_GO44.T("facturar.sinCarritoMensaje"), nombre),
                     IdiomaManager_GO44.T("facturar.sinCarritoTitulo"),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 LimpiarUI();
-                lblCliente.Text = string.Format(IdiomaManager_GO44.T("facturar.clienteSinCarrito"), _cliente.NombreCompleto);
+                lblCliente.Text = string.Format(IdiomaManager_GO44.T("facturar.clienteSinCarrito"), nombre);
                 lblCliente.ForeColor = Color.Firebrick;
                 return;
             }
