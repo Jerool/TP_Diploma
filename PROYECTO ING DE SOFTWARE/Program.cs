@@ -8,7 +8,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
 {
     internal static class Program
     {
-        private const string INSTANCIA_DEBUG_DEFAULT = @"(localdb)\MSSQLLocalDB";
+        // NOTA: NO hardcodear ninguna instancia por default. La app siempre
+        // debe preguntar al usuario cuál es su instancia SQL en la primera
+        // ejecución (FRMSeleccionInstancia). Esto garantiza portabilidad
+        // entre PCs con distintos SQL Server (LocalDB, SQLEXPRESS, etc.).
 
         [STAThread]
         static void Main()
@@ -42,12 +45,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private static bool ConfigurarConexionBD()
         {
+            // Solo intentamos auto-conectar si el usuario YA eligió su instancia alguna vez
+            // (guardada en %LocalAppData%\GestionUsuarios\conexion.cfg).
+            // No hay defaults hardcodeados: garantiza que la app funcione en cualquier PC
+            // con cualquier instancia SQL (LocalDB, SQLEXPRESS, servidor remoto, etc.).
             string instancia = ConfiguracionBD_GO44.LeerInstanciaGuardada();
-
-#if DEBUG
-            if (string.IsNullOrEmpty(instancia))
-                instancia = INSTANCIA_DEBUG_DEFAULT;
-#endif
 
             if (!string.IsNullOrEmpty(instancia))
             {
@@ -71,19 +73,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
                         BLLInstalador_GO44.ConfigurarConexion(instancia);
                         return true;
                     }
-
-#if DEBUG
-                    try
-                    {
-                        BLLInstalador_GO44.InstalarBaseDatos(instancia);   // Corre EsquemaCompleto + EsquemaNegocio_GO44
-                        BLLInstalador_GO44.ConfigurarConexion(instancia);
-                        return true;
-                    }
-                    catch { }
-#endif
+                    // Si la BD no existe en la instancia guardada, caemos al FRMSeleccionInstancia
+                    // para que el usuario confirme la instancia y la instalemos ahí.
                 }
                 catch
                 {
+                    // Si falla la conexión a la instancia guardada (ej: cambió el nombre de la PC,
+                    // se desinstaló SQL Server, etc.), también caemos al selector.
                 }
             }
 

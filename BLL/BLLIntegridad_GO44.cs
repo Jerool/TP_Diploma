@@ -18,11 +18,17 @@ namespace BLL
         {
             get
             {
+                // La instancia sale de:
+                //   1) Acceso.InstanciaActual (seteada en runtime al configurar la conexión)
+                //   2) conexion.cfg (elegida por el usuario en FRMSeleccionInstancia)
+                // NO hay default hardcodeado: si no hay instancia, es un error de config.
                 string instancia = DAL.Acceso.InstanciaActual;
                 if (string.IsNullOrEmpty(instancia))
                     instancia = Servicios.Instalacion.ConfiguracionBD_GO44.LeerInstanciaGuardada();
                 if (string.IsNullOrEmpty(instancia))
-                    instancia = @"(localdb)\MSSQLLocalDB";
+                    throw new InvalidOperationException(
+                        "No hay una instancia SQL configurada para el backup. " +
+                        "Reiniciá la aplicación y elegí tu instancia.");
                 return $"Data Source={instancia};Initial Catalog=master;Integrated Security=True";
             }
         }

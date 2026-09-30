@@ -44,7 +44,9 @@ namespace DAL
                 {
                     string cs = ConnectionString;
                     if (string.IsNullOrEmpty(cs))
-                        cs = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=""Gestion Usuario"";Integrated Security=True";
+                        throw new InvalidOperationException(
+                            "No hay una instancia SQL configurada. Reiniciá la aplicación " +
+                            "y elegí tu instancia en la pantalla de selección.");
                     conexion.ConnectionString = cs;
                     conexion.Open();
                     Console.WriteLine("Conexión exitosa");
