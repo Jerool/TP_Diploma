@@ -21,9 +21,29 @@ namespace BLL
         private MemoryStream _buffer;
         private List<long> _offsetsObjetos;
 
+        /// <summary>
+        /// Genera el PDF y lo devuelve como byte[] (útil para adjuntar en emails
+        /// sin escribir a disco). Misma firma que Generar() salvo que no toma ruta.
+        /// </summary>
+        public byte[] GenerarBytes(string titulo, string subtitulo,
+                                   string[] headers, float[] anchosProporcionales,
+                                   List<string[]> filas)
+        {
+            GenerarInterno(titulo, subtitulo, headers, anchosProporcionales, filas);
+            return _buffer.ToArray();
+        }
+
         public void Generar(string ruta, string titulo, string subtitulo,
                             string[] headers, float[] anchosProporcionales,
                             List<string[]> filas)
+        {
+            GenerarInterno(titulo, subtitulo, headers, anchosProporcionales, filas);
+            File.WriteAllBytes(ruta, _buffer.ToArray());
+        }
+
+        private void GenerarInterno(string titulo, string subtitulo,
+                                    string[] headers, float[] anchosProporcionales,
+                                    List<string[]> filas)
         {
             _buffer = new MemoryStream();
             _offsetsObjetos = new List<long>();
@@ -153,8 +173,6 @@ namespace BLL
             long xrefOffset = _buffer.Position;
             EscribirXref();
             EscribirTrailer(idCatalog, xrefOffset);
-
-            File.WriteAllBytes(ruta, _buffer.ToArray());
         }
 
         private void EscribirHeader()

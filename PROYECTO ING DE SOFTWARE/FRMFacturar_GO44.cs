@@ -198,6 +198,34 @@ namespace PROYECTO_ING_DE_SOFTWARE
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     btnImprimir.Enabled = true;
                     btnCobrar.Enabled = false;
+
+                    // === Enviar factura por email al cliente ===
+                    // Solo si el cliente tiene email registrado Y el envío SMTP está configurado en App.config
+                    if (!string.IsNullOrWhiteSpace(_cliente.Email) && BLLEmailFactura_GO44.EmailConfigurado())
+                    {
+                        var r = MessageBox.Show(
+                            "¿Enviar la factura por email a " + _cliente.Email + "?",
+                            "Enviar factura por email",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        if (r == DialogResult.Yes)
+                        {
+                            this.Cursor = Cursors.WaitCursor;
+                            try
+                            {
+                                string msgEmail;
+                                bool ok = BLLEmailFactura_GO44.EnviarFacturaEmail(
+                                    _ultimaFactura, _cliente, _bllFactura.AlicuotaIVA, out msgEmail);
+                                MessageBox.Show(msgEmail,
+                                    ok ? "Email enviado" : "No se pudo enviar el email",
+                                    MessageBoxButtons.OK,
+                                    ok ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+                            }
+                            finally
+                            {
+                                this.Cursor = Cursors.Default;
+                            }
+                        }
+                    }
                 }
                 else
                 {

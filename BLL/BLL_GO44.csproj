@@ -39,9 +39,11 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BLLBitacora_GO44.cs" />
+    <Compile Include="BLLEmailFactura_GO44.cs" />
     <Compile Include="BLLInstalador_GO44.cs" />
     <Compile Include="BLLPermisos_GO44.cs" />
     <Compile Include="BLLUsuario_GO44.cs" />
