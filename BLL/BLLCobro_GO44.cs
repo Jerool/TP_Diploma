@@ -1,4 +1,5 @@
 using BE;
+using Servicios;
 using System;
 using System.Text.RegularExpressions;
 
@@ -41,8 +42,8 @@ namespace BLL
             if (montoEntregado < montoAPagar)
             {
                 vo.Resultado = ResultadoValidacion.MontoInvalido;
-                vo.Mensaje = "El monto entregado ($" + montoEntregado.ToString("N2") +
-                             ") es menor al total ($" + montoAPagar.ToString("N2") + ")";
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.cobro.montoMenor"),
+                    montoEntregado.ToString("N2"), montoAPagar.ToString("N2"));
                 return vo;
             }
 
@@ -52,7 +53,7 @@ namespace BLL
                 Metodo = BE_Cobro_GO44.MetodoPago.Efectivo,
                 Monto  = montoAPagar
             };
-            vo.Mensaje = "Cobro efectivo OK. Vuelto: $" + (montoEntregado - montoAPagar).ToString("N2");
+            vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.cobro.efectivoOk"), (montoEntregado - montoAPagar).ToString("N2"));
             return vo;
         }
 
@@ -70,13 +71,13 @@ namespace BLL
             if (!Regex.IsMatch(nro, @"^\d{13,19}$"))
             {
                 vo.Resultado = ResultadoValidacion.NroTarjetaInvalido;
-                vo.Mensaje = "Número de tarjeta inválido (debe tener entre 13 y 19 dígitos)";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.nroTarjetaInvalido");
                 return vo;
             }
             if (!PasaValidacionLuhn(nro))
             {
                 vo.Resultado = ResultadoValidacion.NroTarjetaInvalido;
-                vo.Mensaje = "Número de tarjeta inválido (checksum Luhn)";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.nroTarjetaLuhn");
                 return vo;
             }
 
@@ -84,41 +85,41 @@ namespace BLL
             if (!int.TryParse(mesVenc, out mes) || mes < 1 || mes > 12)
             {
                 vo.Resultado = ResultadoValidacion.VencimientoInvalido;
-                vo.Mensaje = "Mes de vencimiento inválido";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.mesInvalido");
                 return vo;
             }
             if (!int.TryParse(anioVenc, out anio) || anio < 2020 || anio > 2100)
             {
                 vo.Resultado = ResultadoValidacion.VencimientoInvalido;
-                vo.Mensaje = "Año de vencimiento inválido";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.anioInvalido");
                 return vo;
             }
             DateTime venc = new DateTime(anio, mes, DateTime.DaysInMonth(anio, mes));
             if (venc < DateTime.Today)
             {
                 vo.Resultado = ResultadoValidacion.VencimientoInvalido;
-                vo.Mensaje = "La tarjeta está vencida";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.tarjetaVencida");
                 return vo;
             }
 
             if (!Regex.IsMatch(cvv ?? "", @"^\d{3,4}$"))
             {
                 vo.Resultado = ResultadoValidacion.CvvInvalido;
-                vo.Mensaje = "Código de seguridad inválido (3 o 4 dígitos)";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.cvvInvalido");
                 return vo;
             }
 
             if (string.IsNullOrWhiteSpace(titularNombre) || string.IsNullOrWhiteSpace(titularApellido))
             {
                 vo.Resultado = ResultadoValidacion.TitularIncompleto;
-                vo.Mensaje = "Complete nombre y apellido del titular";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.titularIncompleto");
                 return vo;
             }
 
             if (string.IsNullOrWhiteSpace(banco))
             {
                 vo.Resultado = ResultadoValidacion.BancoRequerido;
-                vo.Mensaje = "Indique el banco emisor";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.bancoRequerido");
                 return vo;
             }
 
@@ -127,7 +128,7 @@ namespace BLL
             if (string.IsNullOrEmpty(codigoAutorizacion))
             {
                 vo.Resultado = ResultadoValidacion.AutorizacionRechazada;
-                vo.Mensaje = "El banco rechazó la operación";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.cobro.rechazado");
                 return vo;
             }
 
@@ -142,7 +143,7 @@ namespace BLL
                 TitularApellido  = titularApellido,
                 CodigoAutoriz    = codigoAutorizacion
             };
-            vo.Mensaje = "Cobro con tarjeta autorizado. Código: " + codigoAutorizacion;
+            vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.cobro.tarjetaOk"), codigoAutorizacion);
             return vo;
         }
 

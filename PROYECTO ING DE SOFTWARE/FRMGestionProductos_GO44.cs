@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,7 +17,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     ///   • Baja:       lógica (Activo = 0); si estaba dado de baja se puede Reactivar
     ///   • Consulta:   grilla con filtros; radio para ver Solo activos / Todos
     /// </summary>
-    public partial class FRMGestionProductos_GO44 : Form
+    public partial class FRMGestionProductos_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLComponente_GO44 _bll;
         private List<BE_Componente_GO44> _todos;
@@ -27,6 +28,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             InitializeComponent();
             _bll = new BLLComponente_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMGestionProductos_GO44_Load(object sender, EventArgs e)
@@ -35,6 +39,55 @@ namespace PROYECTO_ING_DE_SOFTWARE
             ModoConsulta();
             CargarGrilla();
             CargarCombosCategoria();
+            ActualizarIdioma();
+        }
+
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("productos.titulo");
+            if (lblTitulo != null)         lblTitulo.Text         = IdiomaManager_GO44.T("productos.titulo");
+            if (lblCodigo != null)         lblCodigo.Text         = IdiomaManager_GO44.T("productos.codigo");
+            if (lblNombre != null)         lblNombre.Text         = IdiomaManager_GO44.T("productos.nombre");
+            if (lblCategoria != null)      lblCategoria.Text      = IdiomaManager_GO44.T("productos.filtroCategoria");
+            if (lblCategoria2 != null)     lblCategoria2.Text     = IdiomaManager_GO44.T("productos.categoria");
+            if (lblDescripcion != null)    lblDescripcion.Text    = IdiomaManager_GO44.T("productos.descripcion");
+            if (lblPrecio != null)         lblPrecio.Text         = IdiomaManager_GO44.T("productos.precio");
+            if (lblStockActual != null)    lblStockActual.Text    = IdiomaManager_GO44.T("productos.stockActual");
+            if (lblStockMinimo != null)    lblStockMinimo.Text    = IdiomaManager_GO44.T("productos.stockMinimo");
+            if (lblBuscarCodigo != null)   lblBuscarCodigo.Text   = IdiomaManager_GO44.T("productos.buscar");
+            if (btnNuevo != null)          btnNuevo.Text          = IdiomaManager_GO44.T("productos.btnNuevo");
+            if (btnModificarPrecio != null)btnModificarPrecio.Text= IdiomaManager_GO44.T("productos.btnModificarPrecio");
+            if (btnBajaAlta != null)       btnBajaAlta.Text       = IdiomaManager_GO44.T("productos.btnBajaAlta");
+            if (btnAplicar != null)        btnAplicar.Text        = IdiomaManager_GO44.T("productos.btnAplicar");
+            if (btnCancelar != null)       btnCancelar.Text       = IdiomaManager_GO44.T("productos.btnCancelar");
+            if (btnSalir != null)          btnSalir.Text          = IdiomaManager_GO44.T("productos.btnSalir");
+            if (rbSoloActivos != null)     rbSoloActivos.Text     = IdiomaManager_GO44.T("productos.soloActivos");
+            if (rbTodos != null)           rbTodos.Text           = IdiomaManager_GO44.T("productos.todos");
+            RefrescarLblMensaje();
+
+            // Combo categoría: reemplazar el "(todas)"
+            if (cmbCategoria != null && cmbCategoria.Items.Count > 0)
+            {
+                int idx = cmbCategoria.SelectedIndex;
+                cmbCategoria.Items[0] = IdiomaManager_GO44.T("productos.filtroTodas");
+                if (idx >= 0) cmbCategoria.SelectedIndex = idx;
+            }
+
+            // Refrescar total
+            if (lblTotal != null)
+                lblTotal.Text = string.Format(IdiomaManager_GO44.T("productos.total"), _todos != null ? _todos.Count : 0);
+        }
+
+        private void RefrescarLblMensaje()
+        {
+            if (lblMensaje == null) return;
+            switch (_modo)
+            {
+                case "Consulta":         lblMensaje.Text = IdiomaManager_GO44.T("productos.modoConsulta"); break;
+                case "Nuevo":            lblMensaje.Text = string.Format(IdiomaManager_GO44.T("productos.modo"), IdiomaManager_GO44.T("productos.modoNuevo")); break;
+                case "Modificar precio": lblMensaje.Text = string.Format(IdiomaManager_GO44.T("productos.modo"), IdiomaManager_GO44.T("productos.modoModificarPrecio")); break;
+                default:                 lblMensaje.Text = string.Format(IdiomaManager_GO44.T("productos.modo"), _modo); break;
+            }
         }
 
         private void ConfigurarGrilla()
@@ -82,13 +135,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     row.DefaultCellStyle.BackColor = Color.LightYellow;
             }
 
-            lblTotal.Text = "Total: " + (lista != null ? lista.Count : 0);
+            lblTotal.Text = string.Format(IdiomaManager_GO44.T("productos.total"), lista != null ? lista.Count : 0);
         }
 
         private void CargarCombosCategoria()
         {
             cmbCategoria.Items.Clear();
-            cmbCategoria.Items.Add("(todas)");
+            cmbCategoria.Items.Add(IdiomaManager_GO44.T("productos.filtroTodas"));
             if (_todos != null)
             {
                 var cats = _todos.Where(c => !string.IsNullOrEmpty(c.Categoria))
@@ -109,7 +162,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                                  (c.Nombre != null && c.Nombre.ToUpper().Contains(codigo)));
 
             string cat = cmbCategoria.SelectedIndex >= 0 ? cmbCategoria.SelectedItem as string : null;
-            if (!string.IsNullOrEmpty(cat) && cat != "(todas)")
+            string todasEs = IdiomaManager_GO44.T("productos.filtroTodas");
+            if (!string.IsNullOrEmpty(cat) && cat != todasEs && cat != "(todas)" && cat != "(all)")
                 q = q.Where(c => c.Categoria == cat);
 
             RefrescarGrilla(q.ToList());
@@ -125,7 +179,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void ModoConsulta()
         {
             _modo = "Consulta";
-            lblMensaje.Text = "Modo: Consulta";
+            RefrescarLblMensaje();
             LimpiarCampos();
             HabilitarCampos(false);
             btnNuevo.Enabled = true;
@@ -139,7 +193,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void ModoOperacion(string modo)
         {
             _modo = modo;
-            lblMensaje.Text = "Modo: " + modo;
+            RefrescarLblMensaje();
             btnNuevo.Enabled = false;
             btnModificarPrecio.Enabled = false;
             btnBajaAlta.Enabled = false;
@@ -196,7 +250,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_seleccionado == null)
             {
-                MessageBox.Show("Seleccione un producto", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.seleccione"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             HabilitarCampos(false);
@@ -210,7 +265,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_seleccionado == null)
             {
-                MessageBox.Show("Seleccione un producto", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.seleccione"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             HabilitarCampos(false);
@@ -239,37 +295,46 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (!decimal.TryParse(txtPrecio.Text.Trim(), NumberStyles.Any, CultureInfo.CurrentCulture, out precio) &&
                 !decimal.TryParse(txtPrecio.Text.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out precio))
             {
-                MessageBox.Show("Precio inválido", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.precioInvalido"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             int stockA, stockM;
             if (!int.TryParse(txtStockActual.Text.Trim(), out stockA) || stockA < 0)
-            { MessageBox.Show("Stock actual inválido", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+            { MessageBox.Show(IdiomaManager_GO44.T("productos.stockActInvalido"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
             if (!int.TryParse(txtStockMinimo.Text.Trim(), out stockM) || stockM < 0)
-            { MessageBox.Show("Stock mínimo inválido", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+            { MessageBox.Show(IdiomaManager_GO44.T("productos.stockMinInvalido"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
 
             var r = _bll.RegistrarProducto(codigo, nombre, categoria, descripcion, precio, stockA, stockM);
 
             switch (r)
             {
                 case BLLComponente_GO44.ResultadoAltaProducto.Exitoso:
-                    MessageBox.Show("Producto registrado correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(IdiomaManager_GO44.T("productos.registradoOk"),
+                        IdiomaManager_GO44.T("productos.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ModoConsulta();
                     CargarGrilla();
                     CargarCombosCategoria();
                     break;
                 case BLLComponente_GO44.ResultadoAltaProducto.CodigoDuplicado:
-                    MessageBox.Show("Ya existe un producto con código " + codigo, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("productos.codigoDuplicado"), codigo),
+                        IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtCodigo.Focus(); break;
                 case BLLComponente_GO44.ResultadoAltaProducto.DatosIncompletos:
-                    MessageBox.Show("Complete al menos código y nombre", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); break;
+                    MessageBox.Show(IdiomaManager_GO44.T("productos.completarCodNom"),
+                        IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning); break;
                 case BLLComponente_GO44.ResultadoAltaProducto.PrecioInvalido:
-                    MessageBox.Show("El precio debe ser mayor o igual a 0", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); break;
+                    MessageBox.Show(IdiomaManager_GO44.T("productos.precioMayorCero"),
+                        IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning); break;
                 case BLLComponente_GO44.ResultadoAltaProducto.StockInvalido:
-                    MessageBox.Show("Los stocks no pueden ser negativos", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); break;
+                    MessageBox.Show(IdiomaManager_GO44.T("productos.stocksNoNegativos"),
+                        IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning); break;
                 default:
-                    MessageBox.Show("No se pudo registrar el producto", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); break;
+                    MessageBox.Show(IdiomaManager_GO44.T("productos.noSeRegistro"),
+                        IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error); break;
             }
         }
 
@@ -279,64 +344,73 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (!decimal.TryParse(txtPrecio.Text.Trim(), NumberStyles.Any, CultureInfo.CurrentCulture, out precio) &&
                 !decimal.TryParse(txtPrecio.Text.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out precio))
             {
-                MessageBox.Show("Precio inválido", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.precioInvalido"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (precio < 0)
             {
-                MessageBox.Show("El precio debe ser >= 0", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.precioMayorCero2"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             bool ok = _bll.ActualizarPrecio(_seleccionado.Id, precio);
             if (ok)
             {
-                MessageBox.Show("Precio actualizado", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.precioActualizado"),
+                    IdiomaManager_GO44.T("productos.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ModoConsulta();
                 CargarGrilla();
             }
             else
             {
-                MessageBox.Show("No se pudo actualizar el precio", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.noSeActualizoPrecio"),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void DarDeBaja()
         {
-            var r = MessageBox.Show("¿Dar de baja el producto " + _seleccionado.Codigo + "?\n\n" +
-                                    "Ya no aparecerá en la lista de productos disponibles del carrito.",
-                                    "Confirmar baja", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var r = MessageBox.Show(string.Format(IdiomaManager_GO44.T("productos.confirmarBaja"), _seleccionado.Codigo),
+                                    IdiomaManager_GO44.T("productos.confirmar"),
+                                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             bool ok = _bll.DarDeBaja(_seleccionado.Id);
             if (ok)
             {
-                MessageBox.Show("Producto dado de baja", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.dadoBajaOk"),
+                    IdiomaManager_GO44.T("productos.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ModoConsulta();
                 CargarGrilla();
             }
             else
             {
-                MessageBox.Show("No se pudo dar de baja", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.noSeDioBaja"),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void Reactivar()
         {
-            var r = MessageBox.Show("¿Reactivar el producto " + _seleccionado.Codigo + "?",
-                                    "Confirmar reactivación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var r = MessageBox.Show(string.Format(IdiomaManager_GO44.T("productos.confirmarReactivar"), _seleccionado.Codigo),
+                                    IdiomaManager_GO44.T("productos.confirmar"),
+                                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             bool ok = _bll.Reactivar(_seleccionado.Id);
             if (ok)
             {
-                MessageBox.Show("Producto reactivado", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.reactivadoOk"),
+                    IdiomaManager_GO44.T("productos.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ModoConsulta();
                 CargarGrilla();
             }
             else
             {
-                MessageBox.Show("No se pudo reactivar", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(IdiomaManager_GO44.T("productos.noSeReactivo"),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

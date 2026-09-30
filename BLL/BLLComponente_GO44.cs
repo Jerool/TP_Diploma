@@ -43,9 +43,13 @@ namespace BLL
 
         private void Auditar(string modulo, string tipoEvento, string detalle, string criticidad)
         {
-            Usuario_GO44 usuario = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
-            string login = usuario != null ? usuario.Login : "SISTEMA";
-            BLLBitacora_GO44.Instancia.RegistrarEvento(login, modulo, tipoEvento, detalle, criticidad);
+            try
+            {
+                Usuario_GO44 usuario = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
+                string login = usuario != null ? usuario.Login : "SISTEMA";
+                BLLBitacora_GO44.Instancia.RegistrarEvento(login, modulo, tipoEvento, detalle, criticidad);
+            }
+            catch { /* la bitácora es best-effort; no debe romper la operación principal */ }
         }
 
         // ============ CU03 Seleccionar Componente (por Id) ============
@@ -58,7 +62,7 @@ namespace BLL
                 if (cantidad <= 0)
                 {
                     vo.Resultado = ResultadoSeleccionComponente.CantidadInvalida;
-                    vo.Mensaje = "La cantidad debe ser mayor a 0";
+                    vo.Mensaje = IdiomaManager_GO44.T("bll.componente.cantidadInvalida");
                     return vo;
                 }
 
@@ -67,14 +71,14 @@ namespace BLL
                 if (comp == null)
                 {
                     vo.Resultado = ResultadoSeleccionComponente.ComponenteInexistente;
-                    vo.Mensaje = "Componente ID " + idComponente + " no existe";
+                    vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.componente.noExiste"), idComponente);
                     return vo;
                 }
 
                 if (!comp.Activo)
                 {
                     vo.Resultado = ResultadoSeleccionComponente.ComponenteInactivo;
-                    vo.Mensaje = "Componente " + comp.Codigo + " está dado de baja";
+                    vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.componente.dadoBaja"), comp.Codigo);
                     return vo;
                 }
 
@@ -84,13 +88,13 @@ namespace BLL
                             "Se pidió " + cantidad + " de " + comp.Codigo + " y hay " + comp.StockActual, "Media");
                     vo.Resultado = ResultadoSeleccionComponente.StockInsuficiente;
                     vo.Componente = comp;
-                    vo.Mensaje = "Stock insuficiente. Disponible: " + comp.StockActual;
+                    vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.componente.stockInsuficiente"), comp.StockActual);
                     return vo;
                 }
 
                 vo.Resultado = ResultadoSeleccionComponente.Exitoso;
                 vo.Componente = comp;
-                vo.Mensaje = "OK";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.componente.ok");
                 return vo;
             }
             catch (Exception ex)
@@ -109,7 +113,7 @@ namespace BLL
             if (string.IsNullOrWhiteSpace(codigo))
             {
                 vo.Resultado = ResultadoSeleccionComponente.ComponenteInexistente;
-                vo.Mensaje = "Debe ingresar un código";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.componente.debeIngresarCodigo");
                 return vo;
             }
 
@@ -117,7 +121,7 @@ namespace BLL
             if (comp == null)
             {
                 vo.Resultado = ResultadoSeleccionComponente.ComponenteInexistente;
-                vo.Mensaje = "Código " + codigo + " no encontrado";
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.componente.codigoNoEncontrado"), codigo);
                 return vo;
             }
 
@@ -155,9 +159,13 @@ namespace BLL
 
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
-            Usuario_GO44 usuario = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
-            string login = usuario != null ? usuario.Login : "SISTEMA";
-            BLLBitacora_GO44.Instancia.RegistrarEvento(login, "Componente", tipoEvento, detalle, criticidad);
+            try
+            {
+                Usuario_GO44 usuario = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
+                string login = usuario != null ? usuario.Login : "SISTEMA";
+                BLLBitacora_GO44.Instancia.RegistrarEvento(login, "Componente", tipoEvento, detalle, criticidad);
+            }
+            catch { /* la bitácora es best-effort; no debe romper la operación principal */ }
         }
 
         public ResultadoAltaProducto RegistrarProducto(string codigo, string nombre, string categoria,

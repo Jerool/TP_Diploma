@@ -18,7 +18,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     ///   • La grilla inferior muestra el carrito armado. Podés quitar líneas.
     ///   • Confirmar Venta → transacción atómica (BLLCarrito.ConfirmarCarrito).
     /// </summary>
-    public partial class FRMCargarCarrito_GO44 : Form
+    public partial class FRMCargarCarrito_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLCliente_GO44    _bllCliente;
         private readonly BLLComponente_GO44 _bllComponente;
@@ -38,6 +38,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _bllCliente    = new BLLCliente_GO44();
             _bllComponente = new BLLComponente_GO44();
             _bllCarrito    = new BLLCarrito_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMCargarCarrito_GO44_Load(object sender, EventArgs e)
@@ -51,12 +54,49 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 _cargando = false;
                 CargarProductos();
                 RefrescarCarritoUI();
+                ActualizarIdioma();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al abrir Cargar Carrito: " + ex.Message + "\n\n" + ex.StackTrace,
-                    "Error de inicialización", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format(IdiomaManager_GO44.T("carrito.errApertura"), ex.Message + "\n\n" + ex.StackTrace),
+                    IdiomaManager_GO44.T("carrito.errAperturaTitulo"),
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("carrito.titulo");
+            if (lblTitulo != null)         lblTitulo.Text         = IdiomaManager_GO44.T("carrito.titulo");
+            if (grpCliente != null)        grpCliente.Text        = IdiomaManager_GO44.T("carrito.grpCliente");
+            if (lblDniCliente != null)     lblDniCliente.Text     = IdiomaManager_GO44.T("carrito.dni");
+            if (btnBuscarCliente != null)  btnBuscarCliente.Text  = IdiomaManager_GO44.T("carrito.btnBuscarCli");
+            if (grpProductos != null)      grpProductos.Text      = IdiomaManager_GO44.T("carrito.grpProductos");
+            if (lblBuscarProducto != null) lblBuscarProducto.Text = IdiomaManager_GO44.T("carrito.buscar");
+            if (lblCategoria != null)      lblCategoria.Text      = IdiomaManager_GO44.T("carrito.categoria");
+            if (btnLimpiarBusqueda != null)btnLimpiarBusqueda.Text= IdiomaManager_GO44.T("carrito.btnLimpiar");
+            if (lblCantidad != null)       lblCantidad.Text       = IdiomaManager_GO44.T("carrito.cantidad");
+            if (btnAgregarLinea != null)   btnAgregarLinea.Text   = IdiomaManager_GO44.T("carrito.btnAgregar");
+            if (grpCarrito != null)        grpCarrito.Text        = IdiomaManager_GO44.T("carrito.grpCarrito");
+            if (btnQuitarLinea != null)    btnQuitarLinea.Text    = IdiomaManager_GO44.T("carrito.btnQuitar");
+            if (btnConfirmar != null)      btnConfirmar.Text      = IdiomaManager_GO44.T("carrito.btnConfirmar");
+            if (btnCancelar != null)       btnCancelar.Text       = IdiomaManager_GO44.T("carrito.btnCancelar");
+            if (btnSalir != null)          btnSalir.Text          = IdiomaManager_GO44.T("carrito.btnSalir");
+
+            if (_carrito != null && _carrito.Cliente == null && lblClienteInfo != null)
+                lblClienteInfo.Text = IdiomaManager_GO44.T("carrito.clienteSinAsignar");
+
+            // Reemplazar el "(todas)" en el combo si estaba
+            if (cmbCategoria != null && cmbCategoria.Items.Count > 0)
+            {
+                // El primer item siempre es el "(todas)" — lo sustituimos
+                int idx = cmbCategoria.SelectedIndex;
+                cmbCategoria.Items[0] = IdiomaManager_GO44.T("carrito.categoriaTodas");
+                if (idx >= 0) cmbCategoria.SelectedIndex = idx;
+            }
+
+            RefrescarCarritoUI();
+            AplicarFiltro();
         }
 
         private void ConfigurarGrillas()
@@ -111,7 +151,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string dni = txtDniCliente.Text.Trim();
             if (!Validaciones_GO44.EsDniValido(dni))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI, "DNI inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI,
+                    IdiomaManager_GO44.T("carrito.dniInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtDniCliente.Focus();
                 return;
@@ -121,8 +162,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (cli == null)
             {
                 var r = MessageBox.Show(
-                    "El cliente DNI " + dni + " no está registrado.\n¿Registrarlo ahora?",
-                    "Cliente inexistente", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    string.Format(IdiomaManager_GO44.T("carrito.clienteInexistenteMensaje"), dni),
+                    IdiomaManager_GO44.T("carrito.clienteInexistenteTitulo"),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (r == DialogResult.Yes)
                 {
                     FRMGestionClientes_GO44 frm = new FRMGestionClientes_GO44();
@@ -134,7 +176,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
 
             _carrito.Cliente = cli;
-            lblClienteInfo.Text = "Cliente: " + cli.NombreCompleto + "  ·  DNI " + cli.DNI;
+            lblClienteInfo.Text = string.Format(IdiomaManager_GO44.T("carrito.clienteInfo"), cli.NombreCompleto, cli.DNI);
             lblClienteInfo.ForeColor = Color.DarkGreen;
         }
 
@@ -153,7 +195,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             try
             {
                 cmbCategoria.Items.Clear();
-                cmbCategoria.Items.Add("(todas)");
+                cmbCategoria.Items.Add(IdiomaManager_GO44.T("carrito.categoriaTodas"));
                 if (_todosProductos != null)
                 {
                     var cats = _todosProductos
@@ -185,7 +227,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 }
 
                 string cat = cmbCategoria.SelectedIndex >= 0 ? cmbCategoria.SelectedItem as string : null;
-                if (!string.IsNullOrEmpty(cat) && cat != "(todas)")
+                string todasLbl = IdiomaManager_GO44.T("carrito.categoriaTodas");
+                if (!string.IsNullOrEmpty(cat) && cat != todasLbl && cat != "(todas)" && cat != "(all)")
                     q = q.Where(c => c.Categoria == cat);
 
                 var lista = q.ToList();
@@ -198,9 +241,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     if (dgvProductos.Columns.Contains("Activo"))      dgvProductos.Columns["Activo"].Visible = false;
                     if (dgvProductos.Columns.Contains("Id"))          dgvProductos.Columns["Id"].Visible = false;
                     if (dgvProductos.Columns.Contains("StockMinimo")) dgvProductos.Columns["StockMinimo"].Visible = false;
-                    if (dgvProductos.Columns.Contains("Codigo"))      dgvProductos.Columns["Codigo"].HeaderText = "Código";
+                    if (dgvProductos.Columns.Contains("Codigo"))      dgvProductos.Columns["Codigo"].HeaderText = IdiomaManager_GO44.T("carrito.col.codigo");
                     if (dgvProductos.Columns.Contains("Precio"))      dgvProductos.Columns["Precio"].DefaultCellStyle.Format = "N2";
-                    if (dgvProductos.Columns.Contains("StockActual")) dgvProductos.Columns["StockActual"].HeaderText = "Stock";
+                    if (dgvProductos.Columns.Contains("StockActual")) dgvProductos.Columns["StockActual"].HeaderText = IdiomaManager_GO44.T("carrito.col.stock");
                 }
 
                 foreach (DataGridViewRow row in dgvProductos.Rows)
@@ -213,12 +256,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
                         row.DefaultCellStyle.BackColor = Color.LightYellow;
                 }
 
-                lblContadorProductos.Text = "Productos: " + lista.Count;
+                lblContadorProductos.Text = string.Format(IdiomaManager_GO44.T("carrito.contadorProd"), lista.Count);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al filtrar productos: " + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format(IdiomaManager_GO44.T("carrito.errFiltrar"), ex.Message),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -236,7 +279,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvProductos.CurrentRow == null)
             {
-                MessageBox.Show("Seleccione un producto de la grilla", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("carrito.seleccProd"),
+                    IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             BE_Componente_GO44 seleccionado = dgvProductos.CurrentRow.DataBoundItem as BE_Componente_GO44;
@@ -245,14 +289,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
             int cantidad;
             if (!int.TryParse(txtCantidad.Text.Trim(), out cantidad) || cantidad <= 0)
             {
-                MessageBox.Show("Cantidad inválida", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("carrito.cantInvalida"),
+                    IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             var vo = _bllComponente.SeleccionarPorId(seleccionado.Id, cantidad);
             if (vo.Resultado != BLLComponente_GO44.ResultadoSeleccionComponente.Exitoso)
             {
-                MessageBox.Show(vo.Mensaje, "No se puede agregar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(vo.Mensaje,
+                    IdiomaManager_GO44.T("carrito.noSePuedeAgregar"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -265,7 +311,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvLineas.CurrentRow == null)
             {
-                MessageBox.Show("Seleccione una línea", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("carrito.seleccLinea"),
+                    IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             BE_LineaCarrito_GO44 linea = dgvLineas.CurrentRow.DataBoundItem as BE_LineaCarrito_GO44;
@@ -281,39 +328,43 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_carrito.Cliente == null)
             {
-                MessageBox.Show("Falta asignar cliente al carrito", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("carrito.faltaCliente"),
+                    IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (_carrito.EstaVacio())
             {
-                MessageBox.Show("El carrito está vacío", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("carrito.carritoVacio"),
+                    IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             var r = MessageBox.Show(
-                "Confirmar venta por $" + _carrito.Total.ToString("N2") + " (" + _carrito.CantidadItems + " items)?",
-                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                string.Format(IdiomaManager_GO44.T("carrito.confirmarVenta"), _carrito.Total.ToString("N2"), _carrito.CantidadItems),
+                IdiomaManager_GO44.T("carrito.confirmarTitulo"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             var vo = _bllCarrito.ConfirmarCarrito(_carrito);
             if (vo.Resultado == BLLCarrito_GO44.ResultadoConfirmacion.Exitoso)
             {
-                MessageBox.Show(vo.Mensaje, "Venta confirmada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(vo.Mensaje,
+                    IdiomaManager_GO44.T("carrito.ventaConfirmadaTitulo"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Reset();
                 CargarProductos();   // refrescar stock actualizado
             }
             else
             {
                 MessageBox.Show(vo.Mensaje +
-                    (vo.ComponenteConProblema != null ? "\nComponente: " + vo.ComponenteConProblema : ""),
-                    "No se pudo confirmar", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    (vo.ComponenteConProblema != null ? string.Format(IdiomaManager_GO44.T("carrito.componenteProblema"), vo.ComponenteConProblema) : ""),
+                    IdiomaManager_GO44.T("carrito.noSePudoConfirmar"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            var r = MessageBox.Show("¿Cancelar el carrito actual? Se perderán las líneas cargadas.",
-                                    "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var r = MessageBox.Show(IdiomaManager_GO44.T("carrito.cancelarConfirm"),
+                                    IdiomaManager_GO44.T("carrito.confirmarTitulo"),
+                                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r == DialogResult.Yes) Reset();
         }
 
@@ -323,7 +374,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _carrito.LoginVendedor = SessionManager_GO44.Instancia.ObtenerUsuarioActual()?.Login ?? "";
             txtDniCliente.Text = "";
             txtCantidad.Text = "1";
-            lblClienteInfo.Text = "Cliente: (sin asignar)";
+            lblClienteInfo.Text = IdiomaManager_GO44.T("carrito.clienteSinAsignar");
             lblClienteInfo.ForeColor = Color.Firebrick;
             RefrescarCarritoUI();
         }
@@ -355,19 +406,19 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
                     if (dgvLineas.Columns.Contains("ComponenteCodigo"))
                     {
-                        dgvLineas.Columns["ComponenteCodigo"].HeaderText = "Código";
+                        dgvLineas.Columns["ComponenteCodigo"].HeaderText = IdiomaManager_GO44.T("carrito.col.codigo");
                         if (visibles >= 1) dgvLineas.Columns["ComponenteCodigo"].DisplayIndex = 0;
                     }
                     if (dgvLineas.Columns.Contains("ComponenteNombre"))
                     {
-                        dgvLineas.Columns["ComponenteNombre"].HeaderText = "Componente";
+                        dgvLineas.Columns["ComponenteNombre"].HeaderText = IdiomaManager_GO44.T("carrito.col.componente");
                         if (visibles >= 2) dgvLineas.Columns["ComponenteNombre"].DisplayIndex = 1;
                     }
                     if (dgvLineas.Columns.Contains("Cantidad") && visibles >= 3)
                         dgvLineas.Columns["Cantidad"].DisplayIndex = 2;
                     if (dgvLineas.Columns.Contains("PrecioUnitario"))
                     {
-                        dgvLineas.Columns["PrecioUnitario"].HeaderText = "Precio Unit.";
+                        dgvLineas.Columns["PrecioUnitario"].HeaderText = IdiomaManager_GO44.T("carrito.col.precioUnit");
                         dgvLineas.Columns["PrecioUnitario"].DefaultCellStyle.Format = "N2";
                         if (visibles >= 4) dgvLineas.Columns["PrecioUnitario"].DisplayIndex = 3;
                     }
@@ -378,13 +429,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     }
                 }
 
-                lblCantItems.Text = "Items: " + _carrito.CantidadItems;
-                lblTotal.Text     = "Total: $ " + _carrito.Total.ToString("N2");
+                lblCantItems.Text = string.Format(IdiomaManager_GO44.T("carrito.items"), _carrito.CantidadItems);
+                lblTotal.Text     = string.Format(IdiomaManager_GO44.T("carrito.total"), _carrito.Total.ToString("N2"));
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al refrescar carrito: " + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format(IdiomaManager_GO44.T("carrito.errRefrescar"), ex.Message),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

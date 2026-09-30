@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace PROYECTO_ING_DE_SOFTWARE
 {
-    public partial class FRMGestionClientes_GO44 : Form
+    public partial class FRMGestionClientes_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLCliente_GO44 _bll;
         private string _modo = "Consulta";
@@ -20,6 +20,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             InitializeComponent();
             _bll = new BLLCliente_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMGestionClientes_GO44_Load(object sender, EventArgs e)
@@ -27,6 +30,39 @@ namespace PROYECTO_ING_DE_SOFTWARE
             ConfigurarGrilla();
             ModoConsulta();
             CargarGrilla();
+            ActualizarIdioma();
+        }
+
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("clientes.titulo");
+            if (lblTitulo != null)   lblTitulo.Text   = IdiomaManager_GO44.T("clientes.titulo");
+            if (lblDNI != null)      lblDNI.Text      = IdiomaManager_GO44.T("clientes.dni");
+            if (lblApellido != null) lblApellido.Text = IdiomaManager_GO44.T("clientes.apellido");
+            if (lblNombre != null)   lblNombre.Text   = IdiomaManager_GO44.T("clientes.nombre");
+            if (lblEmail != null)    lblEmail.Text    = IdiomaManager_GO44.T("clientes.email");
+            if (lblTelefono != null) lblTelefono.Text = IdiomaManager_GO44.T("clientes.telefono");
+            if (btnNuevo != null)    btnNuevo.Text    = IdiomaManager_GO44.T("clientes.btnNuevo");
+            if (btnModificar != null)btnModificar.Text= IdiomaManager_GO44.T("clientes.btnModificar");
+            if (btnActivarDesactivar != null) btnActivarDesactivar.Text = IdiomaManager_GO44.T("clientes.btnActivarDesactivar");
+            if (btnAplicar != null)  btnAplicar.Text  = IdiomaManager_GO44.T("clientes.btnAplicar");
+            if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GO44.T("clientes.btnCancelar");
+            if (btnSalir != null)    btnSalir.Text    = IdiomaManager_GO44.T("clientes.btnSalir");
+            if (btnExportarXml != null) btnExportarXml.Text = IdiomaManager_GO44.T("clientes.btnExportarXml");
+            if (btnImportarXml != null) btnImportarXml.Text = IdiomaManager_GO44.T("clientes.btnImportarXml");
+            RefrescarLblMensaje();
+        }
+
+        private void RefrescarLblMensaje()
+        {
+            if (lblMensaje == null) return;
+            switch (_modo)
+            {
+                case "Consulta":  lblMensaje.Text = IdiomaManager_GO44.T("clientes.modoConsulta"); break;
+                case "Nuevo":     lblMensaje.Text = string.Format(IdiomaManager_GO44.T("clientes.modo"), IdiomaManager_GO44.T("clientes.modoNuevo")); break;
+                case "Modificar": lblMensaje.Text = string.Format(IdiomaManager_GO44.T("clientes.modo"), IdiomaManager_GO44.T("clientes.modoModificar")); break;
+                default:          lblMensaje.Text = string.Format(IdiomaManager_GO44.T("clientes.modo"), _modo); break;
+            }
         }
 
         private void ConfigurarGrilla()
@@ -77,7 +113,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void ModoConsulta()
         {
             _modo = "Consulta";
-            lblMensaje.Text = "Modo: Consulta";
+            RefrescarLblMensaje();
             LimpiarCampos();
             HabilitarCampos(false);
             btnNuevo.Enabled = true;
@@ -91,7 +127,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void ModoOperacion(string modo)
         {
             _modo = modo;
-            lblMensaje.Text = "Modo: " + modo;
+            RefrescarLblMensaje();
             btnNuevo.Enabled = false;
             btnModificar.Enabled = false;
             btnActivarDesactivar.Enabled = false;
@@ -138,7 +174,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_clienteSeleccionado == null)
             {
-                MessageBox.Show("Seleccione un cliente", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.seleccione"),
+                    IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             HabilitarCampos(false);
@@ -152,7 +189,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_clienteSeleccionado == null)
             {
-                MessageBox.Show("Seleccione un cliente", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.seleccione"),
+                    IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             HabilitarCampos(false);
@@ -181,31 +219,31 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // Validaciones cliente-side reutilizando Validaciones_GO44 de Servicios
             if (!Validaciones_GO44.EsDniValido(dni))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI, "DNI inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI, IdiomaManager_GO44.T("clientes.dniInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtDNI.Focus(); return;
             }
             if (!Validaciones_GO44.EsApellidoValido(ape))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_APELLIDO, "Apellido inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_APELLIDO, IdiomaManager_GO44.T("clientes.apellidoInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtApellido.Focus(); return;
             }
             if (!Validaciones_GO44.EsNombreValido(nom))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_NOMBRE, "Nombre inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_NOMBRE, IdiomaManager_GO44.T("clientes.nombreInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtNombre.Focus(); return;
             }
             if (!Validaciones_GO44.EsEmailValido(mail))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, "Email inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, IdiomaManager_GO44.T("clientes.emailInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtEmail.Focus(); return;
             }
             if (!string.IsNullOrEmpty(tel) && !Validaciones_GO44.EsTelefonoValido(tel))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_TELEFONO, "Teléfono inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_TELEFONO, IdiomaManager_GO44.T("clientes.telefonoInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtTelefono.Focus(); return;
             }
@@ -215,48 +253,50 @@ namespace PROYECTO_ING_DE_SOFTWARE
             switch (r)
             {
                 case BLLCliente_GO44.ResultadoRegistroCliente.Exitoso:
-                    MessageBox.Show("Cliente registrado correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(IdiomaManager_GO44.T("clientes.registradoOk"),
+                        IdiomaManager_GO44.T("clientes.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ModoConsulta();
                     CargarGrilla();
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.DNIVacio:
-                    MessageBox.Show("El DNI no puede estar vacío", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(IdiomaManager_GO44.T("clientes.dniVacio"),
+                        IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtDNI.Focus();
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.DNIDuplicado:
-                    MessageBox.Show("Ya existe un cliente con DNI " + dni, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("clientes.dniDuplicado"), dni),
+                        IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtDNI.Focus();
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.DatosIncompletos:
-                    MessageBox.Show("Complete apellido y nombre", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(IdiomaManager_GO44.T("clientes.completarApeNom"),
+                        IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.EmailInvalido:
-                    MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, "Email inválido",
+                    MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, IdiomaManager_GO44.T("clientes.emailInvalido"),
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtEmail.Focus();
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.EmailDuplicado:
-                    MessageBox.Show("Ya existe un cliente registrado con ese email.\n" +
-                                    "Cada cliente debe tener un email único.",
-                        "Email duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(IdiomaManager_GO44.T("clientes.emailDuplicado"),
+                        IdiomaManager_GO44.T("clientes.emailInvalido"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtEmail.Focus();
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.TelefonoInvalido:
-                    MessageBox.Show(Validaciones_GO44.MENSAJE_TELEFONO, "Teléfono inválido",
+                    MessageBox.Show(Validaciones_GO44.MENSAJE_TELEFONO, IdiomaManager_GO44.T("clientes.telefonoInvalido"),
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtTelefono.Focus();
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.TelefonoDuplicado:
-                    MessageBox.Show("Ya existe un cliente registrado con ese teléfono.\n" +
-                                    "Cada cliente debe tener un teléfono único.",
-                        "Teléfono duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(IdiomaManager_GO44.T("clientes.telefonoDuplicado"),
+                        IdiomaManager_GO44.T("clientes.telefonoInvalido"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtTelefono.Focus();
                     break;
                 default:
                     string detalle = _bll.UltimoErrorMensaje;
-                    MessageBox.Show("No se pudo registrar el cliente." +
-                                    (string.IsNullOrEmpty(detalle) ? "" : "\n\nDetalle: " + detalle),
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    string extra = string.IsNullOrEmpty(detalle) ? "" : "\n\n" + detalle;
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("clientes.noSeRegistro"), extra),
+                        IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     break;
             }
         }
@@ -266,7 +306,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string mail = txtEmail.Text.Trim();
             if (!Validaciones_GO44.EsEmailValido(mail))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, "Email inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, IdiomaManager_GO44.T("clientes.emailInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtEmail.Focus(); return;
             }
@@ -274,9 +314,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // Chequeo previo — email duplicado en otro cliente
             if (_bll.ExisteEmail(mail, dniExcluir: _clienteSeleccionado.DNI))
             {
-                MessageBox.Show("Ya existe otro cliente registrado con ese email.\n" +
-                                "Cada cliente debe tener un email único.",
-                    "Email duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.emailOtroDuplicado"),
+                    IdiomaManager_GO44.T("clientes.emailInvalido"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtEmail.Focus();
                 return;
             }
@@ -284,13 +323,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
             bool ok = _bll.ModificarEmail(_clienteSeleccionado.DNI, mail);
             if (ok)
             {
-                MessageBox.Show("Cliente modificado", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.modificadoOk"),
+                    IdiomaManager_GO44.T("clientes.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ModoConsulta();
                 CargarGrilla();
             }
             else
             {
-                MessageBox.Show("No se pudo modificar (verifique el email)", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.noSeModifico"),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -301,14 +342,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             if (ok)
             {
-                string msg = nuevoEstado ? "Cliente activado" : "Cliente desactivado";
-                MessageBox.Show(msg, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.modificadoOk"),
+                    IdiomaManager_GO44.T("clientes.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ModoConsulta();
                 CargarGrilla();
             }
             else
             {
-                MessageBox.Show("No se pudo cambiar el estado", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.noSePudoCambiarEstado"),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -330,16 +372,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
             List<BE_Cliente_GO44> lista = _bll.Listar();
             if (lista == null || lista.Count == 0)
             {
-                MessageBox.Show("No hay clientes para exportar", "Aviso",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(IdiomaManager_GO44.T("clientes.sinExportar"),
+                    IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
-                sfd.Filter = "Archivo XML (*.xml)|*.xml";
+                sfd.Filter = "XML (*.xml)|*.xml";
                 sfd.FileName = "Clientes_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xml";
-                sfd.Title = "Exportar clientes a XML";
+                sfd.Title = IdiomaManager_GO44.T("clientes.btnExportarXml");
                 if (sfd.ShowDialog() != DialogResult.OK) return;
 
                 try
@@ -347,14 +389,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     string origen = Environment.MachineName + " - " +
                         (SessionManager_GO44.Instancia.ObtenerUsuarioActual()?.Login ?? "desconocido");
                     SerializadorClientes_GO44.ExportarAXml(lista, sfd.FileName, origen);
-                    MessageBox.Show(
-                        "Se exportaron " + lista.Count + " clientes correctamente.\n\nArchivo: " + sfd.FileName,
-                        "Exportación exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(sfd.FileName,
+                        IdiomaManager_GO44.T("clientes.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al exportar:\n" + ex.Message,
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("clientes.errExportar"), ex.Message),
+                        IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -363,8 +404,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                ofd.Filter = "Archivo XML (*.xml)|*.xml";
-                ofd.Title = "Importar clientes desde XML";
+                ofd.Filter = "XML (*.xml)|*.xml";
+                ofd.Title = IdiomaManager_GO44.T("clientes.btnImportarXml");
                 if (ofd.ShowDialog() != DialogResult.OK) return;
 
                 try
@@ -372,17 +413,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     var export = SerializadorClientes_GO44.ImportarDeXml(ofd.FileName);
                     if (export == null || export.Clientes == null || export.Clientes.Count == 0)
                     {
-                        MessageBox.Show("El archivo no contiene clientes", "Aviso",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(IdiomaManager_GO44.T("clientes.sinImportar"),
+                            IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
 
                     var confirm = MessageBox.Show(
-                        "Se encontraron " + export.Clientes.Count + " clientes en el archivo.\n" +
-                        "Origen: " + (export.Origen ?? "s/d") + "\n" +
-                        "Exportado: " + export.FechaExportacion.ToString("dd/MM/yyyy HH:mm") + "\n\n" +
-                        "¿Importar los que no existan en la BD?",
-                        "Confirmar importación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        string.Format(IdiomaManager_GO44.T("clientes.confirmImport"), export.Clientes.Count),
+                        IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (confirm != DialogResult.Yes) return;
 
                     int importados = 0, saltados = 0, errores = 0;
@@ -397,17 +435,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     }
 
                     MessageBox.Show(
-                        "Importación finalizada:\n\n" +
-                        "  ✓ Importados: " + importados + "\n" +
-                        "  ↷ Ya existían (saltados): " + saltados + "\n" +
-                        "  ✗ Errores: " + errores,
-                        "Resultado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        string.Format(IdiomaManager_GO44.T("clientes.importOk"), importados, export.Clientes.Count, saltados),
+                        IdiomaManager_GO44.T("clientes.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     CargarGrilla();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al importar:\n" + ex.Message,
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("clientes.errImportar"), ex.Message),
+                        IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

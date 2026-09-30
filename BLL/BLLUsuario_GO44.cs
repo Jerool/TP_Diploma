@@ -42,9 +42,11 @@ namespace BLL
 
         private void Auditar(string login, string modulo, string tipoEvento, string detalle, string criticidad)
         {
-
-            BLLBitacora_GO44.Instancia.RegistrarEvento(login, modulo, tipoEvento, detalle, criticidad);
-
+            try
+            {
+                BLLBitacora_GO44.Instancia.RegistrarEvento(login, modulo, tipoEvento, detalle, criticidad);
+            }
+            catch { /* la bitácora es best-effort; no debe romper la operación principal */ }
         }
 
         public ResultadoLogin IntentarLogin(string login, string contrasena)

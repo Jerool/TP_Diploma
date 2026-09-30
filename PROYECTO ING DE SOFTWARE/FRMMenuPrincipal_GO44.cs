@@ -37,9 +37,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             if (actual != null)
             {
-                lblUsuarioActual.Text = "Sesión: " + actual.Nombre + " " + actual.Apellido +
-                                        " (" + actual.Login + ")  ·  Rol: " +
-                                        (actual.Rol != null ? actual.Rol.Nombre : "s/rol");
+                string rolNombre = actual.Rol != null ? actual.Rol.Nombre : IdiomaManager_GO44.T("menu.sinRol");
+                lblUsuarioActual.Text = string.Format(IdiomaManager_GO44.T("menu.sesion"),
+                    actual.Nombre, actual.Apellido, actual.Login, rolNombre);
 
                 // Cargar el árbol completo del rol para poder consultar patentes
                 if (actual.Rol != null)
@@ -150,11 +150,35 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         public void ActualizarIdioma()
         {
+            // Menús padre
             if (menuAdmin != null)    menuAdmin.Text    = IdiomaManager_GO44.T("menu.admin");
-            if (menuMaestros != null) menuMaestros.Text = "Maestros";
-            if (menuVentas != null)   menuVentas.Text   = "Ventas";
+            if (menuMaestros != null) menuMaestros.Text = IdiomaManager_GO44.T("menu.maestros");
+            if (menuVentas != null)   menuVentas.Text   = IdiomaManager_GO44.T("menu.ventas");
+            if (menuReportes != null) menuReportes.Text = IdiomaManager_GO44.T("menu.reportes");
             if (menuUsuario != null)  menuUsuario.Text  = IdiomaManager_GO44.T("menu.usuario");
 
+            // Submenús Admin
+            if (miUsuarios != null)   miUsuarios.Text   = IdiomaManager_GO44.T("menu.usuarios");
+            if (miPermisos != null)   miPermisos.Text   = IdiomaManager_GO44.T("menu.gestionPermisos");
+            if (miBitacora != null)   miBitacora.Text   = IdiomaManager_GO44.T("menu.bitacora");
+            if (miBackup != null)     miBackup.Text     = IdiomaManager_GO44.T("menu.backup");
+
+            // Submenús Maestros
+            if (miClientes != null)   miClientes.Text   = IdiomaManager_GO44.T("menu.clientes");
+            if (miProductos != null)  miProductos.Text  = IdiomaManager_GO44.T("menu.productos");
+
+            // Submenús Ventas
+            if (miCargarCarrito != null) miCargarCarrito.Text = IdiomaManager_GO44.T("menu.cargarCarrito");
+            if (miFacturar != null)      miFacturar.Text      = IdiomaManager_GO44.T("menu.facturar");
+
+            // Submenús Reportes
+            if (miReporteFacturas != null) miReporteFacturas.Text = IdiomaManager_GO44.T("menu.reporteFacturas");
+
+            // Submenús Usuario
+            if (miCambiarClave != null) miCambiarClave.Text = IdiomaManager_GO44.T("menu.cambiarClave");
+            if (miLogout != null)       miLogout.Text       = IdiomaManager_GO44.T("menu.logout");
+
+            // Idioma
             if (_menuIdioma != null)  _menuIdioma.Text  = IdiomaManager_GO44.T("menu.idioma");
             if (_itemEspanol != null) _itemEspanol.Text = IdiomaManager_GO44.T("general.espanol");
             if (_itemIngles != null)  _itemIngles.Text  = IdiomaManager_GO44.T("general.ingles");

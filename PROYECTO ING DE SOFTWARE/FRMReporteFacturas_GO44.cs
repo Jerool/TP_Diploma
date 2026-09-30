@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,7 +14,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// Genera un PDF de la factura seleccionada usando GeneradorPdf_GO44
     /// (implementación pura de PDF, sin depender de impresoras ni librerías externas).
     /// </summary>
-    public partial class FRMReporteFacturas_GO44 : Form
+    public partial class FRMReporteFacturas_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLFactura_GO44 _bll;
 
@@ -24,6 +25,40 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             InitializeComponent();
             _bll = new BLLFactura_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
+        }
+
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("reporte.titulo");
+            if (lblTitulo != null)      lblTitulo.Text      = IdiomaManager_GO44.T("reporte.titulo");
+            if (grpFiltros != null)     grpFiltros.Text     = IdiomaManager_GO44.T("reporte.filtros");
+            if (chkDesde != null)       chkDesde.Text       = IdiomaManager_GO44.T("reporte.desde");
+            if (chkHasta != null)       chkHasta.Text       = IdiomaManager_GO44.T("reporte.hasta");
+            if (lblDni != null)         lblDni.Text         = IdiomaManager_GO44.T("reporte.dni");
+            if (lblEstado != null)      lblEstado.Text      = IdiomaManager_GO44.T("reporte.estado");
+            if (btnBuscar != null)      btnBuscar.Text      = IdiomaManager_GO44.T("reporte.btnBuscar");
+            if (btnLimpiar != null)     btnLimpiar.Text     = IdiomaManager_GO44.T("reporte.btnLimpiar");
+            if (btnGenerarPDF != null)  btnGenerarPDF.Text  = IdiomaManager_GO44.T("reporte.btnGenerarPDF");
+            if (btnSalir != null)       btnSalir.Text       = IdiomaManager_GO44.T("reporte.btnSalir");
+
+            // Recargar el combo de estado preservando la selección
+            if (cmbEstado != null)
+            {
+                int idx = cmbEstado.SelectedIndex;
+                cmbEstado.Items.Clear();
+                cmbEstado.Items.AddRange(new object[] {
+                    IdiomaManager_GO44.T("reporte.estadoTodos"),
+                    IdiomaManager_GO44.T("reporte.estadoPendiente"),
+                    IdiomaManager_GO44.T("reporte.estadoCobrada"),
+                    IdiomaManager_GO44.T("reporte.estadoAnulada")
+                });
+                cmbEstado.SelectedIndex = Math.Max(0, Math.Min(idx, cmbEstado.Items.Count - 1));
+            }
+
+            Buscar();
         }
 
         private void FRMReporteFacturas_GO44_Load(object sender, EventArgs e)
@@ -31,7 +66,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
             ConfigurarGrilla();
 
             cmbEstado.Items.Clear();
-            cmbEstado.Items.AddRange(new object[] { "(todos)", "Pendiente", "Cobrada", "Anulada" });
+            cmbEstado.Items.AddRange(new object[] {
+                IdiomaManager_GO44.T("reporte.estadoTodos"),
+                IdiomaManager_GO44.T("reporte.estadoPendiente"),
+                IdiomaManager_GO44.T("reporte.estadoCobrada"),
+                IdiomaManager_GO44.T("reporte.estadoAnulada")
+            });
             cmbEstado.SelectedIndex = 0;
 
             // Filtro por DNI: máximo 8 dígitos, solo números
@@ -51,7 +91,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             chkDesde.Checked = true;
             chkHasta.Checked = true;
 
-            Buscar();
+            ActualizarIdioma();
         }
 
         private void ConfigurarGrilla()
@@ -83,8 +123,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 DateTime? desde = chkDesde.Checked ? (DateTime?)dtpDesde.Value.Date : null;
                 DateTime? hasta = chkHasta.Checked ? (DateTime?)dtpHasta.Value.Date : null;
                 string dni = txtDni.Text.Trim();
-                string estado = cmbEstado.SelectedItem as string;
-                if (estado == "(todos)") estado = null;
+                string estadoSel = cmbEstado.SelectedItem as string;
+                string estado = null;
+                // Traducir el label del combo a valor de negocio (Pendiente/Cobrada/Anulada)
+                if (estadoSel == IdiomaManager_GO44.T("reporte.estadoPendiente")) estado = "Pendiente";
+                else if (estadoSel == IdiomaManager_GO44.T("reporte.estadoCobrada")) estado = "Cobrada";
+                else if (estadoSel == IdiomaManager_GO44.T("reporte.estadoAnulada")) estado = "Anulada";
+                // "(todos)" o "(all)" → null (sin filtro)
 
                 List<BE_Factura_GO44> lista = _bll.ListarConFiltros(desde, hasta, dni, estado);
                 _bsFacturas.DataSource = lista;
@@ -95,8 +140,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     if (dgvFacturas.Columns.Contains("Lineas"))       dgvFacturas.Columns["Lineas"].Visible = false;
                     if (dgvFacturas.Columns.Contains("Cliente"))      dgvFacturas.Columns["Cliente"].Visible = false;
                     if (dgvFacturas.Columns.Contains("CantidadItems"))dgvFacturas.Columns["CantidadItems"].Visible = false;
-                    if (dgvFacturas.Columns.Contains("DniCliente"))   dgvFacturas.Columns["DniCliente"].HeaderText = "DNI Cliente";
-                    if (dgvFacturas.Columns.Contains("NumeroFactura"))dgvFacturas.Columns["NumeroFactura"].HeaderText = "Nº Factura";
+                    if (dgvFacturas.Columns.Contains("DniCliente"))   dgvFacturas.Columns["DniCliente"].HeaderText = IdiomaManager_GO44.T("reporte.col.dniCliente");
+                    if (dgvFacturas.Columns.Contains("NumeroFactura"))dgvFacturas.Columns["NumeroFactura"].HeaderText = IdiomaManager_GO44.T("reporte.col.nroFactura");
                     if (dgvFacturas.Columns.Contains("FechaEmision")) dgvFacturas.Columns["FechaEmision"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
                     if (dgvFacturas.Columns.Contains("Subtotal"))     dgvFacturas.Columns["Subtotal"].DefaultCellStyle.Format = "N2";
                     if (dgvFacturas.Columns.Contains("IVA"))          dgvFacturas.Columns["IVA"].DefaultCellStyle.Format = "N2";
@@ -111,12 +156,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     else if (f.Estado == BE_Factura_GO44.EstadoFactura.Anulada) row.DefaultCellStyle.BackColor = Color.MistyRose;
                 }
 
-                lblTotal.Text = "Total: " + (lista != null ? lista.Count : 0) + " facturas · " +
-                                (lista != null ? lista.Sum(f => f.Total).ToString("N2") : "0.00");
+                lblTotal.Text = string.Format(IdiomaManager_GO44.T("reporte.total"),
+                    lista != null ? lista.Count : 0,
+                    lista != null ? lista.Sum(f => f.Total).ToString("N2") : "0.00");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al buscar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format(IdiomaManager_GO44.T("reporte.errBuscar"), ex.Message),
+                    IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -135,7 +182,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvFacturas.CurrentRow == null)
             {
-                MessageBox.Show("Seleccione una factura para generar el PDF", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("reporte.seleccFactura"),
+                    IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -147,7 +195,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             BE_Factura_GO44 completa = _bll.BuscarPorId(seleccionada.Id);
             if (completa == null)
             {
-                MessageBox.Show("No se pudo cargar el detalle de la factura", "Error",
+                MessageBox.Show(IdiomaManager_GO44.T("reporte.noCargoDetalle"),
+                    IdiomaManager_GO44.T("general.error"),
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -155,9 +204,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // Pedir dónde guardar el PDF
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
-                sfd.Filter = "Archivo PDF (*.pdf)|*.pdf";
+                sfd.Filter = IdiomaManager_GO44.T("reporte.filtro");
                 sfd.FileName = "Factura_" + completa.NumeroFactura + ".pdf";
-                sfd.Title = "Guardar factura como PDF";
+                sfd.Title = IdiomaManager_GO44.T("reporte.guardarTitulo");
                 if (sfd.ShowDialog() != DialogResult.OK) return;
 
                 try
@@ -199,15 +248,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     GeneradorPdf_GO44 gen = new GeneradorPdf_GO44();
                     gen.Generar(sfd.FileName, titulo, subtitulo, headers, anchos, filas);
 
-                    var r = MessageBox.Show("Factura guardada en:\n" + sfd.FileName + "\n\n¿Abrir ahora?",
-                        "PDF generado", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    var r = MessageBox.Show(string.Format(IdiomaManager_GO44.T("reporte.pdfGeneradoMensaje"), sfd.FileName),
+                        IdiomaManager_GO44.T("reporte.pdfGeneradoTitulo"), MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                     if (r == DialogResult.Yes && System.IO.File.Exists(sfd.FileName))
                         System.Diagnostics.Process.Start(sfd.FileName);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al generar el PDF: " + ex.Message, "Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("reporte.errPDF"), ex.Message),
+                        IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

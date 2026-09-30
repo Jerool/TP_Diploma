@@ -79,13 +79,13 @@ namespace BLL
             if (carrito == null || carrito.EstaVacio())
             {
                 vo.Resultado = ResultadoFactura.CarritoInvalido;
-                vo.Mensaje = "El carrito no tiene líneas";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.factura.sinLineas");
                 return vo;
             }
             if (carrito.Cliente == null || string.IsNullOrWhiteSpace(carrito.Cliente.DNI))
             {
                 vo.Resultado = ResultadoFactura.CarritoInvalido;
-                vo.Mensaje = "Falta cliente en el carrito";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.factura.sinCliente");
                 return vo;
             }
 
@@ -93,7 +93,7 @@ namespace BLL
             if (usuarioActual == null)
             {
                 vo.Resultado = ResultadoFactura.SinVendedor;
-                vo.Mensaje = "No hay sesión activa";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.factura.sinSesion");
                 return vo;
             }
 
@@ -123,8 +123,8 @@ namespace BLL
             if (cobro == null || cobro.Monto < total)
             {
                 vo.Resultado = ResultadoFactura.ErrorCobro;
-                vo.Mensaje = "El monto cobrado (" + (cobro != null ? cobro.Monto.ToString("N2") : "0.00") +
-                             ") es menor al total de la factura (" + total.ToString("N2") + ")";
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.factura.montoNoCoincide"),
+                    (cobro != null ? cobro.Monto.ToString("N2") : "0.00"), total.ToString("N2"));
                 return vo;
             }
 
@@ -137,14 +137,14 @@ namespace BLL
                 if (compActual == null || !compActual.Activo)
                 {
                     vo.Resultado = ResultadoFactura.StockInsuficiente;
-                    vo.Mensaje = "Componente inexistente o inactivo: " + lf.ComponenteCodigo;
+                    vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.factura.componenteInactivo"), lf.ComponenteCodigo);
                     return vo;
                 }
                 if (compActual.StockActual < lf.Cantidad)
                 {
                     vo.Resultado = ResultadoFactura.StockInsuficiente;
-                    vo.Mensaje = "Stock insuficiente para " + lf.ComponenteCodigo +
-                                 ". Disponible: " + compActual.StockActual + ", pedido: " + lf.Cantidad;
+                    vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.factura.stockInsuficiente"),
+                        lf.ComponenteCodigo, compActual.StockActual, lf.Cantidad);
                     return vo;
                 }
             }
@@ -216,7 +216,7 @@ namespace BLL
                 vo.Resultado = ResultadoFactura.Exitoso;
                 vo.Factura = factura;
                 vo.Cobro = cobro;
-                vo.Mensaje = "Factura " + factura.NumeroFactura + " generada y cobrada. Total: $" + total.ToString("N2");
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.factura.generadaOk"), factura.NumeroFactura, total.ToString("N2"));
                 return vo;
             }
             catch (Exception ex)
@@ -230,7 +230,7 @@ namespace BLL
                 }
                 catch { }
                 vo.Resultado = ResultadoFactura.Error;
-                vo.Mensaje = "Error al generar factura: " + ex.Message;
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.factura.errGenerar"), ex.Message);
                 return vo;
             }
         }

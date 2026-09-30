@@ -14,7 +14,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// "Cobrar venta" que abre FRMCobrarVenta_GO44 como modal. Al volver, se
     /// genera la factura + registra el cobro en una única transacción atómica.
     /// </summary>
-    public partial class FRMFacturar_GO44 : Form
+    public partial class FRMFacturar_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLFactura_GO44 _bllFactura;
         private readonly BLLCliente_GO44 _bllCliente;
@@ -31,12 +31,31 @@ namespace PROYECTO_ING_DE_SOFTWARE
             InitializeComponent();
             _bllFactura = new BLLFactura_GO44();
             _bllCliente = new BLLCliente_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMFacturar_GO44_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
             LimpiarUI();
+            ActualizarIdioma();
+        }
+
+        public void ActualizarIdioma()
+        {
+            this.Text          = IdiomaManager_GO44.T("facturar.titulo");
+            if (lblTitulo != null)   lblTitulo.Text   = IdiomaManager_GO44.T("facturar.titulo");
+            if (grpCliente != null)  grpCliente.Text  = IdiomaManager_GO44.T("facturar.grpCliente");
+            if (grpCarrito != null)  grpCarrito.Text  = IdiomaManager_GO44.T("facturar.grpCarrito");
+            if (lblDni != null)      lblDni.Text      = IdiomaManager_GO44.T("facturar.dni");
+            if (btnBuscar != null)   btnBuscar.Text   = IdiomaManager_GO44.T("facturar.btnBuscar");
+            if (btnCobrar != null)   btnCobrar.Text   = IdiomaManager_GO44.T("facturar.btnCobrar");
+            if (btnImprimir != null) btnImprimir.Text = IdiomaManager_GO44.T("facturar.btnImprimir");
+            if (btnSalir != null)    btnSalir.Text    = IdiomaManager_GO44.T("facturar.btnSalir");
+            if (_carrito == null && lblCliente != null)
+                lblCliente.Text = IdiomaManager_GO44.T("facturar.clienteSinAsignar");
         }
 
         private void ConfigurarGrilla()
@@ -74,7 +93,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string dni = txtDni.Text.Trim();
             if (!Validaciones_GO44.EsDniValido(dni))
             {
-                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI, "DNI inválido",
+                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI,
+                    IdiomaManager_GO44.T("facturar.dniInvalido"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtDni.Focus();
                 return;
@@ -84,8 +104,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (_cliente == null)
             {
                 var r = MessageBox.Show(
-                    "El cliente DNI " + dni + " no está registrado.\n¿Registrarlo ahora?",
-                    "Cliente inexistente", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    string.Format(IdiomaManager_GO44.T("facturar.clienteInexistenteMensaje"), dni),
+                    IdiomaManager_GO44.T("facturar.clienteInexistenteTitulo"),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (r == DialogResult.Yes)
                 {
                     var frmCli = new FRMGestionClientes_GO44();
@@ -99,10 +120,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _carrito = _bllFactura.ObtenerCarritoPendiente(dni);
             if (_carrito == null)
             {
-                MessageBox.Show("El cliente " + _cliente.NombreCompleto + " no tiene ningún carrito pendiente de facturar.",
-                    "Sin carrito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(string.Format(IdiomaManager_GO44.T("facturar.sinCarritoMensaje"), _cliente.NombreCompleto),
+                    IdiomaManager_GO44.T("facturar.sinCarritoTitulo"),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 LimpiarUI();
-                lblCliente.Text = "Cliente: " + _cliente.NombreCompleto + "  (sin carrito)";
+                lblCliente.Text = string.Format(IdiomaManager_GO44.T("facturar.clienteSinCarrito"), _cliente.NombreCompleto);
                 lblCliente.ForeColor = Color.Firebrick;
                 return;
             }
@@ -113,7 +135,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void MostrarCarrito()
         {
-            lblCliente.Text = "Cliente: " + _cliente.NombreCompleto + " · DNI " + _cliente.DNI;
+            lblCliente.Text = string.Format(IdiomaManager_GO44.T("facturar.cliente"), _cliente.NombreCompleto, _cliente.DNI);
             lblCliente.ForeColor = Color.DarkGreen;
 
             _bsLineas.DataSource = _carrito.Lineas;
@@ -138,9 +160,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             decimal iva      = _bllFactura.CalcularIVA(_carrito);
             decimal total    = _bllFactura.CalcularTotalConIVA(_carrito);
 
-            lblSubtotal.Text = "Subtotal: $ " + subtotal.ToString("N2");
-            lblIVA.Text      = "IVA (" + (_bllFactura.AlicuotaIVA * 100).ToString("0") + "%): $ " + iva.ToString("N2");
-            lblTotal.Text    = "TOTAL: $ " + total.ToString("N2");
+            lblSubtotal.Text = string.Format(IdiomaManager_GO44.T("facturar.subtotal"), subtotal.ToString("N2"));
+            lblIVA.Text      = string.Format(IdiomaManager_GO44.T("facturar.iva"), (_bllFactura.AlicuotaIVA * 100).ToString("0"), iva.ToString("N2"));
+            lblTotal.Text    = string.Format(IdiomaManager_GO44.T("facturar.total"), total.ToString("N2"));
 
             btnCobrar.Enabled = true;
             btnImprimir.Enabled = false;
@@ -152,7 +174,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_carrito == null)
             {
-                MessageBox.Show("Primero buscá el carrito del cliente", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("facturar.avisoBuscar"),
+                    IdiomaManager_GO44.T("general.advertencia"),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -168,13 +192,17 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 if (vo.Resultado == BLLFactura_GO44.ResultadoFactura.Exitoso)
                 {
                     _ultimaFactura = vo.Factura;
-                    MessageBox.Show(vo.Mensaje, "Factura generada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(vo.Mensaje,
+                        IdiomaManager_GO44.T("facturar.facturaGeneradaTitulo"),
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     btnImprimir.Enabled = true;
                     btnCobrar.Enabled = false;
                 }
                 else
                 {
-                    MessageBox.Show(vo.Mensaje, "No se pudo facturar", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(vo.Mensaje,
+                        IdiomaManager_GO44.T("facturar.noSePudoFacturar"),
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -187,23 +215,25 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
-                sfd.Filter = "Archivo de texto (*.txt)|*.txt";
+                sfd.Filter = IdiomaManager_GO44.T("facturar.guardarFacturaFiltro");
                 sfd.FileName = _ultimaFactura.NumeroFactura + ".txt";
-                sfd.Title = "Guardar factura";
+                sfd.Title = IdiomaManager_GO44.T("facturar.guardarFacturaTitulo");
                 if (sfd.ShowDialog() != DialogResult.OK) return;
 
                 try
                 {
                     string contenido = GenerarTextoFactura(_ultimaFactura);
                     System.IO.File.WriteAllText(sfd.FileName, contenido, System.Text.Encoding.UTF8);
-                    MessageBox.Show("Factura guardada:\n" + sfd.FileName,
-                        "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("facturar.facturaGuardadaMensaje"), sfd.FileName),
+                        IdiomaManager_GO44.T("facturar.facturaGuardadaTitulo"),
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LimpiarUI();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al guardar: " + ex.Message,
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("facturar.errorGuardar"), ex.Message),
+                        IdiomaManager_GO44.T("general.error"),
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -257,11 +287,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _cliente = null;
             _ultimaFactura = null;
             txtDni.Text = "";
-            lblCliente.Text = "Cliente: (sin asignar)";
+            lblCliente.Text = IdiomaManager_GO44.T("facturar.clienteSinAsignar");
             lblCliente.ForeColor = Color.Firebrick;
-            lblSubtotal.Text = "Subtotal: $ 0,00";
-            lblIVA.Text = "IVA: $ 0,00";
-            lblTotal.Text = "TOTAL: $ 0,00";
+            lblSubtotal.Text = IdiomaManager_GO44.T("facturar.subtotalCero");
+            lblIVA.Text      = IdiomaManager_GO44.T("facturar.ivaCero");
+            lblTotal.Text    = IdiomaManager_GO44.T("facturar.totalCero");
             btnCobrar.Enabled = false;
             btnImprimir.Enabled = false;
         }

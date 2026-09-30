@@ -48,9 +48,13 @@ namespace BLL
 
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
-            Usuario_GO44 usuario = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
-            string login = usuario != null ? usuario.Login : "SISTEMA";
-            BLLBitacora_GO44.Instancia.RegistrarEvento(login, "Carrito", tipoEvento, detalle, criticidad);
+            try
+            {
+                Usuario_GO44 usuario = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
+                string login = usuario != null ? usuario.Login : "SISTEMA";
+                BLLBitacora_GO44.Instancia.RegistrarEvento(login, "Carrito", tipoEvento, detalle, criticidad);
+            }
+            catch { /* la bitácora es best-effort; no debe romper la operación principal */ }
         }
 
         // ============ CU01 Cargar Carrito — confirmación ============
@@ -68,14 +72,14 @@ namespace BLL
             if (carrito == null || carrito.EstaVacio())
             {
                 vo.Resultado = ResultadoConfirmacion.SinLineas;
-                vo.Mensaje = "El carrito no tiene líneas";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.carrito.sinLineas");
                 return vo;
             }
 
             if (carrito.Cliente == null || string.IsNullOrWhiteSpace(carrito.Cliente.DNI))
             {
                 vo.Resultado = ResultadoConfirmacion.SinCliente;
-                vo.Mensaje = "El carrito no tiene cliente asignado";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.carrito.sinCliente");
                 return vo;
             }
 
@@ -83,7 +87,7 @@ namespace BLL
             if (usuarioActual == null)
             {
                 vo.Resultado = ResultadoConfirmacion.SinVendedor;
-                vo.Mensaje = "No hay sesión activa";
+                vo.Mensaje = IdiomaManager_GO44.T("bll.carrito.sinSesion");
                 return vo;
             }
             carrito.LoginVendedor = usuarioActual.Login;
@@ -96,7 +100,7 @@ namespace BLL
                 {
                     vo.Resultado = ResultadoConfirmacion.StockInsuficiente;
                     vo.ComponenteConProblema = linea.ComponenteCodigo;
-                    vo.Mensaje = "Componente inexistente o inactivo: " + linea.ComponenteCodigo;
+                    vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.carrito.componenteInactivo"), linea.ComponenteCodigo);
                     return vo;
                 }
                 if (comp.StockActual < linea.Cantidad)
@@ -106,7 +110,7 @@ namespace BLL
                             "Alta");
                     vo.Resultado = ResultadoConfirmacion.StockInsuficiente;
                     vo.ComponenteConProblema = comp.Codigo;
-                    vo.Mensaje = "Stock insuficiente para " + comp.Codigo + ". Disponible: " + comp.StockActual;
+                    vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.carrito.stockInsuficiente"), comp.Codigo, comp.StockActual);
                     return vo;
                 }
             }
@@ -115,7 +119,7 @@ namespace BLL
             if (!_bllCliente.ExisteDNI(carrito.Cliente.DNI))
             {
                 vo.Resultado = ResultadoConfirmacion.ClienteInexistente;
-                vo.Mensaje = "El cliente DNI " + carrito.Cliente.DNI + " no está registrado. Registre el cliente primero (CU02).";
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.carrito.clienteNoRegistrado"), carrito.Cliente.DNI);
                 return vo;
             }
 
@@ -173,7 +177,7 @@ namespace BLL
 
                 vo.Resultado = ResultadoConfirmacion.Exitoso;
                 vo.IdCarritoGenerado = idCarrito;
-                vo.Mensaje = "Carrito Nº " + idCarrito + " confirmado. Total: $" + carrito.Total.ToString("0.00");
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.carrito.confirmadoOk"), idCarrito, carrito.Total.ToString("0.00"));
                 return vo;
             }
             catch (Exception ex)
@@ -181,7 +185,7 @@ namespace BLL
                 try { Acceso.Instancia.CancelarTransaccion(tx); } catch { }
                 Auditar("Carrito cancelado", "Rollback por error: " + ex.Message, "Alta");
                 vo.Resultado = ResultadoConfirmacion.Error;
-                vo.Mensaje = "Error al confirmar carrito: " + ex.Message;
+                vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.carrito.errConfirmar"), ex.Message);
                 return vo;
             }
         }
