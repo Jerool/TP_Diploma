@@ -86,6 +86,25 @@ namespace DAL
 
         // ---------- Consultas ----------
 
+        /// <summary>
+        /// Lista facturas con filtros para el reporte (fecha desde/hasta, DNI cliente, estado).
+        /// Cualquier parámetro null/vacío se ignora.
+        /// </summary>
+        public List<BE_Factura_GO44> ListarConFiltros(DateTime? desde, DateTime? hasta, string dni, string estado)
+        {
+            SqlParameter[] p = {
+                new SqlParameter("@FechaDesde", (object)desde  ?? DBNull.Value),
+                new SqlParameter("@FechaHasta", (object)hasta  ?? DBNull.Value),
+                new SqlParameter("@DniCliente", (object)dni    ?? DBNull.Value),
+                new SqlParameter("@Estado",     (object)estado ?? DBNull.Value)
+            };
+            DataTable dt = _acceso.leerSP("sp_Factura_ListarConFiltros_GO44", p);
+            List<BE_Factura_GO44> lista = new List<BE_Factura_GO44>();
+            foreach (DataRow row in dt.Rows)
+                lista.Add(MapearEncabezado(row));
+            return lista;
+        }
+
         public BE_Factura_GO44 BuscarPorId(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };

@@ -46,6 +46,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             dgvComponentes.MultiSelect = false;
             dgvComponentes.RowHeadersVisible = false;
             dgvComponentes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvComponentes.AllowUserToResizeColumns = false;
+            dgvComponentes.AllowUserToResizeRows    = false;
+            dgvComponentes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgvComponentes.RowHeadersWidthSizeMode    = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
         }
 
         private void CargarGrilla()

@@ -31,6 +31,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.miCargarCarrito = new System.Windows.Forms.ToolStripMenuItem();
             this.miFacturar = new System.Windows.Forms.ToolStripMenuItem();
 
+            // REPORTES
+            this.menuReportes = new System.Windows.Forms.ToolStripMenuItem();
+            this.miReporteFacturas = new System.Windows.Forms.ToolStripMenuItem();
+
             // USUARIO
             this.menuUsuario = new System.Windows.Forms.ToolStripMenuItem();
             this.miCambiarClave = new System.Windows.Forms.ToolStripMenuItem();
@@ -49,7 +53,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.menuStrip1.ForeColor = System.Drawing.Color.White;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.menuAdmin, this.menuMaestros, this.menuVentas, this.menuUsuario});
+                this.menuAdmin, this.menuMaestros, this.menuVentas, this.menuReportes, this.menuUsuario});
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 4, 0, 4);
 
             // ADMIN
@@ -74,6 +78,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 this.miCargarCarrito, this.miFacturar});
             ConfigMenuHijo(this.miCargarCarrito, "Cargar carrito",   this.miCargarCarrito_Click);
             ConfigMenuHijo(this.miFacturar,      "Generar factura",  this.miFacturar_Click);
+
+            // REPORTES
+            ConfigMenuPadre(this.menuReportes, "Reportes");
+            this.menuReportes.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.miReporteFacturas});
+            ConfigMenuHijo(this.miReporteFacturas, "Facturas", this.miReporteFacturas_Click);
 
             // USUARIO
             ConfigMenuPadre(this.menuUsuario, "Usuario");
@@ -148,6 +158,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.ToolStripMenuItem menuVentas;
         private System.Windows.Forms.ToolStripMenuItem miCargarCarrito;
         private System.Windows.Forms.ToolStripMenuItem miFacturar;
+
+        private System.Windows.Forms.ToolStripMenuItem menuReportes;
+        private System.Windows.Forms.ToolStripMenuItem miReporteFacturas;
 
         private System.Windows.Forms.ToolStripMenuItem menuUsuario;
         private System.Windows.Forms.ToolStripMenuItem miCambiarClave;

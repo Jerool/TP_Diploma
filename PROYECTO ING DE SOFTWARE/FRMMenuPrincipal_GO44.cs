@@ -94,6 +94,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             miFacturar.Visible      = puedeFacturar;
             menuVentas.Visible = puedeCarrito || puedeFacturar;
 
+            // ---------- REPORTES ----------
+            bool puedeRepFactura = esAdmin || TienePermiso("Reportes.Facturas") || TienePermiso("Ventas.Facturar");
+            miReporteFacturas.Visible = puedeRepFactura;
+            menuReportes.Visible = puedeRepFactura;
+
             // ---------- USUARIO (siempre visible) ----------
             miCambiarClave.Visible = true;
             miLogout.Visible       = true;
@@ -192,6 +197,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void miCargarCarrito_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMCargarCarrito_GO44()); }
         private void miFacturar_Click(object sender, EventArgs e)      { AbrirFormularioHijo(new FRMFacturar_GO44()); }
+
+        // ============ HANDLERS REPORTES ============
+        private void miReporteFacturas_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMReporteFacturas_GO44()); }
 
         // ============ HANDLERS USUARIO ============
 

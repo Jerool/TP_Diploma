@@ -139,6 +139,12 @@
     <Compile Include="FRMMenuPrincipal_GO44.Designer.cs">
       <DependentUpon>FRMMenuPrincipal_GO44.cs</DependentUpon>
     </Compile>
+    <Compile Include="FRMReporteFacturas_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMReporteFacturas_GO44.Designer.cs">
+      <DependentUpon>FRMReporteFacturas_GO44.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FRMBitacoraDeEventos.resx">
@@ -179,6 +185,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FRMMenuPrincipal_GO44.resx">
       <DependentUpon>FRMMenuPrincipal_GO44.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FRMReporteFacturas_GO44.resx">
+      <DependentUpon>FRMReporteFacturas_GO44.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

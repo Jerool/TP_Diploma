@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -40,6 +41,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void ConfigurarGrilla()
         {
+            // Campo DNI: máximo 8 dígitos, solo números
+            txtDni.MaxLength = 8;
+            txtDni.KeyPress += SoloDigitos_KeyPress;
+
             dgvLineas.ReadOnly = true;
             dgvLineas.AllowUserToAddRows = false;
             dgvLineas.AllowUserToDeleteRows = false;
@@ -47,6 +52,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             dgvLineas.MultiSelect = false;
             dgvLineas.RowHeadersVisible = false;
             dgvLineas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvLineas.AllowUserToResizeColumns = false;
+            dgvLineas.AllowUserToResizeRows    = false;
+            dgvLineas.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgvLineas.RowHeadersWidthSizeMode    = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             dgvLineas.BackgroundColor = Color.White;
             dgvLineas.AutoGenerateColumns = true;
             dgvLineas.DataSource = _bsLineas;
@@ -54,12 +63,20 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         // ============ BUSCAR CLIENTE + CARRITO ============
 
+        private void SoloDigitos_KeyPress(object sender, System.Windows.Forms.KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                e.Handled = true;
+        }
+
         private void btnBuscar_Click(object sender, EventArgs e)
         {
             string dni = txtDni.Text.Trim();
-            if (string.IsNullOrEmpty(dni))
+            if (!Validaciones_GO44.EsDniValido(dni))
             {
-                MessageBox.Show("Ingrese un DNI", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI, "DNI inválido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtDni.Focus();
                 return;
             }
 

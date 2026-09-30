@@ -2,6 +2,7 @@ using BE;
 using DAL;
 using Servicios;
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 
 namespace BLL
@@ -59,6 +60,11 @@ namespace BLL
         public BE_Factura_GO44 BuscarPorId(int id)
         {
             return _dalFactura.BuscarPorId(id);
+        }
+
+        public List<BE_Factura_GO44> ListarConFiltros(DateTime? desde, DateTime? hasta, string dni, string estado)
+        {
+            return _dalFactura.ListarConFiltros(desde, hasta, dni, estado);
         }
 
         // ============ CU04 + CU05 unificados en transacción atómica ============

@@ -16,7 +16,11 @@ namespace Servicios
 
         public const string REGEX_LOGIN = @"^[a-zA-Z0-9.]{3,}$";
 
+        public const string REGEX_TELEFONO = @"^\d{10}$";
+
         public static bool EsDniValido(string dni) => !string.IsNullOrWhiteSpace(dni) && Regex.IsMatch(dni, REGEX_DNI);
+
+        public static bool EsTelefonoValido(string tel) => !string.IsNullOrWhiteSpace(tel) && Regex.IsMatch(tel, REGEX_TELEFONO);
 
         public static bool EsEmailValido(string email) => !string.IsNullOrWhiteSpace(email) && Regex.IsMatch(email, REGEX_EMAIL);
 
@@ -39,5 +43,7 @@ namespace Servicios
         public const string MENSAJE_CONTRASENA ="La contraseña debe tener al menos 6 caracteres, una letra y un número.";
 
         public const string MENSAJE_LOGIN ="El usuario solo puede contener letras, números y puntos (mínimo 3 caracteres).";
+
+        public const string MENSAJE_TELEFONO = "El teléfono debe tener exactamente 10 dígitos numéricos (sin guiones ni espacios). Ej: 1159024801";
     }
 }

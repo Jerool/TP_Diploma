@@ -38,6 +38,24 @@ namespace PROYECTO_ING_DE_SOFTWARE
             dgvClientes.MultiSelect = false;
             dgvClientes.RowHeadersVisible = false;
             dgvClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            // Bloquear resize de columnas y filas
+            dgvClientes.AllowUserToResizeColumns = false;
+            dgvClientes.AllowUserToResizeRows    = false;
+            dgvClientes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgvClientes.RowHeadersWidthSizeMode    = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+
+            // Aplicar máscaras en los TextBox (usa Validaciones_GO44)
+            txtDNI.MaxLength      = 8;
+            txtTelefono.MaxLength = 10;
+            txtDNI.KeyPress      += SoloDigitos_KeyPress;
+            txtTelefono.KeyPress += SoloDigitos_KeyPress;
+        }
+
+        // Filtro de teclado: solo dígitos y control (backspace, etc.)
+        private void SoloDigitos_KeyPress(object sender, System.Windows.Forms.KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                e.Handled = true;
         }
 
         private void CargarGrilla()
@@ -160,6 +178,38 @@ namespace PROYECTO_ING_DE_SOFTWARE
             string mail = txtEmail.Text.Trim();
             string tel = txtTelefono.Text.Trim();
 
+            // Validaciones cliente-side reutilizando Validaciones_GO44 de Servicios
+            if (!Validaciones_GO44.EsDniValido(dni))
+            {
+                MessageBox.Show(Validaciones_GO44.MENSAJE_DNI, "DNI inválido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtDNI.Focus(); return;
+            }
+            if (!Validaciones_GO44.EsApellidoValido(ape))
+            {
+                MessageBox.Show(Validaciones_GO44.MENSAJE_APELLIDO, "Apellido inválido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtApellido.Focus(); return;
+            }
+            if (!Validaciones_GO44.EsNombreValido(nom))
+            {
+                MessageBox.Show(Validaciones_GO44.MENSAJE_NOMBRE, "Nombre inválido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNombre.Focus(); return;
+            }
+            if (!Validaciones_GO44.EsEmailValido(mail))
+            {
+                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, "Email inválido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtEmail.Focus(); return;
+            }
+            if (!string.IsNullOrEmpty(tel) && !Validaciones_GO44.EsTelefonoValido(tel))
+            {
+                MessageBox.Show(Validaciones_GO44.MENSAJE_TELEFONO, "Teléfono inválido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTelefono.Focus(); return;
+            }
+
             BLLCliente_GO44.ResultadoRegistroCliente r = _bll.RegistrarCliente(dni, ape, nom, mail, tel);
 
             switch (r)
@@ -181,11 +231,32 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     MessageBox.Show("Complete apellido y nombre", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case BLLCliente_GO44.ResultadoRegistroCliente.EmailInvalido:
-                    MessageBox.Show("El email no tiene un formato válido", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, "Email inválido",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtEmail.Focus();
                     break;
+                case BLLCliente_GO44.ResultadoRegistroCliente.EmailDuplicado:
+                    MessageBox.Show("Ya existe un cliente registrado con ese email.\n" +
+                                    "Cada cliente debe tener un email único.",
+                        "Email duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtEmail.Focus();
+                    break;
+                case BLLCliente_GO44.ResultadoRegistroCliente.TelefonoInvalido:
+                    MessageBox.Show(Validaciones_GO44.MENSAJE_TELEFONO, "Teléfono inválido",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    break;
+                case BLLCliente_GO44.ResultadoRegistroCliente.TelefonoDuplicado:
+                    MessageBox.Show("Ya existe un cliente registrado con ese teléfono.\n" +
+                                    "Cada cliente debe tener un teléfono único.",
+                        "Teléfono duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    break;
                 default:
-                    MessageBox.Show("No se pudo registrar el cliente", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    string detalle = _bll.UltimoErrorMensaje;
+                    MessageBox.Show("No se pudo registrar el cliente." +
+                                    (string.IsNullOrEmpty(detalle) ? "" : "\n\nDetalle: " + detalle),
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     break;
             }
         }
@@ -193,9 +264,20 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void Modificar()
         {
             string mail = txtEmail.Text.Trim();
-            if (string.IsNullOrEmpty(mail))
+            if (!Validaciones_GO44.EsEmailValido(mail))
             {
-                MessageBox.Show("Ingrese un email", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Validaciones_GO44.MENSAJE_EMAIL, "Email inválido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtEmail.Focus(); return;
+            }
+
+            // Chequeo previo — email duplicado en otro cliente
+            if (_bll.ExisteEmail(mail, dniExcluir: _clienteSeleccionado.DNI))
+            {
+                MessageBox.Show("Ya existe otro cliente registrado con ese email.\n" +
+                                "Cada cliente debe tener un email único.",
+                    "Email duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtEmail.Focus();
                 return;
             }
 
