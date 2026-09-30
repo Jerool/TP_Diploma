@@ -16,8 +16,48 @@ namespace DAL
 
         protected SqlConnection conexion = null;
 
-        public static string ConnectionString { get; set; }
-        public static string InstanciaActual { get; set; }
+        // ============================================================
+        // CONNECTION STRING - CADA COMPAÑERO CAMBIA LA INSTANCIA AQUÍ
+        // ============================================================
+        // Lee de App.config (clave "GestionUsuario"). Si no existe, usa el default.
+        // Cada compañero, cuando clone o descomprima el proyecto, cambia UNA sola
+        // línea en App.config (o acá) para poner su instancia de SQL:
+        //    - LocalDB:       (localdb)\MSSQLLocalDB
+        //    - SQL Express:   .\SQLEXPRESS
+        //    - Servidor:      NOMBRE-PC\SQLEXPRESS
+        // ============================================================
+        private const string CONNECTION_STRING_DEFAULT =
+            @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Gestion Usuario;Integrated Security=True";
+
+        private static string _connectionString;
+        public static string ConnectionString
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_connectionString))
+                    return _connectionString;
+
+                // Intentar leer de App.config
+                try
+                {
+                    string desdeConfig = ConfigurationManager
+                        .ConnectionStrings["GestionUsuario"]?.ConnectionString;
+                    if (!string.IsNullOrWhiteSpace(desdeConfig))
+                        return desdeConfig;
+                }
+                catch { }
+
+                // Fallback: default hardcodeado
+                return CONNECTION_STRING_DEFAULT;
+            }
+            set { _connectionString = value; }
+        }
+
+        public static string InstanciaActual
+        {
+            get { return new SqlConnectionStringBuilder(ConnectionString).DataSource; }
+            set { /* legacy, ignorado */ }
+        }
 
         private Acceso()
         {

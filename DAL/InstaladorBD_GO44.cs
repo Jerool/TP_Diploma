@@ -91,10 +91,27 @@ namespace DAL
                     foreach (var batch in batches)
                     {
                         if (string.IsNullOrWhiteSpace(batch)) continue;
-                        using (var cmd = new SqlCommand(batch, conn))
+                        try
                         {
-                            cmd.CommandTimeout = 120;
-                            cmd.ExecuteNonQuery();
+                            using (var cmd = new SqlCommand(batch, conn))
+                            {
+                                cmd.CommandTimeout = 120;
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        catch (SqlException ex)
+                        {
+                            // Algunos batches del snapshot pueden fallar en versiones de SQL Server
+                            // distintas (ej: ALTER DATABASE con QUERY_STORE, ACCELERATED_DATABASE_RECOVERY,
+                            // etc. no soportados en LocalDB / SQL Express viejo). No son críticos:
+                            // se ignoran y se sigue con el resto para no perder los CREATE TABLE, SPs, INSERTs.
+                            try
+                            {
+                                string logPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "instalador_db.log");
+                                System.IO.File.AppendAllText(logPath,
+                                    $"[{DateTime.Now}] Lote ignorado: {ex.Message}{Environment.NewLine}");
+                            }
+                            catch { }
                         }
                     }
                 }
