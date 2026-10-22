@@ -30,6 +30,12 @@ namespace DAL
             RecalcularIntegridadFactura();
         }
 
+        // ============ Transacción (encapsula Acceso para no romper las capas) ============
+
+        public SqlTransaction IniciarTransaccion()          => _acceso.IniciarTransaccion();
+        public void ConfirmarTransaccion(SqlTransaction tx) => _acceso.ConfirmarTransaccion(tx);
+        public void CancelarTransaccion(SqlTransaction tx)  => _acceso.CancelarTransaccion(tx);
+
         // ---------- Insert encabezado + líneas dentro de tx ----------
 
         public int InsertarEncabezadoEnTx(BE_Factura_GO44 factura, SqlTransaction tx)

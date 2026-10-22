@@ -24,6 +24,12 @@ namespace DAL
             try { _dalIntegridad.RecalcularTabla("LineaCarrito"); } catch { }
         }
 
+        // ============ Transacción (encapsula Acceso para no romper las capas) ============
+
+        public SqlTransaction IniciarTransaccion()          => _acceso.IniciarTransaccion();
+        public void ConfirmarTransaccion(SqlTransaction tx) => _acceso.ConfirmarTransaccion(tx);
+        public void CancelarTransaccion(SqlTransaction tx)  => _acceso.CancelarTransaccion(tx);
+
         /// <summary>
         /// Inserta el encabezado del carrito y devuelve el Id generado. Usa transacción externa.
         /// </summary>

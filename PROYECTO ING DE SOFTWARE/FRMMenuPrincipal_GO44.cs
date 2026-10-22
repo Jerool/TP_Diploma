@@ -99,6 +99,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             miReporteFacturas.Visible = puedeRepFactura;
             menuReportes.Visible = puedeRepFactura;
 
+            // ---------- COMPRAS (RFN2) ----------
+            bool puedeGenerarSC    = esAdmin || TienePermiso("Compras.GenerarSC");
+            bool puedeRegProveedor = esAdmin || TienePermiso("Compras.RegistrarProveedor");
+            if (miGenerarSC != null)        miGenerarSC.Visible        = puedeGenerarSC;
+            if (miRegistrarProveedor != null) miRegistrarProveedor.Visible = puedeRegProveedor;
+            if (menuCompras != null)        menuCompras.Visible        = puedeGenerarSC || puedeRegProveedor;
+
             // ---------- USUARIO (siempre visible) ----------
             miCambiarClave.Visible = true;
             miLogout.Visible       = true;
@@ -155,6 +162,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (menuMaestros != null) menuMaestros.Text = IdiomaManager_GO44.T("menu.maestros");
             if (menuVentas != null)   menuVentas.Text   = IdiomaManager_GO44.T("menu.ventas");
             if (menuReportes != null) menuReportes.Text = IdiomaManager_GO44.T("menu.reportes");
+            if (menuCompras != null)  menuCompras.Text  = IdiomaManager_GO44.T("menu.compras");
             if (menuUsuario != null)  menuUsuario.Text  = IdiomaManager_GO44.T("menu.usuario");
 
             // Submenús Admin
@@ -173,6 +181,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             // Submenús Reportes
             if (miReporteFacturas != null) miReporteFacturas.Text = IdiomaManager_GO44.T("menu.reporteFacturas");
+
+            // Submenús Compras
+            if (miGenerarSC != null)        miGenerarSC.Text        = IdiomaManager_GO44.T("menu.generarSC");
+            if (miRegistrarProveedor != null) miRegistrarProveedor.Text = IdiomaManager_GO44.T("menu.registrarProveedor");
 
             // Submenús Usuario
             if (miCambiarClave != null) miCambiarClave.Text = IdiomaManager_GO44.T("menu.cambiarClave");
@@ -224,6 +236,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         // ============ HANDLERS REPORTES ============
         private void miReporteFacturas_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMReporteFacturas_GO44()); }
+
+        private void miGenerarSC_Click(object sender, EventArgs e)         { AbrirFormularioHijo(new FRMGenerarSolicitudCotizacion_GO44()); }
+        private void miRegistrarProveedor_Click(object sender, EventArgs e)
+        {
+            using (var frm = new FRMRegistrarProveedor_GO44())
+                frm.ShowDialog(this);
+        }
 
         // ============ HANDLERS USUARIO ============
 

@@ -153,7 +153,7 @@ namespace BLL
             SqlTransaction tx = null;
             try
             {
-                tx = Acceso.Instancia.IniciarTransaccion();
+                tx = _dalFactura.IniciarTransaccion();
 
                 // 1) Insertar encabezado factura
                 int idFactura = _dalFactura.InsertarEncabezadoEnTx(factura, tx);
@@ -182,17 +182,13 @@ namespace BLL
                 //    0 filas es porque hubo condición de carrera → rollback completo.
                 foreach (BE_LineaFactura_GO44 lf in factura.Lineas)
                 {
-                    SqlParameter[] pDesc = {
-                        new SqlParameter("@Id",       lf.Componente.Id),
-                        new SqlParameter("@Cantidad", lf.Cantidad)
-                    };
-                    int filasStock = Acceso.Instancia.escribirSPEnTx("sp_Componente_DescontarStock_GO44", pDesc, tx);
+                    int filasStock = _dalComponente.DescontarStockEnTx(lf.Componente.Id, lf.Cantidad, tx);
                     if (filasStock == 0)
                         throw new Exception("Condición de carrera: se acabó el stock de " + lf.ComponenteCodigo + " durante el cobro");
                 }
 
                 // 6) Commit
-                Acceso.Instancia.ConfirmarTransaccion(tx);
+                _dalFactura.ConfirmarTransaccion(tx);
                 tx = null;
 
                 // 6) Post-commit: bitácora + DVH (best-effort)
@@ -221,7 +217,7 @@ namespace BLL
             }
             catch (Exception ex)
             {
-                try { Acceso.Instancia.CancelarTransaccion(tx); } catch { }
+                try { _dalFactura.CancelarTransaccion(tx); } catch { }
                 try
                 {
                     BLLBitacora_GO44.Instancia.RegistrarEvento(

@@ -129,7 +129,7 @@ namespace BLL
             {
                 carrito.Estado = BE_Carrito_GO44.EstadoCarrito.Confirmado;
 
-                tx = Acceso.Instancia.IniciarTransaccion();
+                tx = _dalCarrito.IniciarTransaccion();
 
                 // 1) Insertar encabezado carrito
                 int idCarrito = _dalCarrito.InsertarEncabezadoEnTx(carrito, tx);
@@ -149,7 +149,7 @@ namespace BLL
                 }
 
                 // 3) Commit atómico (encabezado + líneas)
-                Acceso.Instancia.ConfirmarTransaccion(tx);
+                _dalCarrito.ConfirmarTransaccion(tx);
                 tx = null;
 
                 // 4) Auditoría post-commit (la venta ya está persistida; log en modo best-effort)
@@ -182,7 +182,7 @@ namespace BLL
             }
             catch (Exception ex)
             {
-                try { Acceso.Instancia.CancelarTransaccion(tx); } catch { }
+                try { _dalCarrito.CancelarTransaccion(tx); } catch { }
                 Auditar("Carrito cancelado", "Rollback por error: " + ex.Message, "Alta");
                 vo.Resultado = ResultadoConfirmacion.Error;
                 vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.carrito.errConfirmar"), ex.Message);

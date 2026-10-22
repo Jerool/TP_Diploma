@@ -145,6 +145,18 @@
     <Compile Include="FRMReporteFacturas_GO44.Designer.cs">
       <DependentUpon>FRMReporteFacturas_GO44.cs</DependentUpon>
     </Compile>
+    <Compile Include="FRMRegistrarProveedor_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMRegistrarProveedor_GO44.Designer.cs">
+      <DependentUpon>FRMRegistrarProveedor_GO44.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FRMGenerarSolicitudCotizacion_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMGenerarSolicitudCotizacion_GO44.Designer.cs">
+      <DependentUpon>FRMGenerarSolicitudCotizacion_GO44.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FRMBitacoraDeEventos.resx">
@@ -213,12 +225,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="EsquemaCompleto.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="EsquemaNegocio_GO44.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="EsquemaNegocio_Facturacion_GO44.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Idiomas\es.json">

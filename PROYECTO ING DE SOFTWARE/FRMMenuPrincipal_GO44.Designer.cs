@@ -35,6 +35,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuReportes = new System.Windows.Forms.ToolStripMenuItem();
             this.miReporteFacturas = new System.Windows.Forms.ToolStripMenuItem();
 
+            // COMPRAS (RFN2)
+            this.menuCompras = new System.Windows.Forms.ToolStripMenuItem();
+            this.miGenerarSC = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRegistrarProveedor = new System.Windows.Forms.ToolStripMenuItem();
+
             // USUARIO
             this.menuUsuario = new System.Windows.Forms.ToolStripMenuItem();
             this.miCambiarClave = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,7 +58,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.menuStrip1.ForeColor = System.Drawing.Color.White;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.menuAdmin, this.menuMaestros, this.menuVentas, this.menuReportes, this.menuUsuario});
+                this.menuAdmin, this.menuMaestros, this.menuVentas, this.menuCompras, this.menuReportes, this.menuUsuario});
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 4, 0, 4);
 
             // ADMIN
@@ -84,6 +89,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuReportes.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
                 this.miReporteFacturas});
             ConfigMenuHijo(this.miReporteFacturas, "Facturas", this.miReporteFacturas_Click);
+
+            // COMPRAS (RFN2 — CU06 + CU07)
+            ConfigMenuPadre(this.menuCompras, "Compras");
+            this.menuCompras.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.miGenerarSC, this.miRegistrarProveedor});
+            ConfigMenuHijo(this.miGenerarSC,          "Generar solicitud de cotización", this.miGenerarSC_Click);
+            ConfigMenuHijo(this.miRegistrarProveedor, "Registrar proveedor",             this.miRegistrarProveedor_Click);
 
             // USUARIO
             ConfigMenuPadre(this.menuUsuario, "Usuario");
@@ -161,6 +173,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private System.Windows.Forms.ToolStripMenuItem menuReportes;
         private System.Windows.Forms.ToolStripMenuItem miReporteFacturas;
+
+        private System.Windows.Forms.ToolStripMenuItem menuCompras;
+        private System.Windows.Forms.ToolStripMenuItem miGenerarSC;
+        private System.Windows.Forms.ToolStripMenuItem miRegistrarProveedor;
 
         private System.Windows.Forms.ToolStripMenuItem menuUsuario;
         private System.Windows.Forms.ToolStripMenuItem miCambiarClave;

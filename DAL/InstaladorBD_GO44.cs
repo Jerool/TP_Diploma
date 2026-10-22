@@ -21,10 +21,10 @@ namespace DAL
         // Nota: si en la PC nueva alguien clonó y le falta algún SP, con volver a ejecutar EsquemaCompleto.sql
         //       en SSMS sobre una BD limpia queda todo. Alternativamente estos scripts se corren automáticamente
         //       cuando la app arranca en modo Debug y la BD no existe.
+        // Solo el snapshot completo — ya contiene todas las tablas, SPs y datos
+        // (seguridad + negocio + facturación + compras).
         private static readonly string[] SCRIPTS = {
-            "EsquemaCompleto.sql",
-            "EsquemaNegocio_GO44.sql",
-            "EsquemaNegocio_Facturacion_GO44.sql"
+            "EsquemaCompleto.sql"
         };
 
         public static bool ExisteBaseDatos(string instancia)

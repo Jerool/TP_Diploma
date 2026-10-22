@@ -18,6 +18,12 @@ namespace Servicios
 
         public const string REGEX_TELEFONO = @"^\d{10}$";
 
+        // CUIT: 11 dígitos (sin guiones). Ej: 20469475447
+        public const string REGEX_CUIT = @"^\d{11}$";
+
+        // CVU: 22 dígitos. Ej: 0000003100099999999999
+        public const string REGEX_CVU = @"^\d{22}$";
+
         public static bool EsDniValido(string dni) => !string.IsNullOrWhiteSpace(dni) && Regex.IsMatch(dni, REGEX_DNI);
 
         public static bool EsTelefonoValido(string tel) => !string.IsNullOrWhiteSpace(tel) && Regex.IsMatch(tel, REGEX_TELEFONO);
@@ -32,6 +38,10 @@ namespace Servicios
 
         public static bool EsLoginValido(string login) => !string.IsNullOrWhiteSpace(login) && Regex.IsMatch(login, REGEX_LOGIN);
 
+        public static bool EsCuitValido(string cuit) => !string.IsNullOrWhiteSpace(cuit) && Regex.IsMatch(cuit, REGEX_CUIT);
+
+        public static bool EsCvuValido(string cvu) => !string.IsNullOrWhiteSpace(cvu) && Regex.IsMatch(cvu, REGEX_CVU);
+
         public const string MENSAJE_DNI = "El DNI debe tener exactamente 8 dígitos numéricos (sin puntos ni espacios). Ej: 46947544";
 
         public const string MENSAJE_EMAIL = "El email no tiene un formato válido. Debe contener @ y un dominio. Ej: jeremias@gmail.com";
@@ -45,5 +55,9 @@ namespace Servicios
         public const string MENSAJE_LOGIN ="El usuario solo puede contener letras, números y puntos (mínimo 3 caracteres).";
 
         public const string MENSAJE_TELEFONO = "El teléfono debe tener exactamente 10 dígitos numéricos (sin guiones ni espacios). Ej: 1159024801";
+
+        public const string MENSAJE_CUIT = "El CUIT debe tener exactamente 11 dígitos numéricos (sin guiones). Ej: 20469475447";
+
+        public const string MENSAJE_CVU = "El CVU debe tener exactamente 22 dígitos numéricos. Ej: 0000003100099999999999";
     }
 }

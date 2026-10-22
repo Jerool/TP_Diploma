@@ -107,9 +107,10 @@ namespace DAL
         }
 
         /// <summary>
-        /// Descuenta stock dentro de una transacción externa (usado por CU01 al confirmar carrito).
-        /// El SP protege contra stock negativo (WHERE StockActual >= @Cantidad); si retorna 0 filas
-        /// hubo condición de carrera y el BLL debe hacer rollback.
+        /// Descuenta stock dentro de una transacción externa (usado por CU05 al cobrar).
+        /// El SP protege contra stock negativo (WHERE StockActual >= @Cantidad); devuelve las
+        /// filas afectadas por el UPDATE: si retorna 0 hubo condición de carrera y el BLL debe
+        /// hacer rollback.
         /// </summary>
         public int DescontarStockEnTx(int idComponente, int cantidad, SqlTransaction tx)
         {
@@ -117,14 +118,7 @@ namespace DAL
                 new SqlParameter("@Id",       idComponente),
                 new SqlParameter("@Cantidad", cantidad)
             };
-            _acceso.escribirSPEnTx("sp_Componente_DescontarStock_GO44", p, tx);
-            // El SP devuelve @@ROWCOUNT como SELECT; para consistencia lo re-consultamos vía scalar
-            SqlParameter[] pv = {
-                new SqlParameter("@Id",       idComponente),
-                new SqlParameter("@Cantidad", 0)
-            };
-            // No cambia stock, solo consulta si sigue habiendo. Alternativa: derivar de @@ROWCOUNT directamente.
-            return cantidad;   // BLL debe re-verificar con BuscarPorId si necesita el nuevo stock
+            return _acceso.escribirSPEnTx("sp_Componente_DescontarStock_GO44", p, tx);
         }
 
         private List<BE_Componente_GO44> MapearLista(DataTable dt)
