@@ -73,6 +73,19 @@ namespace DAL
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>
+        /// Cambia el estado de una SC dentro de una transacción externa (ej: 'Cotizada'
+        /// cuando se genera la OC a partir de ella en CU08).
+        /// </summary>
+        public int CambiarEstadoEnTx(int idSolicitud, string estado, SqlTransaction tx)
+        {
+            SqlParameter[] p = {
+                new SqlParameter("@Id",     idSolicitud),
+                new SqlParameter("@Estado", estado)
+            };
+            return _acceso.escribirSPEnTx("sp_SolicitudCotizacion_CambiarEstado_GO44", p, tx);
+        }
+
         public List<BE_SolicitudCotizacion_GO44> Listar()
         {
             DataTable dt = _acceso.leerSP("sp_SolicitudCotizacion_Listar_GO44", null);

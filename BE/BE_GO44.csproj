@@ -57,6 +57,11 @@
     <Compile Include="BE_Proveedor_GO44.cs" />
     <Compile Include="BE_SolicitudCotizacion_GO44.cs" />
     <Compile Include="BE_LineaSolicitudCotizacion_GO44.cs" />
+    <Compile Include="BE_OrdenCompra_GO44.cs" />
+    <Compile Include="BE_LineaOrdenCompra_GO44.cs" />
+    <Compile Include="BE_PagoOrdenCompra_GO44.cs" />
+    <Compile Include="BE_RecepcionMercaderia_GO44.cs" />
+    <Compile Include="BE_LineaRecepcion_GO44.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

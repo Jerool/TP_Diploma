@@ -102,9 +102,18 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // ---------- COMPRAS (RFN2) ----------
             bool puedeGenerarSC    = esAdmin || TienePermiso("Compras.GenerarSC");
             bool puedeRegProveedor = esAdmin || TienePermiso("Compras.RegistrarProveedor");
-            if (miGenerarSC != null)        miGenerarSC.Visible        = puedeGenerarSC;
+            bool puedeGenerarOC    = esAdmin || TienePermiso("Compras.GenerarOC");
+            bool puedePagarOC      = esAdmin || TienePermiso("Compras.PagarOC");
+            if (miGenerarSC != null)          miGenerarSC.Visible          = puedeGenerarSC;
             if (miRegistrarProveedor != null) miRegistrarProveedor.Visible = puedeRegProveedor;
-            if (menuCompras != null)        menuCompras.Visible        = puedeGenerarSC || puedeRegProveedor;
+            if (miGenerarOC != null)          miGenerarOC.Visible          = puedeGenerarOC;
+            if (miPagarOC != null)            miPagarOC.Visible            = puedePagarOC;
+            if (menuCompras != null)          menuCompras.Visible          = puedeGenerarSC || puedeRegProveedor || puedeGenerarOC || puedePagarOC;
+
+            // ---------- ALMACEN (RFN2 — CU10) ----------
+            bool puedeRecibir = esAdmin || TienePermiso("Almacen.RecibirMercaderia");
+            if (miRecibirMercaderia != null) miRecibirMercaderia.Visible = puedeRecibir;
+            if (menuAlmacen != null)         menuAlmacen.Visible         = puedeRecibir;
 
             // ---------- USUARIO (siempre visible) ----------
             miCambiarClave.Visible = true;
@@ -163,6 +172,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (menuVentas != null)   menuVentas.Text   = IdiomaManager_GO44.T("menu.ventas");
             if (menuReportes != null) menuReportes.Text = IdiomaManager_GO44.T("menu.reportes");
             if (menuCompras != null)  menuCompras.Text  = IdiomaManager_GO44.T("menu.compras");
+            if (menuAlmacen != null)  menuAlmacen.Text  = IdiomaManager_GO44.T("menu.almacen");
             if (menuUsuario != null)  menuUsuario.Text  = IdiomaManager_GO44.T("menu.usuario");
 
             // Submenús Admin
@@ -183,8 +193,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (miReporteFacturas != null) miReporteFacturas.Text = IdiomaManager_GO44.T("menu.reporteFacturas");
 
             // Submenús Compras
-            if (miGenerarSC != null)        miGenerarSC.Text        = IdiomaManager_GO44.T("menu.generarSC");
+            if (miGenerarSC != null)          miGenerarSC.Text          = IdiomaManager_GO44.T("menu.generarSC");
             if (miRegistrarProveedor != null) miRegistrarProveedor.Text = IdiomaManager_GO44.T("menu.registrarProveedor");
+            if (miGenerarOC != null)          miGenerarOC.Text          = IdiomaManager_GO44.T("menu.generarOC");
+            if (miPagarOC != null)            miPagarOC.Text            = IdiomaManager_GO44.T("menu.pagarOC");
+
+            // Submenús Almacén
+            if (miRecibirMercaderia != null)  miRecibirMercaderia.Text  = IdiomaManager_GO44.T("menu.recibirMercaderia");
 
             // Submenús Usuario
             if (miCambiarClave != null) miCambiarClave.Text = IdiomaManager_GO44.T("menu.cambiarClave");
@@ -238,6 +253,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void miReporteFacturas_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMReporteFacturas_GO44()); }
 
         private void miGenerarSC_Click(object sender, EventArgs e)         { AbrirFormularioHijo(new FRMGenerarSolicitudCotizacion_GO44()); }
+        private void miGenerarOC_Click(object sender, EventArgs e)         { AbrirFormularioHijo(new FRMGenerarOrdenCompra_GO44()); }
+        private void miPagarOC_Click(object sender, EventArgs e)           { AbrirFormularioHijo(new FRMPagarOrdenCompra_GO44()); }
+        private void miRecibirMercaderia_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMRecepcionMercaderia_GO44()); }
         private void miRegistrarProveedor_Click(object sender, EventArgs e)
         {
             using (var frm = new FRMRegistrarProveedor_GO44())

@@ -157,6 +157,24 @@
     <Compile Include="FRMGenerarSolicitudCotizacion_GO44.Designer.cs">
       <DependentUpon>FRMGenerarSolicitudCotizacion_GO44.cs</DependentUpon>
     </Compile>
+    <Compile Include="FRMGenerarOrdenCompra_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMGenerarOrdenCompra_GO44.Designer.cs">
+      <DependentUpon>FRMGenerarOrdenCompra_GO44.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FRMPagarOrdenCompra_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMPagarOrdenCompra_GO44.Designer.cs">
+      <DependentUpon>FRMPagarOrdenCompra_GO44.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FRMRecepcionMercaderia_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMRecepcionMercaderia_GO44.Designer.cs">
+      <DependentUpon>FRMRecepcionMercaderia_GO44.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FRMBitacoraDeEventos.resx">

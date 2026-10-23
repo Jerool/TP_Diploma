@@ -46,6 +46,9 @@
     <Compile Include="BLLEmailFactura_GO44.cs" />
     <Compile Include="BLLProveedor_GO44.cs" />
     <Compile Include="BLLSolicitudCotizacion_GO44.cs" />
+    <Compile Include="BLLOrdenCompra_GO44.cs" />
+    <Compile Include="BLLPagoOrdenCompra_GO44.cs" />
+    <Compile Include="BLLRecepcionMercaderia_GO44.cs" />
     <Compile Include="BLLInstalador_GO44.cs" />
     <Compile Include="BLLPermisos_GO44.cs" />
     <Compile Include="BLLUsuario_GO44.cs" />

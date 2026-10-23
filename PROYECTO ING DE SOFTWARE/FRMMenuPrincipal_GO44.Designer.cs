@@ -39,6 +39,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuCompras = new System.Windows.Forms.ToolStripMenuItem();
             this.miGenerarSC = new System.Windows.Forms.ToolStripMenuItem();
             this.miRegistrarProveedor = new System.Windows.Forms.ToolStripMenuItem();
+            this.miGenerarOC = new System.Windows.Forms.ToolStripMenuItem();
+            this.miPagarOC = new System.Windows.Forms.ToolStripMenuItem();
+
+            // ALMACEN (RFN2 — CU10)
+            this.menuAlmacen = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRecibirMercaderia = new System.Windows.Forms.ToolStripMenuItem();
 
             // USUARIO
             this.menuUsuario = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,7 +64,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.menuStrip1.ForeColor = System.Drawing.Color.White;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.menuAdmin, this.menuMaestros, this.menuVentas, this.menuCompras, this.menuReportes, this.menuUsuario});
+                this.menuAdmin, this.menuMaestros, this.menuVentas, this.menuCompras, this.menuAlmacen, this.menuReportes, this.menuUsuario});
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 4, 0, 4);
 
             // ADMIN
@@ -90,12 +96,20 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 this.miReporteFacturas});
             ConfigMenuHijo(this.miReporteFacturas, "Facturas", this.miReporteFacturas_Click);
 
-            // COMPRAS (RFN2 — CU06 + CU07)
+            // COMPRAS (RFN2 — CU06 + CU07 + CU08 + CU09)
             ConfigMenuPadre(this.menuCompras, "Compras");
             this.menuCompras.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.miGenerarSC, this.miRegistrarProveedor});
+                this.miGenerarSC, this.miRegistrarProveedor, this.miGenerarOC, this.miPagarOC});
             ConfigMenuHijo(this.miGenerarSC,          "Generar solicitud de cotización", this.miGenerarSC_Click);
             ConfigMenuHijo(this.miRegistrarProveedor, "Registrar proveedor",             this.miRegistrarProveedor_Click);
+            ConfigMenuHijo(this.miGenerarOC,          "Generar orden de compra",         this.miGenerarOC_Click);
+            ConfigMenuHijo(this.miPagarOC,            "Pagar orden de compra",           this.miPagarOC_Click);
+
+            // ALMACEN (RFN2 — CU10)
+            ConfigMenuPadre(this.menuAlmacen, "Almacén");
+            this.menuAlmacen.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.miRecibirMercaderia});
+            ConfigMenuHijo(this.miRecibirMercaderia, "Recepción de mercadería", this.miRecibirMercaderia_Click);
 
             // USUARIO
             ConfigMenuPadre(this.menuUsuario, "Usuario");
@@ -177,6 +191,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.ToolStripMenuItem menuCompras;
         private System.Windows.Forms.ToolStripMenuItem miGenerarSC;
         private System.Windows.Forms.ToolStripMenuItem miRegistrarProveedor;
+        private System.Windows.Forms.ToolStripMenuItem miGenerarOC;
+        private System.Windows.Forms.ToolStripMenuItem miPagarOC;
+
+        private System.Windows.Forms.ToolStripMenuItem menuAlmacen;
+        private System.Windows.Forms.ToolStripMenuItem miRecibirMercaderia;
 
         private System.Windows.Forms.ToolStripMenuItem menuUsuario;
         private System.Windows.Forms.ToolStripMenuItem miCambiarClave;

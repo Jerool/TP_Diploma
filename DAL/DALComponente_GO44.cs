@@ -121,6 +121,19 @@ namespace DAL
             return _acceso.escribirSPEnTx("sp_Componente_DescontarStock_GO44", p, tx);
         }
 
+        /// <summary>
+        /// Aumenta el stock dentro de una transacción externa (usado por CU10 al recibir mercadería).
+        /// Devuelve las filas afectadas por el UPDATE (1 si el componente existe).
+        /// </summary>
+        public int AumentarStockEnTx(int idComponente, int cantidad, SqlTransaction tx)
+        {
+            SqlParameter[] p = {
+                new SqlParameter("@Id",       idComponente),
+                new SqlParameter("@Cantidad", cantidad)
+            };
+            return _acceso.escribirSPEnTx("sp_Componente_AumentarStock_GO44", p, tx);
+        }
+
         private List<BE_Componente_GO44> MapearLista(DataTable dt)
         {
             List<BE_Componente_GO44> lista = new List<BE_Componente_GO44>();
