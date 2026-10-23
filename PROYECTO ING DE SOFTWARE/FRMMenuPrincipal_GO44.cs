@@ -81,11 +81,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             menuAdmin.Visible   = puedeUsuarios || puedePermisos || puedeBitacora || puedeBackup;
 
             // ---------- MAESTROS ----------
-            bool puedeClientes  = esAdmin || TienePermiso("Maestros.Clientes");
-            bool puedeProductos = esAdmin || TienePermiso("Maestros.Productos");
+            bool puedeClientes     = esAdmin || TienePermiso("Maestros.Clientes");
+            bool puedeProductos    = esAdmin || TienePermiso("Maestros.Productos");
+            bool puedeRegProveedor = esAdmin || TienePermiso("Compras.RegistrarProveedor");
             miClientes.Visible  = puedeClientes;
             miProductos.Visible = puedeProductos;
-            menuMaestros.Visible = puedeClientes || puedeProductos;
+            if (miRegistrarProveedor != null) miRegistrarProveedor.Visible = puedeRegProveedor;
+            menuMaestros.Visible = puedeClientes || puedeProductos || puedeRegProveedor;
 
             // ---------- VENTAS ----------
             bool puedeCarrito  = esAdmin || TienePermiso("Ventas.CargarCarrito");
@@ -99,21 +101,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
             miReporteFacturas.Visible = puedeRepFactura;
             menuReportes.Visible = puedeRepFactura;
 
-            // ---------- COMPRAS (RFN2) ----------
-            bool puedeGenerarSC    = esAdmin || TienePermiso("Compras.GenerarSC");
-            bool puedeRegProveedor = esAdmin || TienePermiso("Compras.RegistrarProveedor");
-            bool puedeGenerarOC    = esAdmin || TienePermiso("Compras.GenerarOC");
-            bool puedePagarOC      = esAdmin || TienePermiso("Compras.PagarOC");
-            if (miGenerarSC != null)          miGenerarSC.Visible          = puedeGenerarSC;
-            if (miRegistrarProveedor != null) miRegistrarProveedor.Visible = puedeRegProveedor;
-            if (miGenerarOC != null)          miGenerarOC.Visible          = puedeGenerarOC;
-            if (miPagarOC != null)            miPagarOC.Visible            = puedePagarOC;
-            if (menuCompras != null)          menuCompras.Visible          = puedeGenerarSC || puedeRegProveedor || puedeGenerarOC || puedePagarOC;
-
-            // ---------- ALMACEN (RFN2 — CU10) ----------
-            bool puedeRecibir = esAdmin || TienePermiso("Almacen.RecibirMercaderia");
+            // ---------- COMPRAS (RFN2 — SC, OC, Pago, Recepción) ----------
+            bool puedeGenerarSC = esAdmin || TienePermiso("Compras.GenerarSC");
+            bool puedeGenerarOC = esAdmin || TienePermiso("Compras.GenerarOC");
+            bool puedePagarOC   = esAdmin || TienePermiso("Compras.PagarOC");
+            bool puedeRecibir   = esAdmin || TienePermiso("Almacen.RecibirMercaderia");
+            if (miGenerarSC != null)         miGenerarSC.Visible         = puedeGenerarSC;
+            if (miGenerarOC != null)         miGenerarOC.Visible         = puedeGenerarOC;
+            if (miPagarOC != null)           miPagarOC.Visible           = puedePagarOC;
             if (miRecibirMercaderia != null) miRecibirMercaderia.Visible = puedeRecibir;
-            if (menuAlmacen != null)         menuAlmacen.Visible         = puedeRecibir;
+            if (menuCompras != null)         menuCompras.Visible         = puedeGenerarSC || puedeGenerarOC || puedePagarOC || puedeRecibir;
 
             // ---------- USUARIO (siempre visible) ----------
             miCambiarClave.Visible = true;
@@ -172,7 +169,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (menuVentas != null)   menuVentas.Text   = IdiomaManager_GO44.T("menu.ventas");
             if (menuReportes != null) menuReportes.Text = IdiomaManager_GO44.T("menu.reportes");
             if (menuCompras != null)  menuCompras.Text  = IdiomaManager_GO44.T("menu.compras");
-            if (menuAlmacen != null)  menuAlmacen.Text  = IdiomaManager_GO44.T("menu.almacen");
             if (menuUsuario != null)  menuUsuario.Text  = IdiomaManager_GO44.T("menu.usuario");
 
             // Submenús Admin
@@ -184,6 +180,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // Submenús Maestros
             if (miClientes != null)   miClientes.Text   = IdiomaManager_GO44.T("menu.clientes");
             if (miProductos != null)  miProductos.Text  = IdiomaManager_GO44.T("menu.productos");
+            if (miRegistrarProveedor != null) miRegistrarProveedor.Text = IdiomaManager_GO44.T("menu.registrarProveedor");
 
             // Submenús Ventas
             if (miCargarCarrito != null) miCargarCarrito.Text = IdiomaManager_GO44.T("menu.cargarCarrito");
@@ -193,13 +190,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (miReporteFacturas != null) miReporteFacturas.Text = IdiomaManager_GO44.T("menu.reporteFacturas");
 
             // Submenús Compras
-            if (miGenerarSC != null)          miGenerarSC.Text          = IdiomaManager_GO44.T("menu.generarSC");
-            if (miRegistrarProveedor != null) miRegistrarProveedor.Text = IdiomaManager_GO44.T("menu.registrarProveedor");
-            if (miGenerarOC != null)          miGenerarOC.Text          = IdiomaManager_GO44.T("menu.generarOC");
-            if (miPagarOC != null)            miPagarOC.Text            = IdiomaManager_GO44.T("menu.pagarOC");
-
-            // Submenús Almacén
-            if (miRecibirMercaderia != null)  miRecibirMercaderia.Text  = IdiomaManager_GO44.T("menu.recibirMercaderia");
+            if (miGenerarSC != null)         miGenerarSC.Text         = IdiomaManager_GO44.T("menu.generarSC");
+            if (miGenerarOC != null)         miGenerarOC.Text         = IdiomaManager_GO44.T("menu.generarOC");
+            if (miPagarOC != null)           miPagarOC.Text           = IdiomaManager_GO44.T("menu.pagarOC");
+            if (miRecibirMercaderia != null) miRecibirMercaderia.Text = IdiomaManager_GO44.T("menu.recibirMercaderia");
 
             // Submenús Usuario
             if (miCambiarClave != null) miCambiarClave.Text = IdiomaManager_GO44.T("menu.cambiarClave");
