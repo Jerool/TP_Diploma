@@ -124,6 +124,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.lblComprobante.AutoSize = true; this.lblComprobante.Location = new System.Drawing.Point(15, 260); this.lblComprobante.Text = "N° comprobante:";
             this.lblComprobante.ForeColor = System.Drawing.Color.Black; this.lblComprobante.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
             this.txtComprobante.Location = new System.Drawing.Point(130, 257); this.txtComprobante.Size = new System.Drawing.Size(250, 22); this.txtComprobante.MaxLength = 50;
+            this.txtComprobante.ReadOnly = true;
 
             this.btnPagar.Location = new System.Drawing.Point(130, 310); this.btnPagar.Size = new System.Drawing.Size(250, 42);
             this.btnPagar.Text = "✓ Registrar pago"; this.btnPagar.BackColor = System.Drawing.Color.SeaGreen;

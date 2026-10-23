@@ -17,6 +17,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     {
         private readonly BLLOrdenCompra_GO44 _bllOC;
         private readonly BLLPagoOrdenCompra_GO44 _bllPago;
+        private readonly BLLProveedor_GO44 _bllProveedor;
 
         private BE_OrdenCompra_GO44 _ordenSeleccionada;
         private readonly BindingSource _bsOrdenes = new BindingSource();
@@ -24,8 +25,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         public FRMPagarOrdenCompra_GO44()
         {
             InitializeComponent();
-            _bllOC   = new BLLOrdenCompra_GO44();
-            _bllPago = new BLLPagoOrdenCompra_GO44();
+            _bllOC        = new BLLOrdenCompra_GO44();
+            _bllPago      = new BLLPagoOrdenCompra_GO44();
+            _bllProveedor = new BLLProveedor_GO44();
         }
 
         private void FRMPagarOrdenCompra_GO44_Load(object sender, EventArgs e)
@@ -90,8 +92,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _ordenSeleccionada = _bllOC.BuscarPorId(ocRow.Id);
             if (_ordenSeleccionada == null) { LimpiarDetalle(); return; }
 
+            // El listado/BuscarPorId traen el proveedor solo con CUIT/Empresa; para los datos
+            // bancarios (CVU/Banco/Titular) hay que cargar el proveedor completo.
+            if (_ordenSeleccionada.Proveedor != null)
+            {
+                var provCompleto = _bllProveedor.BuscarPorCUIT(_ordenSeleccionada.Proveedor.CUIT);
+                if (provCompleto != null) _ordenSeleccionada.Proveedor = provCompleto;
+            }
+
             var prov = _ordenSeleccionada.Proveedor;
-            // El listado trae el proveedor con CUIT/Empresa; para CVU/Banco/Titular reusamos lo que haya
             lblDetalleOC.Text = "OC " + _ordenSeleccionada.NumeroOC + "  ·  " +
                                 (prov != null ? prov.Empresa : "—");
             lblDetalleTotal.Text = "Total a pagar: $" + _ordenSeleccionada.Total.ToString("N2");
@@ -99,8 +108,17 @@ namespace PROYECTO_ING_DE_SOFTWARE
             txtBanco.Text   = prov != null ? prov.Banco : "";
             txtTitular.Text = prov != null ? prov.Titular : "";
             txtMonto.Text   = _ordenSeleccionada.Total.ToString("N2");
-            txtComprobante.Text = "";
+            txtComprobante.Text = GenerarNroComprobante();
             btnPagar.Enabled = true;
+        }
+
+        /// <summary>
+        /// Genera un número de comprobante único con formato COMP-yyyyMMddHHmmss.
+        /// Lo asigna el sistema (no se carga a mano).
+        /// </summary>
+        private static string GenerarNroComprobante()
+        {
+            return "COMP-" + DateTime.Now.ToString("yyyyMMddHHmmss");
         }
 
         private void LimpiarDetalle()
@@ -146,15 +164,88 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 "Confirmar pago", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
+            var ordenPagada = _ordenSeleccionada;   // referencia antes de recargar la grilla
             var vo = _bllPago.PagarOrden(_ordenSeleccionada, pago);
             if (vo.Resultado == BLLPagoOrdenCompra_GO44.ResultadoPago.Exitoso)
             {
                 MessageBox.Show(vo.Mensaje, "Pago registrado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                OfrecerComprobantePdf(ordenPagada, vo.Pago);
                 CargarOrdenes();
             }
             else
             {
                 MessageBox.Show(vo.Mensaje, "No se pudo pagar", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Ofrece generar y guardar el comprobante de pago en PDF (reusa GeneradorPdf_GO44,
+        /// el mismo generador nativo que las facturas).
+        /// </summary>
+        private void OfrecerComprobantePdf(BE_OrdenCompra_GO44 orden, BE_PagoOrdenCompra_GO44 pago)
+        {
+            if (orden == null || pago == null) return;
+
+            var r = MessageBox.Show("¿Desea generar el comprobante de pago en PDF?",
+                "Comprobante de pago", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (r != DialogResult.Yes) return;
+
+            using (var sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "PDF (*.pdf)|*.pdf";
+                sfd.FileName = "Comprobante_" + pago.NroComprobante + ".pdf";
+                if (sfd.ShowDialog() != DialogResult.OK) return;
+
+                try
+                {
+                    var prov = orden.Proveedor;
+                    string titulo = "TECHFLOW - ELECTROPOINT · COMPROBANTE DE PAGO " + pago.NroComprobante;
+                    string subtitulo =
+                        "OC: " + orden.NumeroOC +
+                        "   |   Fecha: " + pago.FechaOperacion.ToString("dd/MM/yyyy HH:mm") +
+                        "   |   Proveedor: " + (prov != null ? prov.Empresa : "") +
+                        "   |   Estado: " + pago.Estado;
+
+                    string[] headers = { "Codigo", "Componente", "Cant", "Precio Unit.", "Subtotal" };
+                    float[] anchos = { 0.12f, 0.48f, 0.10f, 0.15f, 0.15f };
+
+                    var filas = new List<string[]>();
+                    if (orden.Lineas != null)
+                    {
+                        foreach (var l in orden.Lineas)
+                            filas.Add(new string[] {
+                                l.ComponenteCodigo ?? "",
+                                l.ComponenteNombre ?? "",
+                                l.Cantidad.ToString(),
+                                "$ " + l.PrecioUnitario.ToString("N2"),
+                                "$ " + l.Subtotal.ToString("N2")
+                            });
+                    }
+
+                    // Totales y datos del pago
+                    filas.Add(new string[] { "", "", "", "", "" });
+                    filas.Add(new string[] { "", "", "", "TOTAL OC:",  "$ " + orden.Total.ToString("N2") });
+                    filas.Add(new string[] { "", "", "", "ABONADO:",   "$ " + pago.MontoAbonado.ToString("N2") });
+                    filas.Add(new string[] { "", "", "", "", "" });
+                    filas.Add(new string[] { "DATOS DEL PAGO", "", "", "", "" });
+                    filas.Add(new string[] { "CVU",         prov != null ? prov.CVU : "",     "", "", "" });
+                    filas.Add(new string[] { "Banco",       prov != null ? prov.Banco : "",   "", "", "" });
+                    filas.Add(new string[] { "Titular",     prov != null ? prov.Titular : "", "", "", "" });
+                    filas.Add(new string[] { "Comprobante", pago.NroComprobante,               "", "", "" });
+
+                    var gen = new GeneradorPdf_GO44();
+                    gen.Generar(sfd.FileName, titulo, subtitulo, headers, anchos, filas);
+
+                    var abrir = MessageBox.Show("Comprobante generado en:\n" + sfd.FileName + "\n\n¿Desea abrirlo?",
+                        "Comprobante de pago", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    if (abrir == DialogResult.Yes && System.IO.File.Exists(sfd.FileName))
+                        System.Diagnostics.Process.Start(sfd.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("No se pudo generar el comprobante PDF: " + ex.Message,
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
