@@ -66,6 +66,15 @@ namespace BLL
 
             foreach (var tabla in DALIntegridad_GO44.TABLAS_PROTEGIDAS)
             {
+                // Tabla protegida sin baseline todavía (ej: recién agregada a la lista, o una BD
+                // instalada antes de protegerla): se calcula su línea base y se considera íntegra,
+                // en vez de marcarla como alterada. Mismo criterio que el bootstrap global.
+                if (_dal.ObtenerDVVAlmacenado(tabla) == null)
+                {
+                    RecalcularTabla(tabla);
+                    continue;
+                }
+
                 Dictionary<string, string> dvhsAhora = _dal.CalcularDVHsTabla(tabla);
                 Dictionary<string, string> dvhsBd    = _dal.ObtenerDVHsAlmacenados(tabla);
 

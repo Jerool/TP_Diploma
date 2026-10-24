@@ -13,10 +13,18 @@ namespace DAL
     public class DALProveedor_GO44
     {
         private readonly Acceso _acceso;
+        private readonly DALIntegridad_GO44 _dalIntegridad;
 
         public DALProveedor_GO44()
         {
             _acceso = Acceso.Instancia;
+            _dalIntegridad = new DALIntegridad_GO44();
+        }
+
+        private void RecalcularIntegridadProveedor()
+        {
+            if (DALIntegridad_GO44.IntegridadConocidamenteRota) return;
+            try { _dalIntegridad.RecalcularTabla("Proveedores"); } catch { }
         }
 
         public bool ExisteCUIT(string cuit)
@@ -38,7 +46,9 @@ namespace DAL
                 new SqlParameter("@Banco",    prov.Banco),
                 new SqlParameter("@Titular",  prov.Titular)
             };
-            return Convert.ToInt32(_acceso.leerEscalarSP("sp_Proveedor_Insertar_GO44", p));
+            int filas = Convert.ToInt32(_acceso.leerEscalarSP("sp_Proveedor_Insertar_GO44", p));
+            RecalcularIntegridadProveedor();
+            return filas;
         }
 
         public List<BE_Proveedor_GO44> ListarActivos()

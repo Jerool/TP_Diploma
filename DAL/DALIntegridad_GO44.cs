@@ -15,7 +15,8 @@ namespace DAL
             "Usuario", "Roles", "Familia", "Patente",
             "FamiliaPatente", "FamiliaIntegrada",
             "RolPatente", "RolFamilia",
-            "Modulo", "TipoEvento"
+            "Modulo", "TipoEvento",
+            "Proveedores"
         };
 
         public static bool IntegridadConocidamenteRota { get; set; }
@@ -39,8 +40,25 @@ namespace DAL
                 case "RolFamilia":       return DVHsRolFamilia();
                 case "Modulo":           return DVHsModulo();
                 case "TipoEvento":       return DVHsTipoEvento();
+                case "Proveedores":      return DVHsProveedores();
                 default: throw new Exception("Tabla protegida desconocida: " + nombreTabla);
             }
+        }
+
+        private Dictionary<string, string> DVHsProveedores()
+        {
+            // Datos bancarios sensibles (CVU, Banco, Titular) → se protegen con DVH por fila.
+            string q = "SELECT CUIT, Nombre, Apellido, Empresa, Telefono, CVU, Banco, Titular, Activo FROM Proveedores";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["CUIT"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["CUIT"], r["Nombre"], r["Apellido"], r["Empresa"],
+                    r["Telefono"], r["CVU"], r["Banco"], r["Titular"], r["Activo"]);
+            }
+            return dict;
         }
 
         private Dictionary<string, string> DVHsModulo()
