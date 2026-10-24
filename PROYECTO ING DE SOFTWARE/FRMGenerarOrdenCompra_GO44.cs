@@ -213,6 +213,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             return sb.ToString();
         }
 
+        private void btnPagar_Click(object sender, EventArgs e)
+        {
+            // «include» CU09 — abre la pantalla de Pagar Orden de Compra (modal).
+            using (var frm = new FRMPagarOrdenCompra_GO44())
+                frm.ShowDialog(this);
+        }
+
         private void btnCancelar_Click(object sender, EventArgs e) { NuevaOrden(); }
         private void btnSalir_Click(object sender, EventArgs e) { this.Close(); }
     }

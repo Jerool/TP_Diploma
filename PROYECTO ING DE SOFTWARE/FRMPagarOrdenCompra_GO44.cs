@@ -33,14 +33,16 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void FRMPagarOrdenCompra_GO44_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
-            CargarOrdenes();
 
             txtMonto.KeyPress += (s, ev) =>
             {
                 if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar) && ev.KeyChar != ',' && ev.KeyChar != '.')
                     ev.Handled = true;
             };
-            LimpiarDetalle();
+
+            // Cargar al final: así la auto-selección de la grilla completa el detalle sin que
+            // nada lo borre después.
+            CargarOrdenes();
         }
 
         private void ConfigurarGrilla()
@@ -80,12 +82,32 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
 
             lblAvisoSinOrdenes.Visible = (ordenes == null || ordenes.Count == 0);
-            LimpiarDetalle();
+
+            // Al bindear, la grilla auto-selecciona la primera fila; cargamos su detalle
+            // explícitamente (antes se llamaba LimpiarDetalle acá y borraba lo recién cargado).
+            if (ordenes != null && ordenes.Count > 0)
+            {
+                dgvOrdenes.ClearSelection();
+                dgvOrdenes.Rows[0].Selected = true;
+                MostrarDetalleOrden();
+            }
+            else
+            {
+                LimpiarDetalle();
+            }
         }
 
         private void dgvOrdenes_SelectionChanged(object sender, EventArgs e)
         {
-            var ocRow = dgvOrdenes.CurrentRow != null ? dgvOrdenes.CurrentRow.DataBoundItem as BE_OrdenCompra_GO44 : null;
+            MostrarDetalleOrden();
+        }
+
+        private void MostrarDetalleOrden()
+        {
+            // CurrentRow puede ser null si la selección se hizo por código; usar SelectedRows como fallback.
+            DataGridViewRow fila = dgvOrdenes.CurrentRow;
+            if (fila == null && dgvOrdenes.SelectedRows.Count > 0) fila = dgvOrdenes.SelectedRows[0];
+            var ocRow = fila != null ? fila.DataBoundItem as BE_OrdenCompra_GO44 : null;
             if (ocRow == null) { LimpiarDetalle(); return; }
 
             // Traer la OC completa (con proveedor y líneas)

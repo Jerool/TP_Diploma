@@ -34,7 +34,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             ConfigurarGrillas();
             CargarOrdenes();
-            LimpiarDetalle();
         }
 
         private void ConfigurarGrillas()
@@ -83,12 +82,31 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
 
             lblAvisoSinOrdenes.Visible = (ordenes == null || ordenes.Count == 0);
-            LimpiarDetalle();
+
+            // La grilla auto-selecciona la primera fila; cargamos su detalle explícitamente
+            // (antes LimpiarDetalle borraba lo recién cargado por la auto-selección).
+            if (ordenes != null && ordenes.Count > 0)
+            {
+                dgvOrdenes.ClearSelection();
+                dgvOrdenes.Rows[0].Selected = true;
+                MostrarDetalleOrden();
+            }
+            else
+            {
+                LimpiarDetalle();
+            }
         }
 
         private void dgvOrdenes_SelectionChanged(object sender, EventArgs e)
         {
-            var ocRow = dgvOrdenes.CurrentRow != null ? dgvOrdenes.CurrentRow.DataBoundItem as BE_OrdenCompra_GO44 : null;
+            MostrarDetalleOrden();
+        }
+
+        private void MostrarDetalleOrden()
+        {
+            DataGridViewRow fila = dgvOrdenes.CurrentRow;
+            if (fila == null && dgvOrdenes.SelectedRows.Count > 0) fila = dgvOrdenes.SelectedRows[0];
+            var ocRow = fila != null ? fila.DataBoundItem as BE_OrdenCompra_GO44 : null;
             if (ocRow == null) { LimpiarDetalle(); return; }
 
             _ordenSeleccionada = _bllOC.BuscarPorId(ocRow.Id);

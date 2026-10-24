@@ -29,6 +29,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.lblTotal = new System.Windows.Forms.Label();
 
             this.btnGenerar = new System.Windows.Forms.Button();
+            this.btnPagar = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.btnSalir = new System.Windows.Forms.Button();
 
@@ -123,6 +124,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.btnGenerar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnGenerar.Click += new System.EventHandler(this.btnGenerar_Click);
 
+            this.btnPagar.Location = new System.Drawing.Point(20, 605); this.btnPagar.Size = new System.Drawing.Size(160, 40);
+            this.btnPagar.Text = "$ Pagar orden"; this.btnPagar.BackColor = System.Drawing.Color.SeaGreen;
+            this.btnPagar.ForeColor = System.Drawing.Color.White;
+            this.btnPagar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPagar.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
+            this.btnPagar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnPagar.Click += new System.EventHandler(this.btnPagar_Click);
+
             this.btnCancelar.Location = new System.Drawing.Point(950, 605); this.btnCancelar.Size = new System.Drawing.Size(110, 40);
             this.btnCancelar.Text = "Cancelar"; this.btnCancelar.BackColor = System.Drawing.Color.Gray;
             this.btnCancelar.ForeColor = System.Drawing.Color.White;
@@ -146,6 +155,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.Controls.Add(this.grpOrigen);
             this.Controls.Add(this.grpLineas);
             this.Controls.Add(this.btnGenerar);
+            this.Controls.Add(this.btnPagar);
             this.Controls.Add(this.btnCancelar);
             this.Controls.Add(this.btnSalir);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -177,6 +187,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.Label lblTotal;
 
         private System.Windows.Forms.Button btnGenerar;
+        private System.Windows.Forms.Button btnPagar;
         private System.Windows.Forms.Button btnCancelar;
         private System.Windows.Forms.Button btnSalir;
     }
