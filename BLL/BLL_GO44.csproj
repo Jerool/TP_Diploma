@@ -49,6 +49,8 @@
     <Compile Include="BLLOrdenCompra_GO44.cs" />
     <Compile Include="BLLPagoOrdenCompra_GO44.cs" />
     <Compile Include="BLLRecepcionMercaderia_GO44.cs" />
+    <Compile Include="BLLComponenteCambio_GO44.cs" />
+    <Compile Include="BLLReporteInteligente_GO44.cs" />
     <Compile Include="BLLInstalador_GO44.cs" />
     <Compile Include="BLLPermisos_GO44.cs" />
     <Compile Include="BLLUsuario_GO44.cs" />

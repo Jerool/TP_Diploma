@@ -81,13 +81,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
             menuAdmin.Visible   = puedeUsuarios || puedePermisos || puedeBitacora || puedeBackup;
 
             // ---------- MAESTROS ----------
-            bool puedeClientes     = esAdmin || TienePermiso("Maestros.Clientes");
-            bool puedeProductos    = esAdmin || TienePermiso("Maestros.Productos");
-            bool puedeRegProveedor = esAdmin || TienePermiso("Compras.RegistrarProveedor");
+            bool puedeClientes        = esAdmin || TienePermiso("Maestros.Clientes");
+            bool puedeProductos       = esAdmin || TienePermiso("Maestros.Productos");
+            bool puedeProductosCambios = esAdmin || TienePermiso("Maestros.ProductosCambios");
+            bool puedeRegProveedor    = esAdmin || TienePermiso("Compras.RegistrarProveedor");
             miClientes.Visible  = puedeClientes;
             miProductos.Visible = puedeProductos;
+            if (miProductosCambios != null)   miProductosCambios.Visible   = puedeProductosCambios;
             if (miRegistrarProveedor != null) miRegistrarProveedor.Visible = puedeRegProveedor;
-            menuMaestros.Visible = puedeClientes || puedeProductos || puedeRegProveedor;
+            menuMaestros.Visible = puedeClientes || puedeProductos || puedeProductosCambios || puedeRegProveedor;
 
             // ---------- VENTAS ----------
             bool puedeCarrito  = esAdmin || TienePermiso("Ventas.CargarCarrito");
@@ -97,20 +99,20 @@ namespace PROYECTO_ING_DE_SOFTWARE
             menuVentas.Visible = puedeCarrito || puedeFacturar;
 
             // ---------- REPORTES ----------
-            bool puedeRepFactura = esAdmin || TienePermiso("Reportes.Facturas") || TienePermiso("Ventas.Facturar");
-            miReporteFacturas.Visible = puedeRepFactura;
-            menuReportes.Visible = puedeRepFactura;
+            bool puedeReportes = esAdmin || TienePermiso("Reportes.Facturas") || TienePermiso("Ventas.Facturar");
+            miReporteFacturas.Visible = puedeReportes;
+            if (miReporteCompras != null)     miReporteCompras.Visible     = puedeReportes;
+            if (miReporteInteligente != null) miReporteInteligente.Visible = puedeReportes;
+            menuReportes.Visible = puedeReportes;
 
             // ---------- COMPRAS (RFN2 — SC, OC, Pago, Recepción) ----------
             bool puedeGenerarSC = esAdmin || TienePermiso("Compras.GenerarSC");
             bool puedeGenerarOC = esAdmin || TienePermiso("Compras.GenerarOC");
-            bool puedePagarOC   = esAdmin || TienePermiso("Compras.PagarOC");
             bool puedeRecibir   = esAdmin || TienePermiso("Almacen.RecibirMercaderia");
             if (miGenerarSC != null)         miGenerarSC.Visible         = puedeGenerarSC;
             if (miGenerarOC != null)         miGenerarOC.Visible         = puedeGenerarOC;
-            if (miPagarOC != null)           miPagarOC.Visible           = puedePagarOC;
             if (miRecibirMercaderia != null) miRecibirMercaderia.Visible = puedeRecibir;
-            if (menuCompras != null)         menuCompras.Visible         = puedeGenerarSC || puedeGenerarOC || puedePagarOC || puedeRecibir;
+            if (menuCompras != null)         menuCompras.Visible         = puedeGenerarSC || puedeGenerarOC || puedeRecibir;
 
             // ---------- USUARIO (siempre visible) ----------
             miCambiarClave.Visible = true;
@@ -143,22 +145,20 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void ConstruirMenuIdioma()
         {
-            MenuStrip menu = this.Controls.OfType<MenuStrip>().FirstOrDefault();
-            if (menu == null) return;
-
             _itemEspanol = new ToolStripMenuItem("Español");
             _itemEspanol.Click += (s, e) => _bllUsuario.CambiarIdioma(IdiomaManager_GO44.ES);
 
             _itemIngles = new ToolStripMenuItem("English");
             _itemIngles.Click += (s, e) => _bllUsuario.CambiarIdioma(IdiomaManager_GO44.EN);
 
-            _menuIdioma = new ToolStripMenuItem("Idioma");
+            _menuIdioma = new ToolStripMenuItem("Cambiar idioma");
             _menuIdioma.DropDownItems.Add(_itemEspanol);
             _menuIdioma.DropDownItems.Add(_itemIngles);
-            _menuIdioma.BackColor = System.Drawing.Color.FromArgb(13, 71, 161);
-            _menuIdioma.ForeColor = System.Drawing.Color.White;
+            _menuIdioma.BackColor = System.Drawing.Color.White;
+            _menuIdioma.ForeColor = System.Drawing.Color.FromArgb(13, 71, 161);
 
-            menu.Items.Add(_menuIdioma);
+            // Ubicado dentro del menú Usuario (como en el mockup).
+            if (menuUsuario != null) menuUsuario.DropDownItems.Add(_menuIdioma);
         }
 
         public void ActualizarIdioma()
@@ -180,6 +180,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // Submenús Maestros
             if (miClientes != null)   miClientes.Text   = IdiomaManager_GO44.T("menu.clientes");
             if (miProductos != null)  miProductos.Text  = IdiomaManager_GO44.T("menu.productos");
+            if (miProductosCambios != null) miProductosCambios.Text = IdiomaManager_GO44.T("menu.productosCambios");
             if (miRegistrarProveedor != null) miRegistrarProveedor.Text = IdiomaManager_GO44.T("menu.registrarProveedor");
 
             // Submenús Ventas
@@ -187,12 +188,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (miFacturar != null)      miFacturar.Text      = IdiomaManager_GO44.T("menu.facturar");
 
             // Submenús Reportes
-            if (miReporteFacturas != null) miReporteFacturas.Text = IdiomaManager_GO44.T("menu.reporteFacturas");
+            if (miReporteFacturas != null)   miReporteFacturas.Text   = IdiomaManager_GO44.T("menu.reporteFacturas");
+            if (miReporteCompras != null)    miReporteCompras.Text    = IdiomaManager_GO44.T("menu.reporteCompras");
+            if (miReporteInteligente != null) miReporteInteligente.Text = IdiomaManager_GO44.T("menu.reporteInteligente");
 
             // Submenús Compras
             if (miGenerarSC != null)         miGenerarSC.Text         = IdiomaManager_GO44.T("menu.generarSC");
             if (miGenerarOC != null)         miGenerarOC.Text         = IdiomaManager_GO44.T("menu.generarOC");
-            if (miPagarOC != null)           miPagarOC.Text           = IdiomaManager_GO44.T("menu.pagarOC");
             if (miRecibirMercaderia != null) miRecibirMercaderia.Text = IdiomaManager_GO44.T("menu.recibirMercaderia");
 
             // Submenús Usuario
@@ -237,6 +239,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void miClientes_Click(object sender, EventArgs e)   { AbrirFormularioHijo(new FRMGestionClientes_GO44()); }
         private void miProductos_Click(object sender, EventArgs e)  { AbrirFormularioHijo(new FRMGestionProductos_GO44()); }
+        private void miProductosCambios_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMProductosCambios_GO44()); }
 
         // ============ HANDLERS VENTAS ============
 
@@ -244,16 +247,18 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void miFacturar_Click(object sender, EventArgs e)      { AbrirFormularioHijo(new FRMFacturar_GO44()); }
 
         // ============ HANDLERS REPORTES ============
-        private void miReporteFacturas_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMReporteFacturas_GO44()); }
+        private void miReporteFacturas_Click(object sender, EventArgs e)   { AbrirFormularioHijo(new FRMReporteFacturas_GO44()); }
+        private void miReporteCompras_Click(object sender, EventArgs e)    { AbrirFormularioHijo(new FRMReporteCompras_GO44()); }
+        private void miReporteInteligente_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMReporteInteligente_GO44()); }
 
         private void miGenerarSC_Click(object sender, EventArgs e)         { AbrirFormularioHijo(new FRMGenerarSolicitudCotizacion_GO44()); }
         private void miGenerarOC_Click(object sender, EventArgs e)         { AbrirFormularioHijo(new FRMGenerarOrdenCompra_GO44()); }
-        private void miPagarOC_Click(object sender, EventArgs e)           { AbrirFormularioHijo(new FRMPagarOrdenCompra_GO44()); }
         private void miRecibirMercaderia_Click(object sender, EventArgs e) { AbrirFormularioHijo(new FRMRecepcionMercaderia_GO44()); }
         private void miRegistrarProveedor_Click(object sender, EventArgs e)
         {
-            using (var frm = new FRMRegistrarProveedor_GO44())
-                frm.ShowDialog(this);
+            // Desde Maestros se abre embebido en el panel (como Clientes/Productos).
+            // La variante modal se usa solo desde la Solicitud de Cotización («extend»).
+            AbrirFormularioHijo(new FRMRegistrarProveedor_GO44());
         }
 
         // ============ HANDLERS USUARIO ============

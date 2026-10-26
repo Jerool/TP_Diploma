@@ -175,6 +175,30 @@
     <Compile Include="FRMRecepcionMercaderia_GO44.Designer.cs">
       <DependentUpon>FRMRecepcionMercaderia_GO44.cs</DependentUpon>
     </Compile>
+    <Compile Include="FRMProductosCambios_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMProductosCambios_GO44.Designer.cs">
+      <DependentUpon>FRMProductosCambios_GO44.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FRMReporteCompras_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMReporteCompras_GO44.Designer.cs">
+      <DependentUpon>FRMReporteCompras_GO44.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FRMReporteInteligente_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMReporteInteligente_GO44.Designer.cs">
+      <DependentUpon>FRMReporteInteligente_GO44.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FRMPromociones_GO44.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRMPromociones_GO44.Designer.cs">
+      <DependentUpon>FRMPromociones_GO44.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FRMBitacoraDeEventos.resx">

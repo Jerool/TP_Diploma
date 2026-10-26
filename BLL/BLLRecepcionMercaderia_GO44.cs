@@ -57,6 +57,9 @@ namespace BLL
             catch { }
         }
 
+        /// <summary>Recepción registrada de una OC (null si todavía no se recibió). Usado por el reporte RFN2.</summary>
+        public BE_RecepcionMercaderia_GO44 BuscarPorOrden(int idOrdenCompra) => _dal.BuscarPorOrden(idOrdenCompra);
+
         public RecepcionVO RecibirMercaderia(BE_OrdenCompra_GO44 orden, BE_RecepcionMercaderia_GO44 recepcion)
         {
             var vo = new RecepcionVO();

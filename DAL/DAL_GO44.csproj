@@ -58,6 +58,8 @@
     <Compile Include="DALOrdenCompra_GO44.cs" />
     <Compile Include="DALPagoOrdenCompra_GO44.cs" />
     <Compile Include="DALRecepcionMercaderia_GO44.cs" />
+    <Compile Include="DALComponenteCambio_GO44.cs" />
+    <Compile Include="DALReporteInteligente_GO44.cs" />
     <Compile Include="InstaladorBD_GO44.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -25,6 +25,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuMaestros = new System.Windows.Forms.ToolStripMenuItem();
             this.miClientes = new System.Windows.Forms.ToolStripMenuItem();
             this.miProductos = new System.Windows.Forms.ToolStripMenuItem();
+            this.miProductosCambios = new System.Windows.Forms.ToolStripMenuItem();
             this.miRegistrarProveedor = new System.Windows.Forms.ToolStripMenuItem();
 
             // VENTAS
@@ -35,12 +36,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // REPORTES
             this.menuReportes = new System.Windows.Forms.ToolStripMenuItem();
             this.miReporteFacturas = new System.Windows.Forms.ToolStripMenuItem();
+            this.miReporteCompras = new System.Windows.Forms.ToolStripMenuItem();
+            this.miReporteInteligente = new System.Windows.Forms.ToolStripMenuItem();
 
-            // COMPRAS (RFN2 — CU06 + CU08 + CU09 + CU10)
+            // COMPRAS (RFN2 — Cotizaciones + Orden de Compra + Recepción)
             this.menuCompras = new System.Windows.Forms.ToolStripMenuItem();
             this.miGenerarSC = new System.Windows.Forms.ToolStripMenuItem();
             this.miGenerarOC = new System.Windows.Forms.ToolStripMenuItem();
-            this.miPagarOC = new System.Windows.Forms.ToolStripMenuItem();
             this.miRecibirMercaderia = new System.Windows.Forms.ToolStripMenuItem();
 
             // USUARIO
@@ -61,7 +63,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.menuStrip1.ForeColor = System.Drawing.Color.White;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.menuUsuario, this.menuAdmin, this.menuMaestros, this.menuVentas, this.menuCompras, this.menuReportes});
+                this.menuAdmin, this.menuMaestros, this.menuUsuario, this.menuVentas, this.menuCompras, this.menuReportes});
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 4, 0, 4);
 
             // ADMIN
@@ -76,9 +78,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // MAESTROS
             ConfigMenuPadre(this.menuMaestros, "Maestros");
             this.menuMaestros.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.miClientes, this.miProductos, this.miRegistrarProveedor});
-            ConfigMenuHijo(this.miClientes,  "Clientes",  this.miClientes_Click);
+                this.miProductos, this.miClientes, this.miProductosCambios, this.miRegistrarProveedor});
             ConfigMenuHijo(this.miProductos, "Productos", this.miProductos_Click);
+            ConfigMenuHijo(this.miClientes,  "Clientes",  this.miClientes_Click);
+            ConfigMenuHijo(this.miProductosCambios, "Productos - C", this.miProductosCambios_Click);
             ConfigMenuHijo(this.miRegistrarProveedor, "Proveedores", this.miRegistrarProveedor_Click);
 
             // VENTAS
@@ -91,17 +94,18 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // REPORTES
             ConfigMenuPadre(this.menuReportes, "Reportes");
             this.menuReportes.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.miReporteFacturas});
-            ConfigMenuHijo(this.miReporteFacturas, "Facturas", this.miReporteFacturas_Click);
+                this.miReporteFacturas, this.miReporteCompras, this.miReporteInteligente});
+            ConfigMenuHijo(this.miReporteFacturas,   "Rep. 1 (RFN1)", this.miReporteFacturas_Click);
+            ConfigMenuHijo(this.miReporteCompras,    "Rep. 2 (RFN2)", this.miReporteCompras_Click);
+            ConfigMenuHijo(this.miReporteInteligente,"Rep. 3 (INT.)", this.miReporteInteligente_Click);
 
-            // COMPRAS (RFN2 — CU06 + CU08 + CU09 + CU10)
+            // COMPRAS (RFN2 — Cotizaciones + Orden de Compra + Recepción)
             ConfigMenuPadre(this.menuCompras, "Compras");
             this.menuCompras.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.miGenerarSC, this.miGenerarOC, this.miPagarOC, this.miRecibirMercaderia});
-            ConfigMenuHijo(this.miGenerarSC,         "Generar solicitud de cotización", this.miGenerarSC_Click);
-            ConfigMenuHijo(this.miGenerarOC,         "Generar orden de compra",         this.miGenerarOC_Click);
-            ConfigMenuHijo(this.miPagarOC,           "Pagar orden de compra",           this.miPagarOC_Click);
-            ConfigMenuHijo(this.miRecibirMercaderia, "Recepción de mercadería",         this.miRecibirMercaderia_Click);
+                this.miGenerarSC, this.miGenerarOC, this.miRecibirMercaderia});
+            ConfigMenuHijo(this.miGenerarSC,         "Cotizaciones",            this.miGenerarSC_Click);
+            ConfigMenuHijo(this.miGenerarOC,         "Orden de Compra",         this.miGenerarOC_Click);
+            ConfigMenuHijo(this.miRecibirMercaderia, "Recepción de mercadería", this.miRecibirMercaderia_Click);
 
             // USUARIO
             ConfigMenuPadre(this.menuUsuario, "Usuario");
@@ -172,6 +176,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.ToolStripMenuItem menuMaestros;
         private System.Windows.Forms.ToolStripMenuItem miClientes;
         private System.Windows.Forms.ToolStripMenuItem miProductos;
+        private System.Windows.Forms.ToolStripMenuItem miProductosCambios;
         private System.Windows.Forms.ToolStripMenuItem miRegistrarProveedor;
 
         private System.Windows.Forms.ToolStripMenuItem menuVentas;
@@ -180,11 +185,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private System.Windows.Forms.ToolStripMenuItem menuReportes;
         private System.Windows.Forms.ToolStripMenuItem miReporteFacturas;
+        private System.Windows.Forms.ToolStripMenuItem miReporteCompras;
+        private System.Windows.Forms.ToolStripMenuItem miReporteInteligente;
 
         private System.Windows.Forms.ToolStripMenuItem menuCompras;
         private System.Windows.Forms.ToolStripMenuItem miGenerarSC;
         private System.Windows.Forms.ToolStripMenuItem miGenerarOC;
-        private System.Windows.Forms.ToolStripMenuItem miPagarOC;
         private System.Windows.Forms.ToolStripMenuItem miRecibirMercaderia;
 
         private System.Windows.Forms.ToolStripMenuItem menuUsuario;

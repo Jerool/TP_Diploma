@@ -67,8 +67,19 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 case BLLProveedor_GO44.ResultadoRegistro.Exitoso:
                     MessageBox.Show(vo.Mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ProveedorRegistrado = vo.Proveedor;
-                    DialogResult = DialogResult.OK;
-                    Close();
+                    if (this.Modal)
+                    {
+                        // Invocado como modal desde la Solicitud de Cotización («extend»):
+                        // cierra y devuelve el proveedor para seleccionarlo en el combo padre.
+                        DialogResult = DialogResult.OK;
+                        Close();
+                    }
+                    else
+                    {
+                        // Embebido en el menú (Maestros → Proveedores): limpia para cargar otro.
+                        LimpiarCampos();
+                        txtCUIT.Focus();
+                    }
                     break;
                 case BLLProveedor_GO44.ResultadoRegistro.CuitInvalido:
                     Aviso(Validaciones_GO44.MENSAJE_CUIT, txtCUIT); break;
@@ -101,9 +112,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (foco != null) foco.Focus();
         }
 
+        private void LimpiarCampos()
+        {
+            txtCUIT.Clear();  txtNombre.Clear(); txtApellido.Clear(); txtEmpresa.Clear();
+            txtTelefono.Clear(); txtCVU.Clear(); txtBanco.Clear(); txtTitular.Clear();
+        }
+
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            if (this.Modal) DialogResult = DialogResult.Cancel;
             Close();
         }
     }
