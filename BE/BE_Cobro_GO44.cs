@@ -2,8 +2,14 @@ using System;
 
 namespace BE
 {
+    /// <summary>
+    /// Entidad de negocio (BE) del COBRO de una factura: cómo y cuándo se pagó.
+    /// Los campos de tarjeta (número enmascarado, banco, titular, código de autorización) son opcionales
+    /// y solo se completan cuando <see cref="Metodo"/> es Tarjeta; en Efectivo quedan nulos.
+    /// </summary>
     public class BE_Cobro_GO44
     {
+        /// <summary>Forma de pago admitida por el sistema.</summary>
         public enum MetodoPago
         {
             Efectivo,
@@ -41,6 +47,7 @@ namespace BE
         private string _CodigoAutoriz;
         public string CodigoAutoriz { get { return _CodigoAutoriz; } set { _CodigoAutoriz = value; } }
 
+        /// <summary>Constructor: cobro de hoy y, por defecto, en Efectivo (el caso más simple).</summary>
         public BE_Cobro_GO44()
         {
             _FechaCobro = DateTime.Now;

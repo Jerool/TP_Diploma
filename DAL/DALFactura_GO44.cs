@@ -6,6 +6,12 @@ using System.Data.SqlClient;
 
 namespace DAL
 {
+    /// <summary>
+    /// DAL (mapper) de la FACTURA y su COBRO. La facturación afecta varias tablas
+    /// (Facturas, LineaFactura, CobrosFactura) y debe ser atómica, por eso expone envoltorios de
+    /// transacción y métodos *EnTx que la BLL encadena: insertar encabezado, líneas, registrar el cobro
+    /// y marcar la factura como cobrada, todo en un único commit. Recalcula la integridad de las 3 tablas.
+    /// </summary>
     public class DALFactura_GO44
     {
         private readonly Acceso _acceso;
@@ -17,6 +23,7 @@ namespace DAL
             _dalIntegridad = new DALIntegridad_GO44();
         }
 
+        /// <summary>Recalcula el dígito verificador de las 3 tablas de facturación tras confirmar (best-effort).</summary>
         private void RecalcularIntegridadFactura()
         {
             if (DALIntegridad_GO44.IntegridadConocidamenteRota) return;
@@ -25,6 +32,7 @@ namespace DAL
             try { _dalIntegridad.RecalcularTabla("CobrosFactura"); } catch { }
         }
 
+        /// <summary>La BLL la llama después del commit del cobro para reordenar los dígitos verificadores.</summary>
         public void RecalcularIntegridadPostCobro()
         {
             RecalcularIntegridadFactura();
@@ -38,6 +46,7 @@ namespace DAL
 
         // ---------- Insert encabezado + líneas dentro de tx ----------
 
+        /// <summary>Inserta la cabecera de la factura dentro de la tx y devuelve el Id generado (0 si falló).</summary>
         public int InsertarEncabezadoEnTx(BE_Factura_GO44 factura, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -53,6 +62,7 @@ namespace DAL
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>Inserta una línea de la factura dentro de la tx. Devuelve filas afectadas.</summary>
         public int InsertarLineaEnTx(int idFactura, BE_LineaFactura_GO44 linea, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -65,6 +75,7 @@ namespace DAL
             return _acceso.escribirSPEnTx("sp_LineaFactura_Insertar_GO44", p, tx);
         }
 
+        /// <summary>Marca la factura como Cobrada dentro de la tx (cambia su estado).</summary>
         public int MarcarCobradaEnTx(int idFactura, SqlTransaction tx)
         {
             SqlParameter[] p = { new SqlParameter("@Id", idFactura) };
@@ -74,6 +85,10 @@ namespace DAL
 
         // ---------- Registrar cobro dentro de tx ----------
 
+        /// <summary>
+        /// Registra el cobro de la factura dentro de la tx. Los datos de tarjeta son opcionales
+        /// (van como DBNull si el pago fue en efectivo). Devuelve el Id del cobro generado.
+        /// </summary>
         public int RegistrarCobroEnTx(BE_Cobro_GO44 cobro, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -111,6 +126,10 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>
+        /// Trae una factura completa: primero la cabecera (1 SP) y luego sus líneas (otro SP),
+        /// armando el objeto con ambas partes. Devuelve null si la factura no existe.
+        /// </summary>
         public BE_Factura_GO44 BuscarPorId(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };
@@ -119,12 +138,14 @@ namespace DAL
 
             BE_Factura_GO44 f = MapearEncabezado(dtCab.Rows[0]);
 
+            // Segunda consulta: las líneas de esa factura.
             SqlParameter[] p2 = { new SqlParameter("@IdFactura", id) };
             DataTable dtLin = _acceso.leerSP("sp_LineaFactura_ListarPorFactura_GO44", p2);
             f.Lineas = MapearLineas(dtLin);
             return f;
         }
 
+        /// <summary>Mapea la cabecera de la factura; el estado (texto) se convierte al enum con Enum.TryParse.</summary>
         private BE_Factura_GO44 MapearEncabezado(DataRow row)
         {
             BE_Factura_GO44.EstadoFactura estado;
@@ -145,6 +166,7 @@ namespace DAL
             };
         }
 
+        /// <summary>Mapea las filas de líneas a objetos, con un componente liviano (Id/Código/Nombre) en cada una.</summary>
         private List<BE_LineaFactura_GO44> MapearLineas(DataTable dt)
         {
             List<BE_LineaFactura_GO44> lista = new List<BE_LineaFactura_GO44>();

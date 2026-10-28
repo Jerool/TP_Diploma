@@ -6,10 +6,16 @@ using System.Data.SqlClient;
 
 namespace DAL
 {
+    /// <summary>
+    /// DAL (mapper) del COMPONENTE. Traduce entre la base (tablas/SP) y la entidad
+    /// <see cref="BE_Componente_GO44"/>: expone métodos de alto nivel (Listar, Insertar, BuscarPorId…)
+    /// y por dentro arma los parámetros del SP, llama a <see cref="Acceso"/> y mapea filas a objetos.
+    /// Tras cada escritura recalcula el dígito verificador de la tabla (control de integridad).
+    /// </summary>
     public class DALComponente_GO44
     {
-        private readonly Acceso _acceso;
-        private readonly DALIntegridad_GO44 _dalIntegridad;
+        private readonly Acceso _acceso;                     // acceso a datos de bajo nivel (Singleton)
+        private readonly DALIntegridad_GO44 _dalIntegridad;  // recálculo de DVH/DVV de la tabla
 
         public DALComponente_GO44()
         {
@@ -17,24 +23,35 @@ namespace DAL
             _dalIntegridad = new DALIntegridad_GO44();
         }
 
+        /// <summary>
+        /// Recalcula el dígito verificador de la tabla Componentes después de modificarla,
+        /// para que el control de integridad siga cuadrando. Si la integridad ya está rota
+        /// (flag global) no hace nada, y cualquier error se traga (best-effort, no debe frenar la operación).
+        /// </summary>
         private void RecalcularIntegridadComponente()
         {
             if (DALIntegridad_GO44.IntegridadConocidamenteRota) return;
             try { _dalIntegridad.RecalcularTabla("Componentes"); } catch { }
         }
 
+        /// <summary>Devuelve solo los componentes activos (para venta). Usa el SP de listado y mapea a entidades.</summary>
         public List<BE_Componente_GO44> ListarActivos()
         {
             DataTable dt = _acceso.leerSP("sp_Componente_ListarActivos_GO44", null);
             return MapearLista(dt);
         }
 
+        /// <summary>Devuelve todos los componentes, incluidos los dados de baja (para mantenimiento).</summary>
         public List<BE_Componente_GO44> ListarTodos()
         {
             DataTable dt = _acceso.leerSP("sp_Componente_ListarTodos_GO44", null);
             return MapearLista(dt);
         }
 
+        /// <summary>
+        /// Inserta un componente nuevo y devuelve su Id generado (0 si falló).
+        /// Los campos opcionales (Descripcion/Categoria) van como DBNull si son null.
+        /// </summary>
         public int Insertar(BE_Componente_GO44 c)
         {
             SqlParameter[] p = {
@@ -46,12 +63,14 @@ namespace DAL
                 new SqlParameter("@StockActual", c.StockActual),
                 new SqlParameter("@StockMinimo", c.StockMinimo)
             };
+            // El SP devuelve el nuevo Id (SCOPE_IDENTITY) como valor escalar.
             object r = _acceso.leerEscalarSP("sp_Componente_Insertar_GO44", p);
             int nuevoId = r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
-            RecalcularIntegridadComponente();
+            RecalcularIntegridadComponente();   // la tabla cambió: recalcular su dígito verificador
             return nuevoId;
         }
 
+        /// <summary>Actualiza solo el precio de un componente. Devuelve filas afectadas y recalcula integridad.</summary>
         public int ActualizarPrecio(int id, decimal precio)
         {
             SqlParameter[] p = {
@@ -63,6 +82,7 @@ namespace DAL
             return filas;
         }
 
+        /// <summary>Baja lógica: marca Activo = 0 (no borra la fila). Devuelve filas afectadas.</summary>
         public int DarDeBaja(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };
@@ -71,6 +91,7 @@ namespace DAL
             return filas;
         }
 
+        /// <summary>Reactiva un componente dado de baja (Activo = 1). Devuelve filas afectadas.</summary>
         public int Reactivar(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };
@@ -79,6 +100,7 @@ namespace DAL
             return filas;
         }
 
+        /// <summary>Busca un componente por Id. Devuelve null si no existe (0 filas).</summary>
         public BE_Componente_GO44 BuscarPorId(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };
@@ -87,6 +109,7 @@ namespace DAL
             return MapearFila(dt.Rows[0]);
         }
 
+        /// <summary>Busca un componente por su código visible. Devuelve null si no existe.</summary>
         public BE_Componente_GO44 BuscarPorCodigo(string codigo)
         {
             SqlParameter[] p = { new SqlParameter("@Codigo", codigo) };
@@ -95,6 +118,7 @@ namespace DAL
             return MapearFila(dt.Rows[0]);
         }
 
+        /// <summary>Pregunta a la base si hay stock suficiente de un componente. El SP devuelve una columna booleana "TieneStock".</summary>
         public bool VerificarStock(int idComponente, int cantidad)
         {
             SqlParameter[] p = {
@@ -134,6 +158,7 @@ namespace DAL
             return _acceso.escribirSPEnTx("sp_Componente_AumentarStock_GO44", p, tx);
         }
 
+        /// <summary>Convierte un DataTable completo en una lista de entidades, mapeando fila por fila.</summary>
         private List<BE_Componente_GO44> MapearLista(DataTable dt)
         {
             List<BE_Componente_GO44> lista = new List<BE_Componente_GO44>();
@@ -142,6 +167,11 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>
+        /// Mapea UNA fila de la base a un objeto BE_Componente. Es el corazón del "mapper":
+        /// convierte cada columna a su tipo .NET, tratando los campos que pueden venir NULL
+        /// (Descripcion/Categoria) para no romper al convertirlos.
+        /// </summary>
         private BE_Componente_GO44 MapearFila(DataRow row)
         {
             return new BE_Componente_GO44

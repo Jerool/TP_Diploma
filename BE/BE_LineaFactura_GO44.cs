@@ -1,5 +1,10 @@
 namespace BE
 {
+    /// <summary>
+    /// Renglón de una <see cref="BE_Factura_GO44"/>: componente, cantidad, precio unitario y subtotal.
+    /// A diferencia de la línea de carrito, acá el Subtotal se ALMACENA (se guarda en la base) porque
+    /// la factura es un comprobante inmutable; se calcula una vez en el constructor.
+    /// </summary>
     public class BE_LineaFactura_GO44
     {
         private int _Id;
@@ -23,8 +28,10 @@ namespace BE
         public string ComponenteCodigo { get { return _Componente != null ? _Componente.Codigo : string.Empty; } }
         public string ComponenteNombre { get { return _Componente != null ? _Componente.Nombre : string.Empty; } }
 
+        /// <summary>Constructor vacío requerido por las DAL para rellenar por propiedades.</summary>
         public BE_LineaFactura_GO44() { }
 
+        /// <summary>Crea la línea y deja el subtotal ya calculado (precio × cantidad) como dato fijo.</summary>
         public BE_LineaFactura_GO44(BE_Componente_GO44 componente, int cantidad, decimal precioUnitario)
         {
             Componente = componente;

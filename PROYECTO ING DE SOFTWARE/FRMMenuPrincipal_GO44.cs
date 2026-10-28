@@ -1,6 +1,7 @@
 using BLL;
 using Servicios;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -51,6 +52,22 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             ActualizarIdioma();
             AplicarPermisos();
+
+            // Ayuda contextual: F1 abre la ayuda de la pantalla que esté abierta.
+            this.KeyPreview = true;
+            this.KeyDown += FRMMenuPrincipal_GO44_KeyDown;
+        }
+
+        private void FRMMenuPrincipal_GO44_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F1)
+            {
+                string tema = _formularioActual != null
+                    ? Servicios.Ayuda.AyudaManager_GO44.TemaDeFormulario(_formularioActual.Name)
+                    : null;
+                AbrirAyuda(tema);
+                e.Handled = true;
+            }
         }
 
         /// <summary>
@@ -119,6 +136,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             miLogout.Visible       = true;
             menuUsuario.Visible    = true;
 
+            // ---------- AYUDA (siempre visible) ----------
+            if (menuAyuda != null) menuAyuda.Visible = true;
+
             // Forzar refresh del layout — sino WinForms a veces no re-dibuja al cambiar Visible
             menuStrip1.PerformLayout();
             menuStrip1.Refresh();
@@ -170,6 +190,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (menuReportes != null) menuReportes.Text = IdiomaManager_GO44.T("menu.reportes");
             if (menuCompras != null)  menuCompras.Text  = IdiomaManager_GO44.T("menu.compras");
             if (menuUsuario != null)  menuUsuario.Text  = IdiomaManager_GO44.T("menu.usuario");
+            if (menuAyuda != null)    menuAyuda.Text    = IdiomaManager_GO44.T("menu.ayuda");
+
+            // Submenús Ayuda
+            if (miAyudaIndice != null)   miAyudaIndice.Text   = IdiomaManager_GO44.T("menu.ayudaIndice");
+            if (miAyudaVisita != null)   miAyudaVisita.Text   = IdiomaManager_GO44.T("menu.ayudaVisita");
+            if (miAyudaMaestros != null) miAyudaMaestros.Text = IdiomaManager_GO44.T("menu.maestros");
+            if (miAyudaVentas != null)   miAyudaVentas.Text   = IdiomaManager_GO44.T("menu.ventas");
+            if (miAyudaCompras != null)  miAyudaCompras.Text  = IdiomaManager_GO44.T("menu.compras");
 
             // Submenús Admin
             if (miUsuarios != null)   miUsuarios.Text   = IdiomaManager_GO44.T("menu.usuarios");
@@ -267,6 +295,45 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             AbrirFormularioHijo(new FRMCambiarContrasenia());
         }
+
+        // ============ HANDLERS AYUDA ============
+
+        private void AbrirAyuda(string tema)
+        {
+            // Si la Ayuda ya está abierta, solo cambiamos de tema (no reabrir, que la cerraría).
+            var abierta = _formularioActual as FRMAyuda_GO44;
+            if (abierta != null) { abierta.IrATema(tema); return; }
+            AbrirFormularioHijo(new FRMAyuda_GO44(tema));
+        }
+
+        private void miAyudaVisita_Click(object sender, EventArgs e) { IniciarVisitaGuiada(); }
+
+        /// <summary>Visita guiada (coach-marks): señala cada menú visible con una tarjeta navegable.</summary>
+        private void IniciarVisitaGuiada()
+        {
+            var pasos = new List<FRMVisitaGuiada_GO44.PasoVisita_GO44>();
+            AgregarPaso(pasos, menuAdmin,    "Administración", "Gestión de usuarios, perfiles, eventos (bitácora) y respaldos.");
+            AgregarPaso(pasos, menuMaestros, "Maestros", "Productos, Clientes, Productos - C (historial de cambios) y Proveedores.");
+            AgregarPaso(pasos, menuUsuario,  "Usuario", "Cambiar clave, cerrar sesión y cambiar idioma.");
+            AgregarPaso(pasos, menuVentas,   "Ventas", "Cargar carrito y facturar la venta (RFN1).");
+            AgregarPaso(pasos, menuCompras,  "Compras", "Cotizaciones, órdenes de compra y recepción de mercadería (RFN2).");
+            AgregarPaso(pasos, menuReportes, "Reportes", "Facturas (RFN1), compras (RFN2) y reporte inteligente.");
+            AgregarPaso(pasos, menuAyuda,    "Ayuda", "Ayuda en línea (árbol + PDF), F1 contextual y esta visita guiada.");
+
+            if (pasos.Count == 0) return;
+            using (var tour = new FRMVisitaGuiada_GO44(menuStrip1, pasos))
+                tour.ShowDialog(this);
+        }
+
+        private void AgregarPaso(List<FRMVisitaGuiada_GO44.PasoVisita_GO44> pasos, ToolStripMenuItem item, string titulo, string texto)
+        {
+            if (item != null && item.Visible)
+                pasos.Add(new FRMVisitaGuiada_GO44.PasoVisita_GO44(titulo, texto, item));
+        }
+        private void miAyudaIndice_Click(object sender, EventArgs e)   { AbrirAyuda(null); }
+        private void miAyudaMaestros_Click(object sender, EventArgs e) { AbrirAyuda("Maestros"); }
+        private void miAyudaVentas_Click(object sender, EventArgs e)   { AbrirAyuda("Ventas"); }
+        private void miAyudaCompras_Click(object sender, EventArgs e)  { AbrirAyuda("Compras"); }
 
         private void miLogout_Click(object sender, EventArgs e)
         {

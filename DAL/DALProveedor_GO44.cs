@@ -21,12 +21,14 @@ namespace DAL
             _dalIntegridad = new DALIntegridad_GO44();
         }
 
+        /// <summary>Recalcula el dígito verificador de la tabla Proveedores tras una escritura (best-effort).</summary>
         private void RecalcularIntegridadProveedor()
         {
             if (DALIntegridad_GO44.IntegridadConocidamenteRota) return;
             try { _dalIntegridad.RecalcularTabla("Proveedores"); } catch { }
         }
 
+        /// <summary>Indica si ya existe un proveedor con ese CUIT (el SP devuelve un COUNT).</summary>
         public bool ExisteCUIT(string cuit)
         {
             SqlParameter[] p = { new SqlParameter("@CUIT", cuit) };
@@ -34,6 +36,7 @@ namespace DAL
             return r != null && Convert.ToInt32(r) > 0;
         }
 
+        /// <summary>Inserta un proveedor nuevo con sus datos de contacto y bancarios. Devuelve filas afectadas.</summary>
         public int Insertar(BE_Proveedor_GO44 prov)
         {
             SqlParameter[] p = {
@@ -51,6 +54,7 @@ namespace DAL
             return filas;
         }
 
+        /// <summary>Lista los proveedores activos (los dados de baja no se muestran para elegir).</summary>
         public List<BE_Proveedor_GO44> ListarActivos()
         {
             DataTable dt = _acceso.leerSP("sp_Proveedor_ListarActivos_GO44", null);
@@ -59,6 +63,7 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Busca un proveedor por CUIT. Devuelve null si no existe (clave para traer sus datos bancarios al pagar).</summary>
         public BE_Proveedor_GO44 BuscarPorCUIT(string cuit)
         {
             SqlParameter[] p = { new SqlParameter("@CUIT", cuit) };
@@ -67,6 +72,7 @@ namespace DAL
             return Mapear(dt.Rows[0]);
         }
 
+        /// <summary>Mapea una fila de la tabla Proveedores a la entidad BE_Proveedor.</summary>
         private BE_Proveedor_GO44 Mapear(DataRow row)
         {
             return new BE_Proveedor_GO44

@@ -20,6 +20,10 @@ namespace DAL
             _acceso = Acceso.Instancia;
         }
 
+        /// <summary>
+        /// Lista versiones del historial aplicando filtros opcionales (código, nombre, rango de fechas).
+        /// Cada filtro vacío se manda como NULL para que el SP lo ignore.
+        /// </summary>
         public List<BE_ComponenteCambio_GO44> ListarConFiltros(string codigo, string nombre, DateTime? fechaIni, DateTime? fechaFin)
         {
             SqlParameter[] p = {
@@ -34,7 +38,11 @@ namespace DAL
             return lista;
         }
 
-        /// <summary>Marca una versión como la vigente (Act = 1) y las demás del producto como históricas.</summary>
+        /// <summary>
+        /// "Restaura" el producto a la versión @idCambio: el SP vuelca los valores de esa fila del
+        /// historial sobre la tabla Componentes, y el trigger de UPDATE registra la restauración como
+        /// una versión nueva vigente. Devuelve filas afectadas (0 si el Id no existe).
+        /// </summary>
         public int MarcarActivo(int idCambio)
         {
             SqlParameter[] p = { new SqlParameter("@Id", idCambio) };
@@ -42,6 +50,7 @@ namespace DAL
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>Mapea una fila de Componentes_C a la entidad, tratando los campos que pueden venir NULL (Descripcion/Categoria/FechaFin).</summary>
         private BE_ComponenteCambio_GO44 Mapear(DataRow row)
         {
             return new BE_ComponenteCambio_GO44

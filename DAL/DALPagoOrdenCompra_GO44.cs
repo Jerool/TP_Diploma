@@ -22,6 +22,10 @@ namespace DAL
         public void ConfirmarTransaccion(SqlTransaction tx) => _acceso.ConfirmarTransaccion(tx);
         public void CancelarTransaccion(SqlTransaction tx)  => _acceso.CancelarTransaccion(tx);
 
+        /// <summary>
+        /// Inserta el pago de la OC dentro de la tx y devuelve el Id generado. La BLL combina esto
+        /// con el cambio de estado de la OC a "Pagada" en el mismo commit (o ninguna de las dos).
+        /// </summary>
         public int InsertarEnTx(BE_PagoOrdenCompra_GO44 pago, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -37,6 +41,7 @@ namespace DAL
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>Busca el pago registrado de una OC (null si todavía no se pagó). Mapea la única fila a la entidad.</summary>
         public BE_PagoOrdenCompra_GO44 BuscarPorOrden(int idOrdenCompra)
         {
             SqlParameter[] p = { new SqlParameter("@IdOrdenCompra", idOrdenCompra) };

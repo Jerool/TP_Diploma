@@ -7,7 +7,12 @@ using System.Linq;
 
 namespace DAL
 {
-
+    /// <summary>
+    /// DAL de la FAMILIA de permisos (grupo de patentes y/o sub-familias). Es el nodo compuesto del
+    /// árbol de permisos: una familia puede contener patentes y otras familias (FamiliaIntegrada),
+    /// y esas a su vez más familias, etc. Reconstruye ese árbol de forma recursiva, cuidándose de
+    /// los ciclos (una familia que termine conteniéndose a sí misma colgaría la app).
+    /// </summary>
     public class DALFamilia_GO44
     {
         private readonly Acceso _acceso;
@@ -19,6 +24,7 @@ namespace DAL
             _dalPatente = new DALPatente_GO44();
         }
 
+        /// <summary>Lista todas las familias en forma plana (solo Id y Nombre), sin armar el árbol.</summary>
         public List<Familia_GO44> ListarTodasPlanas()
         {
             string query = "SELECT Id, Nombre FROM Familia ORDER BY Nombre";
@@ -36,14 +42,20 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Arma el árbol completo de una familia. Arranca la recursión con el set de "ya visitadas" vacío.</summary>
         public Familia_GO44 ObtenerArbol(int idFamilia)
         {
             return ObtenerArbolRec(idFamilia, new HashSet<int>());
         }
 
+        /// <summary>
+        /// Versión recursiva: trae la familia, le cuelga sus patentes y luego, por cada sub-familia,
+        /// se llama a sí misma. El HashSet 'visitadas' evita ciclos infinitos: si una familia ya se
+        /// visitó en esta rama, Add devuelve false y se corta (return null). Así nunca se cuelga.
+        /// </summary>
         private Familia_GO44 ObtenerArbolRec(int idFamilia, HashSet<int> visitadas)
         {
-            if (!visitadas.Add(idFamilia)) return null;
+            if (!visitadas.Add(idFamilia)) return null; // ya estaba → ciclo → cortar
 
             string qFam = "SELECT Id, Nombre FROM Familia WHERE Id = @Id";
             SqlParameter[] pFam = { new SqlParameter("@Id", idFamilia) };
@@ -84,9 +96,9 @@ namespace DAL
             return familia;
         }
 
+        /// <summary>Crea una familia: inserta la fila, recupera su Id y vincula sus patentes y sub-familias.</summary>
         public int Crear(string nombre, List<int> idsPatentes, List<int> idsSubfamilias)
         {
-
             string qIns = "INSERT INTO Familia (Nombre) VALUES (@Nombre); SELECT CAST(SCOPE_IDENTITY() AS INT);";
             var p = new[] { new SqlParameter("@Nombre", nombre) };
             object res = _acceso.leerEscalar(qIns, p);
@@ -113,6 +125,7 @@ namespace DAL
             return idFamilia;
         }
 
+        /// <summary>Elimina una familia y sus vínculos (como padre o como hija), borrando las relaciones antes que la familia (FK).</summary>
         public void Eliminar(int idFamilia)
         {
             _acceso.escribir(
@@ -126,6 +139,7 @@ namespace DAL
                 new[] { new SqlParameter("@Id", idFamilia) });
         }
 
+        /// <summary>Modifica una familia (nombre + permisos) con la misma estrategia "borrar y reinsertar" que el rol.</summary>
         public void Modificar(int idFamilia, string nombre, List<int> idsPatentes, List<int> idsSubfamilias)
         {
             _acceso.escribir(
@@ -154,6 +168,9 @@ namespace DAL
             }
         }
 
+        // Las cuatro consultas siguientes sirven para advertir, antes de borrar una familia, quién la usa
+        // (roles o familias padre). Las dos "Cantidad*" dan el número; las dos "Nombres*" dan la lista.
+        /// <summary>Cantidad de roles que usan esta familia directamente.</summary>
         public int CantidadRolesQueUsan(int idFamilia)
         {
             string q = "SELECT COUNT(*) FROM RolFamilia WHERE IdFamilia = @Id";
@@ -161,6 +178,7 @@ namespace DAL
             return res == null || res == DBNull.Value ? 0 : Convert.ToInt32(res);
         }
 
+        /// <summary>Cantidad de familias padre que contienen a esta familia.</summary>
         public int CantidadFamiliasQueLaContienen(int idFamilia)
         {
             string q = "SELECT COUNT(*) FROM FamiliaIntegrada WHERE IdFamiliaHija = @Id";
@@ -186,6 +204,7 @@ namespace DAL
             return dt.Rows.Cast<DataRow>().Select(r => r["Nombre"].ToString()).ToList();
         }
 
+        /// <summary>Ids de las patentes asociadas directamente a la familia (para precargar la pantalla de edición).</summary>
         public List<int> IdsPatentesDirectas(int idFamilia)
         {
             string q = "SELECT IdPatente FROM FamiliaPatente WHERE IdFamilia = @Id ORDER BY IdPatente";
@@ -193,6 +212,7 @@ namespace DAL
             return dt.Rows.Cast<DataRow>().Select(r => Convert.ToInt32(r["IdPatente"])).ToList();
         }
 
+        /// <summary>Ids de las sub-familias directas de la familia.</summary>
         public List<int> IdsSubfamiliasDirectas(int idFamilia)
         {
             string q = "SELECT IdFamiliaHija FROM FamiliaIntegrada WHERE IdFamiliaPadre = @Id ORDER BY IdFamiliaHija";

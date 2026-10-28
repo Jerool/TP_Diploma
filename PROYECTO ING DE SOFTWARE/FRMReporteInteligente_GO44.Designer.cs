@@ -18,7 +18,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.btnGenerar = new System.Windows.Forms.Button();
             this.dgv = new System.Windows.Forms.DataGridView();
             this.lblResumen = new System.Windows.Forms.Label();
-            this.lblLeyenda = new System.Windows.Forms.Label();
             this.btnPromos = new System.Windows.Forms.Button();
             this.btnExportar = new System.Windows.Forms.Button();
             this.btnSalir = new System.Windows.Forms.Button();
@@ -56,10 +55,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.lblResumen.Text = "Productos: 0";
             this.lblResumen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 
-            this.lblLeyenda.AutoSize = true; this.lblLeyenda.Location = new System.Drawing.Point(20, 620);
-            this.lblLeyenda.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic); this.lblLeyenda.ForeColor = System.Drawing.Color.DimGray;
-            this.lblLeyenda.Text = "Rojo = reponer urgente   ·   Gris = stock muerto (con descuento sugerido)";
-            this.lblLeyenda.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 
             this.btnPromos.Location = new System.Drawing.Point(640, 600); this.btnPromos.Size = new System.Drawing.Size(200, 38);
             this.btnPromos.Text = "Promociones y gráfico"; this.btnPromos.BackColor = System.Drawing.Color.FromArgb(13, 71, 161); this.btnPromos.ForeColor = System.Drawing.Color.White;
@@ -91,7 +86,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.Controls.Add(this.btnGenerar);
             this.Controls.Add(this.dgv);
             this.Controls.Add(this.lblResumen);
-            this.Controls.Add(this.lblLeyenda);
             this.Controls.Add(this.btnPromos);
             this.Controls.Add(this.btnExportar);
             this.Controls.Add(this.btnSalir);
@@ -112,7 +106,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.Button btnGenerar;
         private System.Windows.Forms.DataGridView dgv;
         private System.Windows.Forms.Label lblResumen;
-        private System.Windows.Forms.Label lblLeyenda;
         private System.Windows.Forms.Button btnPromos;
         private System.Windows.Forms.Button btnExportar;
         private System.Windows.Forms.Button btnSalir;

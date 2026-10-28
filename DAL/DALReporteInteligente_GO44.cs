@@ -17,6 +17,11 @@ namespace DAL
             _acceso = Acceso.Instancia;
         }
 
+        /// <summary>
+        /// Trae las métricas por componente que calcula el SP del reporte (stock, precio, unidades
+        /// vendidas en los últimos 30 días y fecha de última venta). La inteligencia (sugerir compras,
+        /// combos, liquidaciones) la aplica después la BLL sobre estos datos crudos.
+        /// </summary>
         public List<BE_ReporteInteligente_GO44> Listar()
         {
             DataTable dt = _acceso.leerSP("sp_ReporteInteligente_GO44", null);

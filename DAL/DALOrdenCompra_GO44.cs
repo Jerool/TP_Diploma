@@ -34,6 +34,7 @@ namespace DAL
         public int InsertarEncabezadoEnTx(BE_OrdenCompra_GO44 oc, SqlTransaction tx)
         {
             SqlParameter[] p = {
+                // La OC puede nacer sin SC de origen: si IdSolicitud es 0, se manda NULL a la base.
                 new SqlParameter("@IdSolicitud",    oc.IdSolicitud > 0 ? (object)oc.IdSolicitud : DBNull.Value),
                 new SqlParameter("@CuitProveedor",  oc.Proveedor.CUIT),
                 new SqlParameter("@LoginEncargado", oc.LoginEncargado),
@@ -44,6 +45,7 @@ namespace DAL
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>Inserta una línea de la OC dentro de la tx. Devuelve filas afectadas.</summary>
         public int InsertarLineaEnTx(int idOrdenCompra, BE_LineaOrdenCompra_GO44 linea, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -66,6 +68,7 @@ namespace DAL
             return _acceso.escribirSP("sp_OrdenCompra_CambiarEstado_GO44", p);
         }
 
+        /// <summary>Variante transaccional de CambiarEstado (ej. pasar a "Pagada" o "Recibida" dentro del mismo commit).</summary>
         public int CambiarEstadoEnTx(int idOrdenCompra, string estado, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -77,12 +80,14 @@ namespace DAL
 
         // ============ Consultas ============
 
+        /// <summary>Lista todas las OC (solo cabeceras) para la grilla.</summary>
         public List<BE_OrdenCompra_GO44> Listar()
         {
             DataTable dt = _acceso.leerSP("sp_OrdenCompra_Listar_GO44", null);
             return MapearLista(dt);
         }
 
+        /// <summary>Lista las OC en un estado dado (ej. "Pagada" para la pantalla de Recepción).</summary>
         public List<BE_OrdenCompra_GO44> ListarPorEstado(string estado)
         {
             SqlParameter[] p = { new SqlParameter("@Estado", estado) };
@@ -90,16 +95,18 @@ namespace DAL
             return MapearLista(dt);
         }
 
+        /// <summary>Trae una OC completa: cabecera + líneas. Devuelve null si no existe.</summary>
         public BE_OrdenCompra_GO44 BuscarPorId(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };
             DataTable dt = _acceso.leerSP("sp_OrdenCompra_BuscarPorId_GO44", p);
             if (dt.Rows.Count == 0) return null;
             var oc = MapearEncabezado(dt.Rows[0]);
-            oc.Lineas = ListarLineas(id);
+            oc.Lineas = ListarLineas(id); // completa las líneas aparte
             return oc;
         }
 
+        /// <summary>Lista las líneas de la OC, trayendo el componente completo de cada una con DALComponente.</summary>
         public List<BE_LineaOrdenCompra_GO44> ListarLineas(int idOrdenCompra)
         {
             SqlParameter[] p = { new SqlParameter("@IdOrdenCompra", idOrdenCompra) };
@@ -120,6 +127,7 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Mapea un DataTable de cabeceras a lista de OC.</summary>
         private List<BE_OrdenCompra_GO44> MapearLista(DataTable dt)
         {
             var lista = new List<BE_OrdenCompra_GO44>();
@@ -127,6 +135,10 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>
+        /// Mapea la cabecera de una OC. Trata IdSolicitud nulo (OC sin SC) y verifica si la columna
+        /// NumeroSC vino en el resultado (algunos SP no la traen) para no romper. El estado se parsea al enum.
+        /// </summary>
         private BE_OrdenCompra_GO44 MapearEncabezado(DataRow row)
         {
             BE_OrdenCompra_GO44.EstadoOrden estado;

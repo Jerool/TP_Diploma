@@ -7,6 +7,11 @@ using System.Data.SqlClient;
 
 namespace DAL
 {
+    /// <summary>
+    /// DAL (mapper) del CLIENTE. Además del mapeo base↔entidad, aplica un dato sensible cifrado:
+    /// el EMAIL se guarda encriptado en la base (se cifra al insertar/modificar y se descifra al leer)
+    /// usando <see cref="EncriptadorReversible_GO44"/>. También recalcula el dígito verificador de la tabla.
+    /// </summary>
     public class DALCliente_GO44
     {
         private readonly Acceso _acceso;
@@ -18,12 +23,14 @@ namespace DAL
             _dalIntegridad = new DALIntegridad_GO44();
         }
 
+        /// <summary>Recalcula el dígito verificador de la tabla Clientes tras una escritura (best-effort).</summary>
         private void RecalcularIntegridadCliente()
         {
             if (DALIntegridad_GO44.IntegridadConocidamenteRota) return;
             try { _dalIntegridad.RecalcularTabla("Clientes"); } catch { }
         }
 
+        /// <summary>Indica si ya existe un cliente con ese DNI. El SP devuelve un COUNT; &gt; 0 = existe.</summary>
         public bool ExisteDNI(string dni)
         {
             SqlParameter[] p = { new SqlParameter("@DNI", dni) };
@@ -31,6 +38,7 @@ namespace DAL
             return resultado != null && Convert.ToInt32(resultado) > 0;
         }
 
+        /// <summary>Busca un cliente por DNI. Devuelve null si no existe.</summary>
         public BE_Cliente_GO44 BuscarPorDNI(string dni)
         {
             SqlParameter[] p = { new SqlParameter("@DNI", dni) };
@@ -39,14 +47,17 @@ namespace DAL
             return MapearFila(dt.Rows[0]);
         }
 
+        /// <summary>Lista todos los clientes.</summary>
         public List<BE_Cliente_GO44> Listar()
         {
             DataTable dt = _acceso.leerSP("sp_Cliente_Listar_GO44", null);
             return MapearLista(dt);
         }
 
+        /// <summary>Inserta un cliente nuevo. El email se cifra antes de mandarlo a la base.</summary>
         public int Insertar(BE_Cliente_GO44 cliente)
         {
+            // Nunca se persiste el email en claro: se cifra con el encriptador reversible.
             string emailCifrado = EncriptadorReversible_GO44.Instancia.Encriptar(cliente.Email);
 
             SqlParameter[] p = {
@@ -81,6 +92,7 @@ namespace DAL
             return r == null ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>Cambia el email de un cliente (también se guarda cifrado).</summary>
         public int ModificarEmail(string dni, string email)
         {
             string emailCifrado = EncriptadorReversible_GO44.Instancia.Encriptar(email);
@@ -93,6 +105,7 @@ namespace DAL
             return filas;
         }
 
+        /// <summary>Activa o desactiva (baja lógica) un cliente según el booleano recibido.</summary>
         public int ActivarDesactivar(string dni, bool activo)
         {
             SqlParameter[] p = {
@@ -112,6 +125,7 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Mapea una fila a entidad Cliente. El email se DESCIFRA al leerlo para devolverlo en claro al negocio.</summary>
         private BE_Cliente_GO44 MapearFila(DataRow row)
         {
             return new BE_Cliente_GO44
@@ -119,7 +133,7 @@ namespace DAL
                 DNI       = row["DNI"].ToString(),
                 Apellido  = row["Apellido"].ToString(),
                 Nombre    = row["Nombre"].ToString(),
-                Email     = EncriptadorReversible_GO44.Instancia.Desencriptar(row["Email"].ToString()),
+                Email     = EncriptadorReversible_GO44.Instancia.Desencriptar(row["Email"].ToString()), // revertir el cifrado
                 Telefono  = row["Telefono"] == DBNull.Value ? null : row["Telefono"].ToString(),
                 FechaAlta = Convert.ToDateTime(row["FechaAlta"]),
                 Activo    = Convert.ToBoolean(row["Activo"])

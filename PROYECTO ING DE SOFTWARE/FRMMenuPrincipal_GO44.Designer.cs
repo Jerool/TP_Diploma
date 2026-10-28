@@ -50,6 +50,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.miCambiarClave = new System.Windows.Forms.ToolStripMenuItem();
             this.miLogout = new System.Windows.Forms.ToolStripMenuItem();
 
+            // AYUDA (ayuda en línea — menú escalera + contextual)
+            this.menuAyuda = new System.Windows.Forms.ToolStripMenuItem();
+            this.miAyudaIndice = new System.Windows.Forms.ToolStripMenuItem();
+            this.miAyudaMaestros = new System.Windows.Forms.ToolStripMenuItem();
+            this.miAyudaVentas = new System.Windows.Forms.ToolStripMenuItem();
+            this.miAyudaCompras = new System.Windows.Forms.ToolStripMenuItem();
+            this.miAyudaVisita = new System.Windows.Forms.ToolStripMenuItem();
+
             this.statusBar = new System.Windows.Forms.StatusStrip();
             this.lblUsuarioActual = new System.Windows.Forms.ToolStripStatusLabel();
             this.pnlContenido = new System.Windows.Forms.Panel();
@@ -63,8 +71,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.menuStrip1.ForeColor = System.Drawing.Color.White;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.menuAdmin, this.menuMaestros, this.menuUsuario, this.menuVentas, this.menuCompras, this.menuReportes});
+                this.menuAdmin, this.menuMaestros, this.menuUsuario, this.menuVentas, this.menuCompras, this.menuReportes, this.menuAyuda});
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 4, 0, 4);
+            // Tooltips contextuales (aparecen en la posición del mouse al pasar por los menús).
+            this.menuStrip1.ShowItemToolTips = true;
 
             // ADMIN
             ConfigMenuPadre(this.menuAdmin, "Admin");
@@ -113,6 +123,17 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 this.miCambiarClave, this.miLogout});
             ConfigMenuHijo(this.miCambiarClave, "Cambiar clave", this.miCambiarClave_Click);
             ConfigMenuHijo(this.miLogout,       "Cerrar sesión", this.miLogout_Click);
+
+            // AYUDA (menú escalera + contextual)
+            ConfigMenuPadre(this.menuAyuda, "Ayuda");
+            this.menuAyuda.ToolTipText = "Ayuda en línea (F1 para la ayuda de la pantalla abierta)";
+            this.menuAyuda.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.miAyudaIndice, this.miAyudaVisita, this.miAyudaMaestros, this.miAyudaVentas, this.miAyudaCompras});
+            ConfigMenuHijo(this.miAyudaIndice,   "Índice de ayuda", this.miAyudaIndice_Click);
+            ConfigMenuHijo(this.miAyudaVisita,   "Visita guiada",   this.miAyudaVisita_Click);
+            ConfigMenuHijo(this.miAyudaMaestros, "Maestros",        this.miAyudaMaestros_Click);
+            ConfigMenuHijo(this.miAyudaVentas,   "Ventas",          this.miAyudaVentas_Click);
+            ConfigMenuHijo(this.miAyudaCompras,  "Compras",         this.miAyudaCompras_Click);
 
             // Panel contenido
             this.pnlContenido.BackColor = System.Drawing.Color.FromArgb(227, 242, 253);
@@ -196,6 +217,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.ToolStripMenuItem menuUsuario;
         private System.Windows.Forms.ToolStripMenuItem miCambiarClave;
         private System.Windows.Forms.ToolStripMenuItem miLogout;
+
+        private System.Windows.Forms.ToolStripMenuItem menuAyuda;
+        private System.Windows.Forms.ToolStripMenuItem miAyudaIndice;
+        private System.Windows.Forms.ToolStripMenuItem miAyudaMaestros;
+        private System.Windows.Forms.ToolStripMenuItem miAyudaVentas;
+        private System.Windows.Forms.ToolStripMenuItem miAyudaCompras;
+        private System.Windows.Forms.ToolStripMenuItem miAyudaVisita;
 
         private System.Windows.Forms.StatusStrip statusBar;
         private System.Windows.Forms.ToolStripStatusLabel lblUsuarioActual;

@@ -51,6 +51,7 @@ namespace DAL
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>Inserta una línea de la SC (versión sin transacción externa). Devuelve el Id generado.</summary>
         public int InsertarLinea(int idSolicitud, BE_LineaSolicitudCotizacion_GO44 linea)
         {
             SqlParameter[] p = {
@@ -86,6 +87,7 @@ namespace DAL
             return _acceso.escribirSPEnTx("sp_SolicitudCotizacion_CambiarEstado_GO44", p, tx);
         }
 
+        /// <summary>Lista todas las SC (solo cabeceras, sin líneas) para mostrarlas en grilla.</summary>
         public List<BE_SolicitudCotizacion_GO44> Listar()
         {
             DataTable dt = _acceso.leerSP("sp_SolicitudCotizacion_Listar_GO44", null);
@@ -94,16 +96,21 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Trae una SC completa: cabecera + sus líneas. Devuelve null si no existe.</summary>
         public BE_SolicitudCotizacion_GO44 BuscarPorId(int id)
         {
             SqlParameter[] p = { new SqlParameter("@Id", id) };
             DataTable dt = _acceso.leerSP("sp_SolicitudCotizacion_BuscarPorId_GO44", p);
             if (dt.Rows.Count == 0) return null;
             var sc = MapearEncabezado(dt.Rows[0]);
-            sc.Lineas = ListarLineas(id);
+            sc.Lineas = ListarLineas(id); // completa las líneas en una segunda consulta
             return sc;
         }
 
+        /// <summary>
+        /// Lista las líneas de una SC. Por cada línea trae el componente completo con DALComponente
+        /// (BuscarPorId), así la línea queda con todos los datos del producto y no solo su Id.
+        /// </summary>
         public List<BE_LineaSolicitudCotizacion_GO44> ListarLineas(int idSolicitud)
         {
             SqlParameter[] p = { new SqlParameter("@IdSolicitud", idSolicitud) };
@@ -111,6 +118,7 @@ namespace DAL
             var lista = new List<BE_LineaSolicitudCotizacion_GO44>();
             foreach (DataRow row in dt.Rows)
             {
+                // Reutiliza la DAL de componente para rellenar los datos del producto de cada línea.
                 var comp = _dalComponente.BuscarPorId(Convert.ToInt32(row["IdComponente"]));
                 lista.Add(new BE_LineaSolicitudCotizacion_GO44
                 {
@@ -123,6 +131,7 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Mapea la cabecera de la SC; el proveedor se crea liviano (CUIT + Empresa) y el estado se parsea al enum.</summary>
         private BE_SolicitudCotizacion_GO44 MapearEncabezado(DataRow row)
         {
             var sc = new BE_SolicitudCotizacion_GO44

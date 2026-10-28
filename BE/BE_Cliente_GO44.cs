@@ -3,6 +3,11 @@ using System.Xml.Serialization;
 
 namespace BE
 {
+    /// <summary>
+    /// Entidad de negocio (BE) del CLIENTE. POCO con los datos de la persona que compra.
+    /// Está marcada [Serializable]/[XmlRoot] porque en algún punto puede exportarse/serializarse a XML;
+    /// por eso el campo calculado NombreCompleto se excluye con [XmlIgnore] (no es un dato propio, se deriva).
+    /// </summary>
     [Serializable]
     [XmlRoot("Cliente")]
     public class BE_Cliente_GO44
@@ -56,14 +61,17 @@ namespace BE
             set { _Activo = value; }
         }
 
-        [XmlIgnore]  // Es calculado, no se serializa
+        /// <summary>Campo calculado "Apellido, Nombre". [XmlIgnore] porque se deriva y no debe serializarse.</summary>
+        [XmlIgnore]
         public string NombreCompleto
         {
             get { return (_Apellido ?? string.Empty) + ", " + (_Nombre ?? string.Empty); }
         }
 
+        /// <summary>Constructor vacío requerido por la serialización XML y por las DAL.</summary>
         public BE_Cliente_GO44() { }
 
+        /// <summary>Crea un cliente nuevo: marca la fecha de alta de hoy y lo deja activo.</summary>
         public BE_Cliente_GO44(string dni, string apellido, string nombre, string email, string telefono)
         {
             DNI = dni;

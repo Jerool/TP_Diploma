@@ -21,7 +21,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.grpRecepcion = new System.Windows.Forms.GroupBox();
             this.lblDetalleOC = new System.Windows.Forms.Label();
             this.dgvLineas = new System.Windows.Forms.DataGridView();
-            this.lblAyuda = new System.Windows.Forms.Label();
             this.lblObs = new System.Windows.Forms.Label();
             this.txtObservaciones = new System.Windows.Forms.TextBox();
             this.btnRecibir = new System.Windows.Forms.Button();
@@ -77,7 +76,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.grpRecepcion.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
             this.grpRecepcion.Controls.Add(this.lblDetalleOC);
             this.grpRecepcion.Controls.Add(this.dgvLineas);
-            this.grpRecepcion.Controls.Add(this.lblAyuda);
             this.grpRecepcion.Controls.Add(this.lblObs);
             this.grpRecepcion.Controls.Add(this.txtObservaciones);
             this.grpRecepcion.Controls.Add(this.btnRecibir);
@@ -89,11 +87,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.dgvLineas.Location = new System.Drawing.Point(15, 55);
             this.dgvLineas.Size = new System.Drawing.Size(740, 220);
             this.dgvLineas.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
-
-            this.lblAyuda.AutoSize = true; this.lblAyuda.Location = new System.Drawing.Point(15, 282);
-            this.lblAyuda.ForeColor = System.Drawing.Color.DimGray; this.lblAyuda.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
-            this.lblAyuda.Text = "Columna 'Recibida' (amarilla) editable. Las filas en rosa indican faltantes respecto a la OC.";
-            this.lblAyuda.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 
             this.lblObs.AutoSize = true; this.lblObs.Location = new System.Drawing.Point(775, 55); this.lblObs.Text = "Observaciones:";
             this.lblObs.ForeColor = System.Drawing.Color.Black; this.lblObs.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -151,7 +144,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.GroupBox grpRecepcion;
         private System.Windows.Forms.Label lblDetalleOC;
         private System.Windows.Forms.DataGridView dgvLineas;
-        private System.Windows.Forms.Label lblAyuda;
         private System.Windows.Forms.Label lblObs;
         private System.Windows.Forms.TextBox txtObservaciones;
         private System.Windows.Forms.Button btnRecibir;

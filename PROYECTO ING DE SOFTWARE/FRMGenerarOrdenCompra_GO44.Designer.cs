@@ -25,7 +25,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             this.grpLineas = new System.Windows.Forms.GroupBox();
             this.dgvLineas = new System.Windows.Forms.DataGridView();
-            this.lblAyuda = new System.Windows.Forms.Label();
             this.lblTotal = new System.Windows.Forms.Label();
 
             this.btnGenerar = new System.Windows.Forms.Button();
@@ -98,17 +97,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.grpLineas.Text = "Componentes (completá el precio unitario cotizado)"; this.grpLineas.ForeColor = azul;
             this.grpLineas.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
             this.grpLineas.Controls.Add(this.dgvLineas);
-            this.grpLineas.Controls.Add(this.lblAyuda);
             this.grpLineas.Controls.Add(this.lblTotal);
 
             this.dgvLineas.Location = new System.Drawing.Point(15, 30);
             this.dgvLineas.Size = new System.Drawing.Size(1090, 330);
             this.dgvLineas.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
-
-            this.lblAyuda.AutoSize = true; this.lblAyuda.Location = new System.Drawing.Point(15, 370);
-            this.lblAyuda.ForeColor = System.Drawing.Color.DimGray; this.lblAyuda.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
-            this.lblAyuda.Text = "La columna 'Precio unit.' (amarilla) es editable: hacé doble clic para cargar el precio cotizado.";
-            this.lblAyuda.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 
             this.lblTotal.AutoSize = true; this.lblTotal.Location = new System.Drawing.Point(930, 385);
             this.lblTotal.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold);
@@ -183,7 +176,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private System.Windows.Forms.GroupBox grpLineas;
         private System.Windows.Forms.DataGridView dgvLineas;
-        private System.Windows.Forms.Label lblAyuda;
         private System.Windows.Forms.Label lblTotal;
 
         private System.Windows.Forms.Button btnGenerar;

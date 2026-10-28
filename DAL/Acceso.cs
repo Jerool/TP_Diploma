@@ -1,19 +1,25 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Configuration;
 
 namespace DAL
 {
-
+    /// <summary>
+    /// Clase de acceso a datos de más bajo nivel ("la última DAL"): es la ÚNICA que habla
+    /// directamente con SQL Server. Todas las DAL de entidades (DALComponente, DALFactura, etc.)
+    /// delegan en ella para leer/escribir; así el detalle de ADO.NET (conexión, comandos,
+    /// transacciones) queda encapsulado en un solo lugar.
+    ///
+    /// Es un Singleton: existe una sola instancia compartida (<see cref="Instancia"/>), que
+    /// reutiliza una única conexión SqlConnection.
+    /// </summary>
     public class Acceso
     {
+        // Única instancia del Singleton (se crea la primera vez que se pide Instancia).
         private static Acceso _instancia;
 
+        // Conexión física a SQL Server que comparten todas las operaciones.
         protected SqlConnection conexion = null;
 
         // ============================================================
@@ -29,15 +35,23 @@ namespace DAL
         private const string CONNECTION_STRING_DEFAULT =
             @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Gestion Usuario;Integrated Security=True";
 
+        // Cadena de conexión seteada en caliente (si alguien la asigna, tiene prioridad).
         private static string _connectionString;
+
+        /// <summary>
+        /// Cadena de conexión que se usa para abrir la base. Orden de prioridad:
+        /// 1) un valor asignado por código (set); 2) la clave "GestionUsuario" de App.config;
+        /// 3) el default hardcodeado (LocalDB). Así cada compañero cambia su instancia en un solo lugar.
+        /// </summary>
         public static string ConnectionString
         {
             get
             {
+                // 1) Si ya se fijó una cadena por código, esa manda.
                 if (!string.IsNullOrWhiteSpace(_connectionString))
                     return _connectionString;
 
-                // Intentar leer de App.config
+                // 2) Intentar leerla del App.config (clave "GestionUsuario").
                 try
                 {
                     string desdeConfig = ConfigurationManager
@@ -45,25 +59,28 @@ namespace DAL
                     if (!string.IsNullOrWhiteSpace(desdeConfig))
                         return desdeConfig;
                 }
-                catch { }
+                catch { } // si App.config falla, caemos al default sin romper
 
-                // Fallback: default hardcodeado
+                // 3) Último recurso: la cadena por defecto.
                 return CONNECTION_STRING_DEFAULT;
             }
             set { _connectionString = value; }
         }
 
+        /// <summary>Nombre de la instancia SQL que surge de la cadena actual (para mostrarla en pantalla). El setter es legado y se ignora.</summary>
         public static string InstanciaActual
         {
             get { return new SqlConnectionStringBuilder(ConnectionString).DataSource; }
             set { /* legacy, ignorado */ }
         }
 
+        // Constructor privado: nadie puede hacer "new Acceso()" desde afuera (patrón Singleton).
         private Acceso()
         {
             conexion = new SqlConnection();
         }
 
+        /// <summary>Punto de acceso al Singleton: crea la instancia la primera vez y la reutiliza siempre.</summary>
         public static Acceso Instancia
         {
             get
@@ -76,10 +93,12 @@ namespace DAL
             }
         }
 
+        /// <summary>Abre la conexión si está cerrada. Si no hay cadena configurada, avisa con una excepción clara.</summary>
         public void conectar()
         {
             try
             {
+                // Solo abrir si está cerrada (evita "la conexión ya está abierta").
                 if (conexion.State == System.Data.ConnectionState.Closed)
                 {
                     string cs = ConnectionString;
@@ -98,6 +117,7 @@ namespace DAL
             }
         }
 
+        /// <summary>Cierra la conexión si está abierta. Se llama en el finally de cada operación.</summary>
         public void desconectar()
         {
             try
@@ -114,12 +134,17 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// Abre la conexión y arranca una transacción, devolviéndola al llamador.
+        /// Permite que varias escrituras (encabezado + líneas + stock) sean atómicas: o entran todas o ninguna.
+        /// </summary>
         public SqlTransaction IniciarTransaccion()
         {
             conectar();
             return conexion.BeginTransaction();
         }
 
+        /// <summary>Confirma (Commit) la transacción y cierra la conexión. Si tx es null, no hace nada.</summary>
         public void ConfirmarTransaccion(SqlTransaction tx)
         {
             try
@@ -135,10 +160,11 @@ namespace DAL
             }
             finally
             {
-                desconectar();
+                desconectar(); // pase lo que pase, liberar la conexión
             }
         }
 
+        /// <summary>Deshace (Rollback) la transacción ante un error, dejando la base como estaba.</summary>
         public void CancelarTransaccion(SqlTransaction tx)
         {
             try
@@ -154,6 +180,10 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// Ejecuta una sentencia SQL de escritura (INSERT/UPDATE/DELETE) con query de texto,
+        /// envuelta en su propia transacción. Ante error hace Rollback y relanza. Devuelve filas afectadas.
+        /// </summary>
         public int escribir(string query, SqlParameter[] parametro)
         {
             SqlTransaction tx = null;
@@ -162,28 +192,30 @@ namespace DAL
             try
             {
                 comando.Parameters.Clear();
-                tx = IniciarTransaccion();
+                tx = IniciarTransaccion();          // abre conexión + transacción
                 comando.Connection = tx.Connection;
                 comando.Transaction = tx;
                 comando.CommandText = query;
                 if (parametro != null)
                 {
+                    // Volcar cada parámetro recibido al comando.
                     foreach(SqlParameter param in parametro)
                     {
                         comando.Parameters.AddWithValue(param.ParameterName, param.Value);
                     }
                 }
                 filasAfectadas = comando.ExecuteNonQuery();
-                ConfirmarTransaccion(tx);
+                ConfirmarTransaccion(tx);           // todo OK: Commit
                 return filasAfectadas;
             }
             catch (Exception ex)
             {
-                CancelarTransaccion(tx);
+                CancelarTransaccion(tx);            // error: Rollback y relanzar con contexto
                 throw new Exception("Error en Escribir: " + ex.Message, ex);
             }
         }
 
+        /// <summary>Ejecuta un SELECT de texto y devuelve el resultado como DataTable. Cierra la conexión al terminar.</summary>
         public DataTable leer(string query, SqlParameter[] parametro)
         {
             SqlCommand comando = new SqlCommand();
@@ -202,6 +234,7 @@ namespace DAL
                     }
                 }
 
+                // El adaptador ejecuta el SELECT y llena la tabla en memoria.
                 adaptador.SelectCommand = comando;
                 adaptador.Fill(dt);
             }
@@ -211,11 +244,12 @@ namespace DAL
             }
             finally
             {
-                desconectar();
+                desconectar(); // liberar siempre la conexión
             }
             return dt;
         }
 
+        /// <summary>Ejecuta una consulta que devuelve un único valor (ej. un COUNT o un MAX). Retorna ese valor como object.</summary>
         public object leerEscalar(string query, SqlParameter[] parametro)
         {
             SqlCommand comando = new SqlCommand();
@@ -231,7 +265,7 @@ namespace DAL
                     comando.Parameters.Clear();
                     comando.Parameters.AddRange(parametro);
                 }
-                resultado = comando.ExecuteScalar();
+                resultado = comando.ExecuteScalar(); // devuelve solo la 1ª columna de la 1ª fila
             }
             catch (SqlException ex)
             {

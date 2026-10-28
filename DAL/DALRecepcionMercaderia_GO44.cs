@@ -26,6 +26,7 @@ namespace DAL
         public void ConfirmarTransaccion(SqlTransaction tx) => _acceso.ConfirmarTransaccion(tx);
         public void CancelarTransaccion(SqlTransaction tx)  => _acceso.CancelarTransaccion(tx);
 
+        /// <summary>Inserta la cabecera de la recepción dentro de la tx y devuelve su Id generado.</summary>
         public int InsertarEncabezadoEnTx(BE_RecepcionMercaderia_GO44 recepcion, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -38,6 +39,7 @@ namespace DAL
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
         }
 
+        /// <summary>Inserta una línea de recepción (pedida + recibida) dentro de la tx. Devuelve filas afectadas.</summary>
         public int InsertarLineaEnTx(int idRecepcion, BE_LineaRecepcion_GO44 linea, SqlTransaction tx)
         {
             SqlParameter[] p = {
@@ -49,6 +51,7 @@ namespace DAL
             return _acceso.escribirSPEnTx("sp_LineaRecepcion_Insertar_GO44", p, tx);
         }
 
+        /// <summary>Trae la recepción registrada de una OC (null si no se recibió). Usado por el reporte RFN2. Incluye sus líneas.</summary>
         public BE_RecepcionMercaderia_GO44 BuscarPorOrden(int idOrdenCompra)
         {
             SqlParameter[] p = { new SqlParameter("@IdOrdenCompra", idOrdenCompra) };
@@ -68,6 +71,7 @@ namespace DAL
             return recepcion;
         }
 
+        /// <summary>Lista las líneas de una recepción, trayendo el componente completo de cada una con DALComponente.</summary>
         public List<BE_LineaRecepcion_GO44> ListarLineas(int idRecepcion)
         {
             SqlParameter[] p = { new SqlParameter("@IdRecepcion", idRecepcion) };

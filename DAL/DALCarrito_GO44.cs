@@ -6,6 +6,12 @@ using System.Data.SqlClient;
 
 namespace DAL
 {
+    /// <summary>
+    /// DAL (mapper) del CARRITO. Como el carrito se guarda en dos tablas (Carrito + LineaCarrito)
+    /// y debe persistirse de forma atómica, esta DAL expone envoltorios de transacción
+    /// (IniciarTransaccion/Confirmar/Cancelar) para que la BLL encadene encabezado + líneas en un
+    /// solo commit sin tocar <see cref="Acceso"/> directamente. También recalcula la integridad de ambas tablas.
+    /// </summary>
     public class DALCarrito_GO44
     {
         private readonly Acceso _acceso;
@@ -17,6 +23,7 @@ namespace DAL
             _dalIntegridad = new DALIntegridad_GO44();
         }
 
+        /// <summary>Recalcula el dígito verificador de las dos tablas del carrito tras confirmar (best-effort).</summary>
         private void RecalcularIntegridadCarrito()
         {
             if (DALIntegridad_GO44.IntegridadConocidamenteRota) return;
@@ -25,6 +32,7 @@ namespace DAL
         }
 
         // ============ Transacción (encapsula Acceso para no romper las capas) ============
+        // La BLL usa estos tres para que varias escrituras entren o no entren juntas.
 
         public SqlTransaction IniciarTransaccion()          => _acceso.IniciarTransaccion();
         public void ConfirmarTransaccion(SqlTransaction tx) => _acceso.ConfirmarTransaccion(tx);
@@ -102,6 +110,11 @@ namespace DAL
             return carrito;
         }
 
+        /// <summary>
+        /// Mapea la fila de cabecera a un BE_Carrito. El estado viene como texto en la base, así que se
+        /// convierte al enum con Enum.TryParse (si no coincide, queda el valor por defecto sin romper).
+        /// El cliente se crea "liviano" (solo DNI); el resto de sus datos no hace falta acá.
+        /// </summary>
         private BE_Carrito_GO44 MapearEncabezado(DataRow row)
         {
             BE_Carrito_GO44.EstadoCarrito estado;
@@ -117,6 +130,7 @@ namespace DAL
             };
         }
 
+        /// <summary>Mapea las filas de líneas a objetos, armando en cada una un componente liviano (Id/Código/Nombre).</summary>
         private List<BE_LineaCarrito_GO44> MapearLineas(DataTable dt)
         {
             List<BE_LineaCarrito_GO44> lista = new List<BE_LineaCarrito_GO44>();

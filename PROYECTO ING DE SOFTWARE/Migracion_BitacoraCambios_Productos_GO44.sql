@@ -92,10 +92,23 @@ CREATE PROCEDURE [dbo].[sp_ComponenteCambio_MarcarActivo_GO44]
 AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @IdComp INT = (SELECT IdComponente FROM dbo.Componentes_C WHERE Id = @Id);
+    -- "Restaurar": vuelca los valores de la versión @Id del historial sobre el producto real.
+    -- El UPDATE dispara trg_Componentes_Update_GO44, que registra la restauración como una
+    -- versión nueva y vigente (Act = 1) en Componentes_C. No se toca Act a mano: lo hace el trigger.
+    DECLARE @IdComp INT, @Nombre VARCHAR(120), @Desc VARCHAR(500), @Cat VARCHAR(80),
+            @Precio DECIMAL(12,2), @Stock INT, @StockMin INT, @ActProd BIT;
+
+    SELECT @IdComp = IdComponente, @Nombre = Nombre, @Desc = Descripcion, @Cat = Categoria,
+           @Precio = Precio, @Stock = StockActual, @StockMin = StockMinimo, @ActProd = ActivoProducto
+    FROM dbo.Componentes_C WHERE Id = @Id;
+
     IF @IdComp IS NULL BEGIN SELECT CAST(0 AS INT) AS Filas; RETURN; END
-    UPDATE dbo.Componentes_C SET Act = 0 WHERE IdComponente = @IdComp;
-    UPDATE dbo.Componentes_C SET Act = 1 WHERE Id = @Id;
+
+    UPDATE dbo.Componentes
+    SET Nombre = @Nombre, Descripcion = @Desc, Categoria = @Cat,
+        Precio = @Precio, StockActual = @Stock, StockMinimo = @StockMin, Activo = @ActProd
+    WHERE Id = @IdComp;
+
     SELECT CAST(@@ROWCOUNT AS INT) AS Filas;
 END
 GO

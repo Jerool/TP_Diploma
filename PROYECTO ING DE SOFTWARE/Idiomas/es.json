@@ -86,6 +86,9 @@
     "menu.logout": "LogOut",
     "menu.relogin": "Re_Login",
     "menu.idioma": "Cambiar idioma",
+    "menu.ayuda": "Ayuda",
+    "menu.ayudaIndice": "Índice de ayuda",
+    "menu.ayudaVisita": "Visita guiada",
     "menu.confirmarLogout": "¿Está seguro que desea cerrar sesión?",
     "menu.tituloLogout": "Cerrar sesión",
 

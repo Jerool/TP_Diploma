@@ -81,14 +81,6 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _bs.DataSource = lista ?? new List<BE_ComponenteCambio_GO44>();
             _bs.ResetBindings(false);
 
-            foreach (DataGridViewRow row in dgv.Rows)
-            {
-                var c = row.DataBoundItem as BE_ComponenteCambio_GO44;
-                if (c == null) continue;
-                if (c.Act) row.DefaultCellStyle.BackColor = Color.Honeydew;          // versión vigente (Act = 1)
-                if (!c.ActivoProducto) row.DefaultCellStyle.BackColor = Color.MistyRose; // producto dado de baja
-            }
-
             lblContador.Text = "Registros: " + _bs.Count;
         }
 
@@ -112,25 +104,27 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
             if (sel.Act)
             {
-                MessageBox.Show("Esa versión ya es la vigente.", "Aviso",
+                MessageBox.Show("Esa versión ya es la vigente del producto.", "Aviso",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var r = MessageBox.Show(
-                "¿Marcar esta versión de '" + sel.Codigo + "' como la vigente (Act = 1)?",
-                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                "¿Restaurar el producto '" + sel.Codigo + "' a esta versión?\r\n\r\n" +
+                "Se sobreescriben nombre, precio, stock y estado del producto con los de esta fila, " +
+                "y queda registrada una versión nueva en la bitácora.",
+                "Confirmar restauración", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             if (_bll.MarcarActivo(sel.Id))
             {
-                MessageBox.Show("Versión marcada como vigente.", "Éxito",
+                MessageBox.Show("Producto restaurado a la versión seleccionada.", "Éxito",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Buscar();
             }
             else
             {
-                MessageBox.Show("No se pudo actualizar la versión.", "Error",
+                MessageBox.Show("No se pudo restaurar el producto.", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

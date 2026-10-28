@@ -3,16 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL
 {
-
+    /// <summary>
+    /// DAL de la BITÁCORA de eventos (tabla EVENTOS + catálogos Modulo y TipoEvento).
+    /// Guarda cada evento de auditoría y permite listarlos/filtrarlos. A diferencia de otras DAL,
+    /// usa queries de texto (no SP) porque el filtro se arma dinámicamente según qué criterios vengan.
+    /// </summary>
     public class DALBitacora_GO44
     {
         private readonly Acceso _acceso;
+
+        // SELECT reutilizado por Listar y Filtrar: une EVENTOS con sus catálogos para traer los nombres.
         private const string SELECT_BASE =
             "SELECT E.UserName, " +
             "       E.IdModulo,     M.Nombre AS ModuloNombre, " +
@@ -27,6 +31,10 @@ namespace DAL
             _acceso = Acceso.Instancia;
         }
 
+        /// <summary>
+        /// Inserta un evento en la bitácora. Antes resuelve los Id de Módulo y TipoEvento a partir de
+        /// sus nombres (los eventos se registran por nombre, pero la tabla EVENTOS guarda las claves).
+        /// </summary>
         public void Guardar(Bitacora_GO44 registro)
         {
             int idModulo = ResolverIdModulo(registro.Modulo);
@@ -48,14 +56,21 @@ namespace DAL
             _acceso.escribir(query, parametros);
         }
 
+        /// <summary>Lista todos los eventos, del más reciente al más viejo.</summary>
         public List<Bitacora_GO44> Listar()
         {
             string query = SELECT_BASE + " ORDER BY E.FechaHora DESC";
             return MapearLista(_acceso.leer(query, null));
         }
 
+        /// <summary>
+        /// Lista eventos filtrando por rango de fechas (obligatorio) y, opcionalmente, por login,
+        /// módulo, tipo de evento y criticidad. El WHERE se construye sumando condiciones solo para
+        /// los criterios que vienen cargados, siempre con parámetros (nunca concatenando valores → evita inyección SQL).
+        /// </summary>
         public List<Bitacora_GO44> Filtrar(string login, string modulo, string tipoEvento, string criticidad, DateTime fechaInicio, DateTime fechaFin)
         {
+            // Arranca con la condición de fechas, que siempre aplica.
             StringBuilder sb = new StringBuilder(SELECT_BASE +
                 " WHERE E.FechaHora BETWEEN @FechaInicio AND @FechaFin");
 
@@ -65,6 +80,7 @@ namespace DAL
                 new SqlParameter("@FechaFin", fechaFin)
             };
 
+            // Cada criterio opcional agrega su AND y su parámetro solo si vino con valor.
             if (!string.IsNullOrWhiteSpace(login))
             {
                 sb.Append(" AND E.UserName LIKE @Login");
@@ -94,6 +110,7 @@ namespace DAL
             return MapearLista(_acceso.leer(sb.ToString(), parametros.ToArray()));
         }
 
+        /// <summary>Mapea cada fila (evento + nombres de módulo y tipo) a una entidad Bitacora.</summary>
         private List<Bitacora_GO44> MapearLista(DataTable dt)
         {
             List<Bitacora_GO44> lista = new List<Bitacora_GO44>();
@@ -120,6 +137,7 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Devuelve solo los nombres de los tipos de evento (para llenar el combo del filtro).</summary>
         public List<string> ListarTiposEvento()
         {
             List<TipoEvento_GO44> entidades = ListarEventos();
@@ -128,6 +146,7 @@ namespace DAL
             return tipos;
         }
 
+        /// <summary>Devuelve solo los nombres de los módulos (para llenar el combo del filtro).</summary>
         public List<string> ListarModulos()
         {
             List<Modulo_GO44> entidades = ListarModulo();
@@ -136,6 +155,10 @@ namespace DAL
             return modulos;
         }
 
+        /// <summary>
+        /// Devuelve el Id del módulo. Si ya trae Id lo usa; si solo trae nombre, lo busca en el catálogo.
+        /// Lanza excepción si el módulo es null o no existe (no se audita contra un catálogo incompleto).
+        /// </summary>
         private int ResolverIdModulo(Modulo_GO44 m)
         {
             if (m == null)
@@ -150,6 +173,7 @@ namespace DAL
             return enBase.Id;
         }
 
+        /// <summary>Igual que ResolverIdModulo pero para el tipo de evento: usa su Id o lo busca por nombre.</summary>
         private int ResolverIdTipoEvento(TipoEvento_GO44 t)
         {
             if (t == null)
@@ -164,6 +188,7 @@ namespace DAL
             return enBase.Id;
         }
 
+        /// <summary>Lee el catálogo completo de tipos de evento (entidad con Id + Nombre).</summary>
         public List<TipoEvento_GO44> ListarEventos()
         {
             string query = "SELECT Id, Nombre FROM TipoEvento ORDER BY Nombre";
@@ -181,6 +206,7 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Busca un tipo de evento por nombre exacto. Devuelve null si no está en el catálogo.</summary>
         public TipoEvento_GO44 BuscarEvento(string nombre)
         {
             string query = "SELECT Id, Nombre FROM TipoEvento WHERE Nombre = @Nombre";
@@ -196,6 +222,7 @@ namespace DAL
             };
         }
 
+        /// <summary>Lee el catálogo completo de módulos (entidad con Id + Nombre).</summary>
         public List<Modulo_GO44> ListarModulo()
         {
             string query = "SELECT Id, Nombre FROM Modulo ORDER BY Nombre";
@@ -213,6 +240,7 @@ namespace DAL
             return lista;
         }
 
+        /// <summary>Busca un módulo por nombre exacto. Devuelve null si no está en el catálogo.</summary>
         public Modulo_GO44 BuscarModulo(string nombre)
         {
             string query = "SELECT Id, Nombre FROM Modulo WHERE Nombre = @Nombre";

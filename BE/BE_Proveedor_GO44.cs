@@ -23,12 +23,14 @@ namespace BE
         public bool Activo { get; set; }
         public DateTime FechaAlta { get; set; }
 
+        /// <summary>Constructor: alta de hoy y proveedor activo por defecto (la baja es lógica, nunca física).</summary>
         public BE_Proveedor_GO44()
         {
             Activo = true;
             FechaAlta = DateTime.Now;
         }
 
+        /// <summary>Nombre y apellido del contacto unidos; Trim() limpia el espacio sobrante si falta alguno.</summary>
         public string NombreCompleto
         {
             get { return (Nombre + " " + Apellido).Trim(); }

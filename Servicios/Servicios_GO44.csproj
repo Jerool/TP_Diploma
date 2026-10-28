@@ -59,6 +59,7 @@
     <Compile Include="Validaciones_GO44.cs" />
     <Compile Include="Integridad\CalculadorIntegridad_GO44.cs" />
     <Compile Include="Serializacion\SerializadorClientes_GO44.cs" />
+    <Compile Include="Ayuda\AyudaManager_GO44.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

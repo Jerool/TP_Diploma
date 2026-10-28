@@ -5,6 +5,12 @@ using System.Text.RegularExpressions;
 
 namespace DAL
 {
+    /// <summary>
+    /// Instalador automático de la base de datos. En modo Debug, si la app arranca y la BD no existe,
+    /// corre el script de creación (EsquemaCompleto.sql) contra la instancia SQL elegida para dejar
+    /// todo listo (tablas + SP + datos de prueba) sin tener que abrir SSMS. Es una clase estática
+    /// (sin estado): son utilidades sueltas que operan sobre la instancia que se les pasa.
+    /// </summary>
     public static class InstaladorBD_GO44
     {
         public const string NOMBRE_BD = "Gestion Usuario";
@@ -27,6 +33,7 @@ namespace DAL
             "EsquemaCompleto.sql"
         };
 
+        /// <summary>Indica si la base ya existe, consultando el catálogo del sistema (sys.databases) a través de master.</summary>
         public static bool ExisteBaseDatos(string instancia)
         {
             string connMaster = $"Data Source={instancia};Initial Catalog=master;Integrated Security=True;Connect Timeout=3";
@@ -67,6 +74,12 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// Ejecuta el/los script(s) de instalación. Como ADO.NET no entiende la palabra GO (es de SSMS,
+        /// no de T-SQL), el script se parte en "lotes" usando GO como separador (Regex) y se ejecuta cada
+        /// lote por separado. Los lotes que fallan por features no soportados en LocalDB/Express se ignoran
+        /// y se registran en un log, para no perder los CREATE TABLE / SP / INSERT que sí importan.
+        /// </summary>
         public static void InstalarBaseDatos(string instancia)
         {
             foreach (string nombreScript in SCRIPTS)

@@ -4,8 +4,15 @@ using System.Linq;
 
 namespace BE
 {
+    /// <summary>
+    /// Entidad de negocio (BE) de la FACTURA de venta, generada al confirmar un carrito.
+    /// Guarda el desglose económico (Subtotal, IVA, Total) ya calculado por la BLL, el cliente,
+    /// el cajero que la emitió y sus líneas. A diferencia del carrito, estos importes se almacenan
+    /// (no se recalculan) porque la factura es un comprobante: debe quedar "congelada".
+    /// </summary>
     public class BE_Factura_GO44
     {
+        /// <summary>Estado del comprobante: Pendiente de cobro, ya Cobrada, o Anulada.</summary>
         public enum EstadoFactura
         {
             Pendiente,
@@ -46,9 +53,11 @@ namespace BE
         private List<BE_LineaFactura_GO44> _Lineas;
         public List<BE_LineaFactura_GO44> Lineas { get { return _Lineas; } set { _Lineas = value; } }
 
+        // Atajos de solo lectura usados por las grillas/reportes.
         public string DniCliente { get { return _Cliente != null ? _Cliente.DNI : string.Empty; } }
         public int CantidadItems { get { return _Lineas != null ? _Lineas.Sum(l => l.Cantidad) : 0; } }
 
+        /// <summary>Constructor: inicializa la lista de líneas, pone fecha de hoy y estado Pendiente.</summary>
         public BE_Factura_GO44()
         {
             _Lineas = new List<BE_LineaFactura_GO44>();

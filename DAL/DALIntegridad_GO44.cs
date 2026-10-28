@@ -3,14 +3,25 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 
 namespace DAL
 {
+    /// <summary>
+    /// DAL del control de INTEGRIDAD (dígitos verificadores). Protege tablas sensibles contra
+    /// modificaciones hechas por fuera del sistema:
+    ///  - DVH (Dígito Verificador Horizontal): un hash POR FILA, calculado con sus campos.
+    ///  - DVV (Dígito Verificador Vertical): un hash de toda la tabla, calculado a partir de sus DVH.
+    /// En cada arranque se recalculan y se comparan con los guardados (tablas IntegridadDVH/DVV):
+    /// si no coinciden, alguien tocó la base por afuera. También hace backup/restore de la BD.
+    /// </summary>
     public class DALIntegridad_GO44
     {
         private readonly Acceso _acceso;
 
+        /// <summary>
+        /// Lista de tablas protegidas por dígito verificador. Está hardcodeada (no se descubre sola):
+        /// para proteger una tabla nueva hay que agregarla acá Y escribir su método DVHs correspondiente.
+        /// </summary>
         public static readonly string[] TABLAS_PROTEGIDAS = {
             "Usuario", "Roles", "Familia", "Patente",
             "FamiliaPatente", "FamiliaIntegrada",
@@ -19,6 +30,7 @@ namespace DAL
             "Proveedores"
         };
 
+        /// <summary>Bandera global: si la verificación detectó integridad rota, se prende y se evita seguir recalculando.</summary>
         public static bool IntegridadConocidamenteRota { get; set; }
 
         public DALIntegridad_GO44()
@@ -26,6 +38,10 @@ namespace DAL
             _acceso = Acceso.Instancia;
         }
 
+        /// <summary>
+        /// Despacha al método que calcula los DVH de la tabla pedida. El switch es el "índice" de las
+        /// tablas protegidas; cada case arma un diccionario {claveDeLaFila → hash DVH}.
+        /// </summary>
         public Dictionary<string, string> CalcularDVHsTabla(string nombreTabla)
         {
             switch (nombreTabla)
@@ -45,6 +61,11 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// Ejemplo del patrón que siguen todos los DVHs*: lee las columnas protegidas de la tabla y,
+        /// por cada fila, calcula su DVH (hash de todos esos campos) indexado por la clave de la fila.
+        /// Si alguien cambia un solo campo por afuera, el DVH recalculado dejará de coincidir con el guardado.
+        /// </summary>
         private Dictionary<string, string> DVHsProveedores()
         {
             // Datos bancarios sensibles (CVU, Banco, Titular) → se protegen con DVH por fila.
@@ -53,7 +74,7 @@ namespace DAL
             var dict = new Dictionary<string, string>();
             foreach (DataRow r in dt.Rows)
             {
-                string id = Convert.ToString(r["CUIT"]);
+                string id = Convert.ToString(r["CUIT"]); // clave = CUIT (PK)
                 dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
                     r["CUIT"], r["Nombre"], r["Apellido"], r["Empresa"],
                     r["Telefono"], r["CVU"], r["Banco"], r["Titular"], r["Activo"]);
@@ -138,6 +159,8 @@ namespace DAL
             return dict;
         }
 
+        // En las tablas de relación (sin PK simple) la clave del diccionario se arma uniendo
+        // las dos columnas con "_", ej. "3_7", para identificar la fila de forma única.
         private Dictionary<string, string> DVHsFamiliaPatente()
         {
             DataTable dt = _acceso.leer("SELECT IdFamilia, IdPatente FROM FamiliaPatente", null);
@@ -186,6 +209,7 @@ namespace DAL
             return dict;
         }
 
+        /// <summary>Lee los DVH que están GUARDADOS para una tabla (los "esperados"), para comparar contra los recalculados.</summary>
         public Dictionary<string, string> ObtenerDVHsAlmacenados(string nombreTabla)
         {
             string q = "SELECT IdRegistro, DVH FROM IntegridadDVH WHERE NombreTabla = @T";
@@ -196,6 +220,7 @@ namespace DAL
             return dict;
         }
 
+        /// <summary>Lee el DVV guardado de una tabla (null si nunca se calculó). Es el "esperado" de toda la tabla.</summary>
         public string ObtenerDVVAlmacenado(string nombreTabla)
         {
             string q = "SELECT DVV FROM IntegridadDVV WHERE NombreTabla = @T";
@@ -203,6 +228,10 @@ namespace DAL
             return (res == null || res == DBNull.Value) ? null : res.ToString();
         }
 
+        /// <summary>
+        /// Recalcula y REESCRIBE los dígitos de una tabla (se llama después de cada cambio legítimo
+        /// hecho por el sistema): recalcula los DVH de cada fila, los guarda, y a partir de ellos el DVV.
+        /// </summary>
         public void RecalcularTabla(string nombreTabla)
         {
             Dictionary<string, string> dvhs = CalcularDVHsTabla(nombreTabla);
@@ -211,6 +240,7 @@ namespace DAL
             GuardarDVV(nombreTabla, dvv);
         }
 
+        /// <summary>Guarda los DVH de una tabla: borra los anteriores y reinserta los nuevos, uno por fila.</summary>
         public void GuardarDVHs(string nombreTabla, Dictionary<string, string> dvhs)
         {
             _acceso.escribir(
@@ -228,6 +258,7 @@ namespace DAL
             }
         }
 
+        /// <summary>Guarda el DVV de una tabla con un "upsert": si ya existía lo actualiza, si no lo inserta.</summary>
         public void GuardarDVV(string nombreTabla, string dvv)
         {
             string existeQ = "SELECT COUNT(1) FROM IntegridadDVV WHERE NombreTabla = @T";
@@ -247,12 +278,17 @@ namespace DAL
             }
         }
 
+        /// <summary>Indica si ya existe al menos un DVV calculado (si la base nunca se "selló", no tiene sentido verificar).</summary>
         public bool ExisteAlgunDVV()
         {
             object res = _acceso.leerEscalar("SELECT COUNT(1) FROM IntegridadDVV", null);
             return Convert.ToInt32(res) > 0;
         }
 
+        /// <summary>
+        /// Hace un BACKUP completo de la base a un archivo .bak. Se conecta a master y usa BACKUP DATABASE.
+        /// Se ofrece al usuario cuando se detecta integridad rota, antes de intentar restaurar.
+        /// </summary>
         public void HacerBackupSQL(string connStringMaster, string nombreBd, string rutaArchivoBak)
         {
             using (var conn = new SqlConnection(connStringMaster))
@@ -269,6 +305,11 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// RESTAURA la base desde un .bak. Para poder pisarla, primero la pone en modo un-solo-usuario
+        /// (echando a los demás con ROLLBACK IMMEDIATE), restaura con REPLACE y vuelve a multi-usuario.
+        /// ClearAllPools() libera las conexiones abiertas para que el RESTORE no quede bloqueado.
+        /// </summary>
         public void RestaurarBackupSQL(string connStringMaster, string nombreBd, string rutaArchivoBak)
         {
             SqlConnection.ClearAllPools();

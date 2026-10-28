@@ -86,6 +86,9 @@
     "menu.logout": "Log out",
     "menu.relogin": "Sign in again",
     "menu.idioma": "Change language",
+    "menu.ayuda": "Help",
+    "menu.ayudaIndice": "Help index",
+    "menu.ayudaVisita": "Guided tour",
     "menu.confirmarLogout": "Are you sure you want to log out?",
     "menu.tituloLogout": "Log out",
 
