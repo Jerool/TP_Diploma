@@ -8,6 +8,13 @@ using System.Threading;
 
 namespace BLL
 {
+    /// <summary>
+    /// BLL de INTEGRIDAD. Orquesta dos cosas:
+    ///  1) La verificación de dígitos verificadores (DVH por fila, DVV por tabla): compara lo que hay
+    ///     hoy en la base contra lo guardado para detectar si alguien modificó/insertó/borró filas por afuera.
+    ///  2) Los backups de la base (manuales y automáticos cada N horas con un Timer), con retención de los últimos.
+    /// Se apoya en DALIntegridad para los cálculos y en CalculadorIntegridad (Servicios) para los hashes.
+    /// </summary>
     public class BLLIntegridad_GO44
     {
         private readonly DALIntegridad_GO44 _dal;
@@ -34,9 +41,10 @@ namespace BLL
         }
 
         private const string CARPETA_BACKUPS = @"C:\Backups\GestionUsuario";
-        private const int CANTIDAD_BACKUPS_A_CONSERVAR = 5;
-        public const int INTERVALO_BACKUP_HORAS = 3;
+        private const int CANTIDAD_BACKUPS_A_CONSERVAR = 5;   // retención: se conservan los 5 más nuevos
+        public const int INTERVALO_BACKUP_HORAS = 3;          // frecuencia del backup automático
 
+        // Timer compartido (static) para que el backup programado sea único en toda la app; _lockTimer lo protege.
         private static Timer _timerBackup;
         private static readonly object _lockTimer = new object();
 
@@ -45,16 +53,25 @@ namespace BLL
             _dal = new DALIntegridad_GO44();
         }
 
+        /// <summary>Atajo a la bandera global de integridad rota (vive en la DAL). Si está en true, las DAL dejan de recalcular dígitos.</summary>
         public static bool IntegridadConocidamenteRota
         {
             get { return DALIntegridad_GO44.IntegridadConocidamenteRota; }
             set { DALIntegridad_GO44.IntegridadConocidamenteRota = value; }
         }
 
+        /// <summary>
+        /// Verifica la integridad de todas las tablas protegidas. Para cada una compara los DVH actuales
+        /// contra los guardados y detecta tres tipos de alteración: filas Insertadas (están ahora y no en
+        /// el guardado), Modificadas (el hash cambió) y Eliminadas (estaban guardadas y ya no están). Si
+        /// ninguna fila cambió, compara además el DVV (hash de toda la tabla) como red de seguridad.
+        /// La primera vez (sin ningún DVV guardado) hace "bootstrap": calcula la línea base y la da por íntegra.
+        /// </summary>
         public ResultadoIntegridad Verificar()
         {
             var resultado = new ResultadoIntegridad();
 
+            // Bootstrap global: si la base nunca se "selló", se calcula la línea base y listo.
             if (!_dal.ExisteAlgunDVV())
             {
                 Recalcular();
@@ -128,6 +145,7 @@ namespace BLL
             return resultado;
         }
 
+        /// <summary>Recalcula la línea base de TODAS las tablas protegidas (las "sella" como íntegras ahora).</summary>
         public void Recalcular()
         {
             foreach (var tabla in DALIntegridad_GO44.TABLAS_PROTEGIDAS)
@@ -135,6 +153,7 @@ namespace BLL
             IntegridadConocidamenteRota = false;
         }
 
+        /// <summary>Recalcula y guarda los DVH de una tabla y, a partir de ellos, su DVV. Lo llaman las DAL tras cada cambio legítimo.</summary>
         public void RecalcularTabla(string nombreTabla)
         {
             Dictionary<string, string> dvhs = _dal.CalcularDVHsTabla(nombreTabla);
@@ -143,6 +162,7 @@ namespace BLL
             _dal.GuardarDVV(nombreTabla, dvv);
         }
 
+        /// <summary>Genera un backup con nombre por fecha/hora en la carpeta de backups y purga los viejos.</summary>
         public string HacerBackupAutomatico()
         {
             if (!Directory.Exists(CARPETA_BACKUPS))
@@ -157,6 +177,7 @@ namespace BLL
             return rutaCompleta;
         }
 
+        /// <summary>Devuelve la ruta del backup más reciente (null si no hay ninguno).</summary>
         public string ObtenerUltimoBackup()
         {
             if (!Directory.Exists(CARPETA_BACKUPS)) return null;
@@ -171,6 +192,7 @@ namespace BLL
                 .FullName;
         }
 
+        /// <summary>Aplica la retención: ordena los .bak del más nuevo al más viejo y borra todo lo que sobra del tope a conservar.</summary>
         private void LimpiarBackupsViejos()
         {
             if (!Directory.Exists(CARPETA_BACKUPS)) return;
@@ -180,12 +202,14 @@ namespace BLL
                 .OrderByDescending(fi => fi.CreationTime)
                 .ToList();
 
+            // Desde el índice "a conservar" en adelante ya son los sobrantes → borrar.
             for (int i = CANTIDAD_BACKUPS_A_CONSERVAR; i < archivos.Count; i++)
             {
                 try { archivos[i].Delete(); } catch { }
             }
         }
 
+        /// <summary>Restaura el backup más reciente (atajo usado cuando se detecta integridad rota). Falla si no hay backups.</summary>
         public void RestaurarUltimoBackup()
         {
             string ruta = ObtenerUltimoBackup();
@@ -194,6 +218,7 @@ namespace BLL
             RestaurarBackupDesdeRuta(ruta);
         }
 
+        /// <summary>Hace un backup manual en la ruta elegida por el admin (crea la carpeta si falta) y lo audita.</summary>
         public void HacerBackupEnRuta(string rutaArchivoBak)
         {
             if (string.IsNullOrWhiteSpace(rutaArchivoBak))
@@ -211,6 +236,7 @@ namespace BLL
                 $"Ruta: {rutaArchivoBak}", "Media");
         }
 
+        /// <summary>Restaura la base desde un .bak concreto (valida que la ruta exista antes de intentarlo).</summary>
         public void RestaurarBackupDesdeRuta(string rutaArchivoBak)
         {
             if (string.IsNullOrWhiteSpace(rutaArchivoBak))
@@ -221,6 +247,11 @@ namespace BLL
             _dal.RestaurarBackupSQL(CONN_MASTER, NOMBRE_BD, rutaArchivoBak);
         }
 
+        /// <summary>
+        /// Arranca los backups automáticos: si ya toca uno (pasó el intervalo desde el último) lo hace al
+        /// instante, y programa un Timer que se repite cada INTERVALO_BACKUP_HORAS. El lock + chequeo de null
+        /// evitan crear dos timers si se llama más de una vez.
+        /// </summary>
         public void IniciarBackupsProgramados()
         {
             lock (_lockTimer)
@@ -228,13 +259,14 @@ namespace BLL
                 if (DebeHacerBackupAhora())
                     EjecutarBackupProgramado(null);
 
-                if (_timerBackup != null) return;
+                if (_timerBackup != null) return; // ya estaba programado
 
                 TimeSpan intervalo = TimeSpan.FromHours(INTERVALO_BACKUP_HORAS);
                 _timerBackup = new Timer(EjecutarBackupProgramado, null, intervalo, intervalo);
             }
         }
 
+        /// <summary>Frena los backups automáticos (libera el Timer). Se llama al cerrar la app.</summary>
         public void DetenerBackupsProgramados()
         {
             lock (_lockTimer)
@@ -244,6 +276,7 @@ namespace BLL
             }
         }
 
+        /// <summary>Decide si ya toca un backup: true si no hay ninguno o si el último es más viejo que el intervalo.</summary>
         private bool DebeHacerBackupAhora()
         {
             string ultimo = ObtenerUltimoBackup();
@@ -261,6 +294,10 @@ namespace BLL
             }
         }
 
+        /// <summary>
+        /// Callback del Timer. Antes de hacer el backup, VERIFICA la integridad: si la base está
+        /// comprometida no respalda (para no "congelar" datos ya adulterados). Solo backupea si está íntegra.
+        /// </summary>
         private void EjecutarBackupProgramado(object state)
         {
             try
@@ -278,6 +315,7 @@ namespace BLL
         }
     }
 
+    /// <summary>Resultado de una verificación: si está íntegra, si fue bootstrap, qué tablas se comprometieron y el detalle fila por fila.</summary>
     public class ResultadoIntegridad
     {
         public bool EsIntegra { get; set; }
@@ -286,6 +324,7 @@ namespace BLL
         public List<DetalleTampering> Detalles { get; set; } = new List<DetalleTampering>();
     }
 
+    /// <summary>Tipo de alteración detectada en una fila protegida.</summary>
     public enum TipoTampering
     {
         Insertado,
@@ -293,6 +332,7 @@ namespace BLL
         Eliminado
     }
 
+    /// <summary>Detalle de una fila alterada: en qué tabla, qué registro y de qué tipo fue la alteración.</summary>
     public class DetalleTampering
     {
         public string Tabla { get; set; }

@@ -20,6 +20,7 @@ namespace BLL
             _dal = new DALSolicitudCotizacion_GO44();
         }
 
+        /// <summary>Resultados posibles de generar una SC (éxito o motivo del rechazo).</summary>
         public enum ResultadoGeneracion
         {
             Exitoso,
@@ -30,6 +31,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Resultado de GenerarSolicitud: estado, la SC generada (con su número) y un mensaje para la UI.</summary>
         public class GeneracionVO
         {
             public ResultadoGeneracion Resultado { get; set; }
@@ -37,6 +39,7 @@ namespace BLL
             public string Mensaje { get; set; }
         }
 
+        /// <summary>Registra un evento del módulo Compras en la bitácora (best-effort).</summary>
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
             try
@@ -48,6 +51,11 @@ namespace BLL
             catch { }
         }
 
+        /// <summary>
+        /// Genera una Solicitud de Cotización (CU06). Valida que tenga líneas, proveedor, sesión activa y
+        /// cantidades entre 1 y 999; luego persiste encabezado + líneas en UNA transacción (o rollback total).
+        /// Tras el commit recupera la SC para obtener el número (NumeroSC) que generó el SP, y audita.
+        /// </summary>
         public GeneracionVO GenerarSolicitud(BE_SolicitudCotizacion_GO44 sc)
         {
             var vo = new GeneracionVO();
@@ -126,8 +134,10 @@ namespace BLL
             }
         }
 
+        /// <summary>Lista todas las SC (delega en la DAL).</summary>
         public List<BE_SolicitudCotizacion_GO44> Listar() => _dal.Listar();
 
+        /// <summary>Trae una SC completa por Id (para generar la OC a partir de ella).</summary>
         public BE_SolicitudCotizacion_GO44 BuscarPorId(int id) => _dal.BuscarPorId(id);
     }
 }

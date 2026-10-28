@@ -19,11 +19,16 @@ namespace BLL
             _dal = new DALComponenteCambio_GO44();
         }
 
+        /// <summary>Lista versiones del historial con filtros opcionales (delega en la DAL).</summary>
         public List<BE_ComponenteCambio_GO44> ListarConFiltros(string codigo, string nombre, DateTime? fechaIni, DateTime? fechaFin)
         {
             return _dal.ListarConFiltros(codigo, nombre, fechaIni, fechaFin);
         }
 
+        /// <summary>
+        /// Restaura el producto a la versión indicada del historial (el SP vuelca sus valores sobre
+        /// Componentes y el trigger registra la restauración). Si tuvo efecto, lo audita (best-effort).
+        /// </summary>
         public bool MarcarActivo(int idCambio)
         {
             int filas = _dal.MarcarActivo(idCambio);

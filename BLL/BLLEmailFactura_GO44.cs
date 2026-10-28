@@ -138,7 +138,7 @@ namespace BLL
                 }
             }
 
-            // Filas de totales
+            // Filas de totales: una vacía de separación y luego Subtotal / IVA / TOTAL alineados a la derecha.
             filas.Add(new string[] { "", "", "", "", "" });
             filas.Add(new string[] { "", "", "", "Subtotal:", "$ " + f.Subtotal.ToString("N2") });
             filas.Add(new string[] { "", "", "", "IVA (" + (alicuotaIVA * 100).ToString("0") + "%):", "$ " + f.IVA.ToString("N2") });
@@ -201,8 +201,10 @@ namespace BLL
             return sb.ToString();
         }
 
+        /// <summary>Escapa un texto para insertarlo seguro en el HTML del email (evita romper el markup / inyección).</summary>
         private static string Html(string s) => System.Net.WebUtility.HtmlEncode(s ?? "");
 
+        /// <summary>Arma una fila "clave : valor" con el estilo del resumen del email.</summary>
         private static string FilaHtml(string clave, string valor)
         {
             return "<tr>" +

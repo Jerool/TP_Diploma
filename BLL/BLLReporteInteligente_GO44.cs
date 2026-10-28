@@ -17,6 +17,8 @@ namespace BLL
 
         /// <summary>Días de entrega del proveedor por defecto (no hay dato por proveedor en el sistema).</summary>
         public const int LEAD_TIME_DEFAULT = 7;
+
+        // A partir de cuántos días sin vender se considera que un producto es "stock muerto".
         private const int DIAS_STOCK_MUERTO = 60;
 
         public BLLReporteInteligente_GO44()
@@ -24,9 +26,14 @@ namespace BLL
             _dal = new DALReporteInteligente_GO44();
         }
 
+        /// <summary>
+        /// Genera el reporte: trae las métricas crudas de la DAL y, por cada producto, decide una alerta
+        /// ("Reponer urgente", "Stock muerto" u "OK") y un descuento sugerido. La inteligencia está acá,
+        /// en la BLL, no en la base. El lead time (días de entrega) ajusta el umbral de reposición.
+        /// </summary>
         public List<BE_ReporteInteligente_GO44> Generar(int leadTimeDias = LEAD_TIME_DEFAULT)
         {
-            if (leadTimeDias < 1) leadTimeDias = LEAD_TIME_DEFAULT;
+            if (leadTimeDias < 1) leadTimeDias = LEAD_TIME_DEFAULT; // valor inválido → default
 
             var lista = _dal.Listar();
             foreach (var r in lista)
@@ -46,7 +53,8 @@ namespace BLL
                 else if (muerto)
                 {
                     r.Alerta = "Stock muerto";
-                    // Descuento escalonado según cuán parado está el stock (10% a 30%).
+                    // Descuento escalonado: arranca en 10% y sube 1% por cada 10 días extra sin vender,
+                    // con tope entre 10% y 30%. Si nunca se vendió (DiasSinVenta < 0) se asume 90 días.
                     int dias = r.DiasSinVenta < 0 ? 90 : r.DiasSinVenta;
                     decimal desc = 10m + (dias - DIAS_STOCK_MUERTO) / 10m;
                     if (desc < 10m) desc = 10m;
@@ -99,7 +107,9 @@ namespace BLL
                 });
             }
 
-            // 2) Combos: cada top-seller con un producto parado (preferentemente misma categoría)
+            // 2) Combos: emparejar cada top-seller con un producto parado para "empujarlo".
+            // Se prefiere un parado de la MISMA categoría; si no hay, se toma cualquiera. El pool evita
+            // usar dos veces el mismo producto muerto.
             var pool = new List<BE_ReporteInteligente_GO44>(muertos);
             foreach (var top in topSellers.Take(5))
             {

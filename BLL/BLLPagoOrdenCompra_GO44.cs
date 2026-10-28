@@ -21,6 +21,7 @@ namespace BLL
             _dalOC = new DALOrdenCompra_GO44();
         }
 
+        /// <summary>Resultados posibles del pago de una OC (éxito o motivo del rechazo).</summary>
         public enum ResultadoPago
         {
             Exitoso,
@@ -32,6 +33,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Resultado de PagarOrden: estado, el pago registrado y un mensaje para la UI.</summary>
         public class PagoVO
         {
             public ResultadoPago Resultado { get; set; }
@@ -39,6 +41,7 @@ namespace BLL
             public string Mensaje { get; set; }
         }
 
+        /// <summary>Registra un evento del módulo Compras en la bitácora (best-effort).</summary>
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
             try
@@ -50,6 +53,11 @@ namespace BLL
             catch { }
         }
 
+        /// <summary>
+        /// Registra el pago de una OC (CU09). Valida que exista, que esté Pendiente, que haya sesión, que el
+        /// monto cubra el total y que venga el comprobante. Completa los datos bancarios desde el proveedor
+        /// (snapshot) y, en UNA transacción, inserta el pago y pasa la OC a "Pagada". Ante error, rollback total.
+        /// </summary>
         public PagoVO PagarOrden(BE_OrdenCompra_GO44 orden, BE_PagoOrdenCompra_GO44 pago)
         {
             var vo = new PagoVO();
@@ -134,6 +142,7 @@ namespace BLL
             }
         }
 
+        /// <summary>Devuelve el pago registrado de una OC (null si no se pagó). Usado para reimprimir el comprobante.</summary>
         public BE_PagoOrdenCompra_GO44 BuscarPagoDeOrden(int idOrdenCompra) => _dal.BuscarPorOrden(idOrdenCompra);
     }
 }

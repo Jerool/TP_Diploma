@@ -24,6 +24,7 @@ namespace BLL
             _dalSC = new DALSolicitudCotizacion_GO44();
         }
 
+        /// <summary>Resultados posibles de generar una OC (éxito o motivo del rechazo).</summary>
         public enum ResultadoGeneracion
         {
             Exitoso,
@@ -35,6 +36,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Resultado de GenerarOrden: estado, la OC generada (con su número) y un mensaje.</summary>
         public class GeneracionVO
         {
             public ResultadoGeneracion Resultado { get; set; }
@@ -42,6 +44,7 @@ namespace BLL
             public string Mensaje { get; set; }
         }
 
+        /// <summary>Registra un evento del módulo Compras en la bitácora (best-effort).</summary>
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
             try
@@ -53,6 +56,12 @@ namespace BLL
             catch { }
         }
 
+        /// <summary>
+        /// Genera una Orden de Compra (CU08). Valida líneas, proveedor, sesión, precios (&gt; 0), cantidades
+        /// y fecha de entrega (no pasada). Recalcula el total y persiste encabezado + líneas en UNA transacción;
+        /// si la OC viene de una SC, en la misma tx marca esa SC como "Cotizada". Tras el commit toma el número
+        /// de OC generado por el SP y audita. Ante cualquier fallo, rollback total.
+        /// </summary>
         public GeneracionVO GenerarOrden(BE_OrdenCompra_GO44 oc)
         {
             var vo = new GeneracionVO();
@@ -151,11 +160,14 @@ namespace BLL
             }
         }
 
+        /// <summary>Lista todas las OC.</summary>
         public List<BE_OrdenCompra_GO44> Listar() => _dal.Listar();
 
+        /// <summary>Lista las OC en un estado dado (ej. Pagada, para la pantalla de Recepción). Convierte el enum a texto para la DAL.</summary>
         public List<BE_OrdenCompra_GO44> ListarPorEstado(BE_OrdenCompra_GO44.EstadoOrden estado)
             => _dal.ListarPorEstado(estado.ToString());
 
+        /// <summary>Trae una OC completa por Id.</summary>
         public BE_OrdenCompra_GO44 BuscarPorId(int id) => _dal.BuscarPorId(id);
     }
 }

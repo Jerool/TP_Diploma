@@ -14,6 +14,7 @@ namespace BLL
     /// </summary>
     public class BLLCobro_GO44
     {
+        /// <summary>Resultados posibles de validar un cobro (Ok o el motivo del rechazo).</summary>
         public enum ResultadoValidacion
         {
             Ok,
@@ -27,6 +28,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Resultado de preparar un cobro: estado, el objeto Cobro listo (sin persistir) y un mensaje.</summary>
         public class ValidacionCobroVO
         {
             public ResultadoValidacion Resultado { get; set; }
@@ -36,6 +38,10 @@ namespace BLL
 
         // ============ Cobro EFECTIVO ============
 
+        /// <summary>
+        /// Valida un pago en efectivo: lo único que exige es que lo entregado alcance el total.
+        /// Devuelve el Cobro armado (en memoria) y, en el mensaje, el vuelto calculado.
+        /// </summary>
         public ValidacionCobroVO PrepararCobroEfectivo(decimal montoAPagar, decimal montoEntregado)
         {
             ValidacionCobroVO vo = new ValidacionCobroVO();
@@ -59,13 +65,18 @@ namespace BLL
 
         // ============ Cobro TARJETA ============
 
+        /// <summary>
+        /// Valida un pago con tarjeta, paso a paso: formato del número (13-19 dígitos) y checksum de Luhn,
+        /// mes/año de vencimiento (que no esté vencida), CVV, titular completo y banco. Si todo pasa, simula
+        /// la autorización bancaria y arma el Cobro guardando el número ENMASCARADO (nunca el real).
+        /// </summary>
         public ValidacionCobroVO PrepararCobroTarjeta(decimal montoAPagar,
             string nroTarjeta, string mesVenc, string anioVenc, string cvv,
             string titularNombre, string titularApellido, string banco)
         {
             ValidacionCobroVO vo = new ValidacionCobroVO();
 
-            // Sacar espacios y guiones
+            // Normalizar: sacar espacios y guiones antes de validar.
             string nro = (nroTarjeta ?? "").Replace(" ", "").Replace("-", "");
 
             if (!Regex.IsMatch(nro, @"^\d{13,19}$"))
@@ -170,6 +181,7 @@ namespace BLL
             return sum % 10 == 0;
         }
 
+        /// <summary>Enmascara la tarjeta dejando solo los últimos 4 dígitos (lo único que se guarda, por seguridad).</summary>
         private static string Enmascarar(string nro)
         {
             if (string.IsNullOrEmpty(nro) || nro.Length < 4) return "****";
@@ -177,6 +189,7 @@ namespace BLL
             return "****-****-****-" + ult4;
         }
 
+        /// <summary>Simula la autorización del banco (devuelve un código AUTH-...). Rechaza las que terminan en "0000" para poder probar el flujo alternativo.</summary>
         private static string SimularAutorizacionBancaria(string nro, decimal monto)
         {
             // Placeholder — en producción se llama a pasarela real (Prisma, Mercado Pago, etc.)

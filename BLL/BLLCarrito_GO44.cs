@@ -27,6 +27,7 @@ namespace BLL
             _bllCliente    = new BLLCliente_GO44();
         }
 
+        /// <summary>Cada forma en que puede terminar la confirmación del carrito (éxito o el motivo del rechazo).</summary>
         public enum ResultadoConfirmacion
         {
             Exitoso,
@@ -38,6 +39,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Resultado de ConfirmarCarrito: el estado, el Id generado, el componente problemático (si hubo) y un mensaje para la UI.</summary>
         public class ConfirmacionCarritoVO
         {
             public ResultadoConfirmacion Resultado { get; set; }
@@ -46,6 +48,7 @@ namespace BLL
             public string Mensaje { get; set; }
         }
 
+        /// <summary>Registra un evento en la bitácora (best-effort: si falla, no interrumpe la venta).</summary>
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
             try
@@ -204,6 +207,7 @@ namespace BLL
             return c;
         }
 
+        /// <summary>Trae un carrito persistido por Id (delega en la DAL).</summary>
         public BE_Carrito_GO44 BuscarPorId(int id)
         {
             return _dalCarrito.BuscarPorId(id);

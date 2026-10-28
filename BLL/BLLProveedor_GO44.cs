@@ -19,6 +19,7 @@ namespace BLL
             _dal = new DALProveedor_GO44();
         }
 
+        /// <summary>Resultados posibles del alta de proveedor: uno por cada campo que puede fallar, más éxito y error genérico.</summary>
         public enum ResultadoRegistro
         {
             Exitoso,
@@ -34,6 +35,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Resultado de Registrar: el estado, el proveedor creado y un mensaje para la UI.</summary>
         public class RegistroVO
         {
             public ResultadoRegistro Resultado { get; set; }
@@ -41,6 +43,7 @@ namespace BLL
             public string Mensaje { get; set; }
         }
 
+        /// <summary>Registra un evento de auditoría del módulo Proveedor (best-effort).</summary>
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
             try
@@ -52,11 +55,16 @@ namespace BLL
             catch { /* best-effort */ }
         }
 
+        /// <summary>
+        /// Da de alta un proveedor (CU07). Primero valida campo por campo (reutilizando Validaciones_GO44)
+        /// devolviendo el enum correspondiente al primero que falle; luego controla CUIT duplicado e inserta.
+        /// </summary>
         public RegistroVO Registrar(BE_Proveedor_GO44 prov)
         {
             var vo = new RegistroVO();
 
-            // Validaciones delegadas a Servicios.Validaciones_GO44 (reutilización)
+            // Validaciones delegadas a Servicios.Validaciones_GO44 (reutilización).
+            // Cada línea corta y devuelve apenas un campo no cumple (patrón "guard clauses").
             if (!Validaciones_GO44.EsCuitValido(prov.CUIT))      { vo.Resultado = ResultadoRegistro.CuitInvalido;     return vo; }
             if (!Validaciones_GO44.EsNombreValido(prov.Nombre))  { vo.Resultado = ResultadoRegistro.NombreInvalido;   return vo; }
             if (!Validaciones_GO44.EsApellidoValido(prov.Apellido)) { vo.Resultado = ResultadoRegistro.ApellidoInvalido; return vo; }
@@ -100,8 +108,10 @@ namespace BLL
             }
         }
 
+        /// <summary>Lista los proveedores activos (delegación directa a la DAL).</summary>
         public List<BE_Proveedor_GO44> ListarActivos() => _dal.ListarActivos();
 
+        /// <summary>Busca un proveedor por CUIT (lo usa Pagar OC para traer sus datos bancarios).</summary>
         public BE_Proveedor_GO44 BuscarPorCUIT(string cuit) => _dal.BuscarPorCUIT(cuit);
     }
 }

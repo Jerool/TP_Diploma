@@ -7,19 +7,27 @@ using System.Text;
 
 namespace BLL
 {
-
+    /// <summary>
+    /// Generador de PDF hecho a mano, sin librerías externas: escribe el formato PDF 1.4 byte a byte.
+    /// Produce un reporte tabular genérico (título, subtítulo y una tabla con encabezados y filas) con
+    /// paginación automática. Un PDF es una lista de "objetos" numerados (catálogo, páginas, fuentes y
+    /// los "contents" con las instrucciones de dibujo), más una tabla de posiciones (xref) al final que
+    /// dice en qué byte arranca cada objeto. Esta clase arma todo eso.
+    /// </summary>
     public class GeneradorPdf_GO44
     {
+        // Dimensiones en "puntos" (1/72 pulgada). 792x612 = carta apaisado (landscape).
         private const int ANCHO_PAGINA = 792;
         private const int ALTO_PAGINA = 612;
         private const int MARGEN = 50;
         private const int ALTO_FILA = 18;
-        private const int FILAS_POR_PAGINA = 22;
+        private const int FILAS_POR_PAGINA = 22;   // cuántas filas entran antes de saltar de página
 
+        // Cultura invariante: fuerza el punto como separador decimal (el PDF no entiende comas).
         private static readonly CultureInfo INV = CultureInfo.InvariantCulture;
 
-        private MemoryStream _buffer;
-        private List<long> _offsetsObjetos;
+        private MemoryStream _buffer;          // acá se va armando el PDF en memoria
+        private List<long> _offsetsObjetos;    // posición (byte) donde arranca cada objeto, para la xref
 
         /// <summary>
         /// Genera el PDF y lo devuelve como byte[] (útil para adjuntar en emails
@@ -33,6 +41,7 @@ namespace BLL
             return _buffer.ToArray();
         }
 
+        /// <summary>Igual que GenerarBytes pero guarda el PDF directo en un archivo (para "exportar a PDF").</summary>
         public void Generar(string ruta, string titulo, string subtitulo,
                             string[] headers, float[] anchosProporcionales,
                             List<string[]> filas)
@@ -41,6 +50,13 @@ namespace BLL
             File.WriteAllBytes(ruta, _buffer.ToArray());
         }
 
+        /// <summary>
+        /// Arma el PDF completo en el buffer. Primero calcula cuántas páginas hacen falta y reserva un
+        /// número de objeto (Id) para cada parte: catálogo, lista de páginas, una página por hoja, las dos
+        /// fuentes y un "contents" por hoja. Después escribe esos objetos, dibuja cada página y cierra con
+        /// la tabla xref y el trailer. El orden de los Id es fijo para poder referenciarlos entre objetos.
+        /// </summary>
+        /// <param name="anchosProporcionales">Ancho de cada columna como fracción (0..1) del ancho útil; deben sumar ~1.</param>
         private void GenerarInterno(string titulo, string subtitulo,
                                     string[] headers, float[] anchosProporcionales,
                                     List<string[]> filas)
@@ -48,8 +64,10 @@ namespace BLL
             _buffer = new MemoryStream();
             _offsetsObjetos = new List<long>();
 
+            // Techo de la división: si hay 23 filas y entran 22 por página → 2 páginas.
             int totalPaginas = Math.Max(1, (int)Math.Ceiling((double)filas.Count / FILAS_POR_PAGINA));
 
+            // Reserva de Ids (numeración fija): catálogo, páginas, N páginas, 2 fuentes, N contents.
             int idCatalog = 1;
             int idPages = 2;
             int primerIdPagina = 3;
@@ -80,9 +98,11 @@ namespace BLL
             EscribirObjeto(idFontBold,
                 "<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding>>");
 
+            // Convertir los anchos proporcionales (fracciones) a puntos reales según el ancho útil.
             float anchoUtil = ANCHO_PAGINA - 2 * MARGEN;
             float[] anchos = anchosProporcionales.Select(pct => pct * anchoUtil).ToArray();
 
+            // Dibujar cada página: su porción de filas. 'content' acumula las instrucciones de dibujo PDF.
             for (int p = 0; p < totalPaginas; p++)
             {
                 int idContents = primerIdContents + p;
@@ -90,6 +110,8 @@ namespace BLL
                 int filaFin = Math.Min(filaInicio + FILAS_POR_PAGINA, filas.Count);
 
                 StringBuilder content = new StringBuilder();
+                // En PDF el origen (0,0) está abajo-izquierda, así que se dibuja de arriba hacia abajo
+                // bajando 'yActual'. Arranca pegado al margen superior.
                 int yActual = ALTO_PAGINA - MARGEN;
 
                 content.Append("BT\n");
@@ -148,6 +170,8 @@ namespace BLL
                     for (int c = 0; c < headers.Length; c++)
                     {
                         string val = c < valores.Length ? (valores[c] ?? "") : "";
+                        // Recorte simple para que el texto no se desborde de su columna: estima cuántos
+                        // caracteres entran (~5 pt c/u) y si se pasa lo corta y le pone un punto.
                         int maxChars = (int)(anchos[c] / 5);
                         if (val.Length > maxChars && maxChars > 1)
                             val = val.Substring(0, maxChars - 1) + ".";
@@ -175,6 +199,7 @@ namespace BLL
             EscribirTrailer(idCatalog, xrefOffset);
         }
 
+        /// <summary>Escribe el encabezado del PDF: la versión y una línea de bytes binarios que marca que el archivo no es solo texto.</summary>
         private void EscribirHeader()
         {
             EscribirBytes("%PDF-1.4\n");
@@ -182,6 +207,10 @@ namespace BLL
             _buffer.Write(binario, 0, binario.Length);
         }
 
+        /// <summary>
+        /// Escribe un objeto PDF "N 0 obj ... endobj", anotando antes en qué byte arranca (lo necesita la xref).
+        /// El while asegura que la lista de offsets tenga lugar para este Id aunque se escriban fuera de orden.
+        /// </summary>
         private void EscribirObjeto(int id, string contenido)
         {
             while (_offsetsObjetos.Count < id) _offsetsObjetos.Add(0);
@@ -189,6 +218,10 @@ namespace BLL
             EscribirBytes($"{id} 0 obj\n{contenido}\nendobj\n");
         }
 
+        /// <summary>
+        /// Como EscribirObjeto, pero para un objeto con "stream" (el contenido de dibujo de una página).
+        /// Debe declarar /Length con la cantidad exacta de bytes del stream, por eso se calcula primero.
+        /// </summary>
         private void EscribirStreamObjeto(int id, string contenidoStream)
         {
             byte[] streamBytes = Encoding.GetEncoding(1252).GetBytes(contenidoStream);
@@ -201,6 +234,11 @@ namespace BLL
             EscribirBytes("\nendstream\nendobj\n");
         }
 
+        /// <summary>
+        /// Escribe la tabla de referencias cruzadas (xref): una línea por objeto con su posición en bytes
+        /// (10 dígitos). Es lo que permite al lector de PDF saltar directo a cualquier objeto. La primera
+        /// entrada (objeto 0) es siempre la "libre" especial.
+        /// </summary>
         private void EscribirXref()
         {
             int total = _offsetsObjetos.Count + 1;
@@ -213,6 +251,7 @@ namespace BLL
             }
         }
 
+        /// <summary>Escribe el cierre del PDF: el trailer (apunta al catálogo), dónde empieza la xref (startxref) y el marcador %%EOF.</summary>
         private void EscribirTrailer(int idCatalog, long xrefOffset)
         {
             int total = _offsetsObjetos.Count + 1;
@@ -221,12 +260,17 @@ namespace BLL
             EscribirBytes("%%EOF\n");
         }
 
+        /// <summary>Escribe un string al buffer usando el codepage 1252 (Windows-ANSI), que es el encoding que declaran las fuentes.</summary>
         private void EscribirBytes(string s)
         {
             byte[] bytes = Encoding.GetEncoding(1252).GetBytes(s);
             _buffer.Write(bytes, 0, bytes.Length);
         }
 
+        /// <summary>
+        /// Escapa los caracteres especiales del texto para el formato PDF: la barra invertida y los
+        /// paréntesis (que delimitan las cadenas). Sin esto, un "(" en un nombre rompería el archivo.
+        /// </summary>
         private string EscaparTexto(string s)
         {
             if (s == null) return "";

@@ -4,12 +4,13 @@ using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Text.RegularExpressions;
 
 namespace BLL
 {
     /// <summary>
-    /// BLL de Cliente — implementa el CU02 Registrar Cliente.
+    /// BLL de Cliente — implementa el CU02 Registrar Cliente y el mantenimiento de clientes.
+    /// Acá viven las reglas de negocio: validaciones de DNI/email/teléfono, control de duplicados
+    /// y auditoría. La persistencia se delega siempre en la DAL.
     /// </summary>
     public class BLLCliente_GO44
     {
@@ -22,6 +23,7 @@ namespace BLL
             _bllIntegridad = new BLLIntegridad_GO44();
         }
 
+        /// <summary>Resultados posibles del alta de cliente (éxito o motivo del rechazo).</summary>
         public enum ResultadoRegistroCliente
         {
             Exitoso,
@@ -46,18 +48,25 @@ namespace BLL
             catch { /* la bitácora es best-effort; no debe romper la operación principal */ }
         }
 
+        /// <summary>Reordena el dígito verificador de Clientes tras un cambio (best-effort).</summary>
         private void RecalcularCliente()
         {
             try { _bllIntegridad.RecalcularTabla("Clientes"); } catch { }
         }
 
-        // Reutiliza el validador de Servicios (única fuente de verdad para las reglas)
+        // Reutiliza el validador de Servicios (única fuente de verdad para las reglas de formato).
+        // Teléfono es opcional: vacío se considera válido.
         private static bool EmailValido(string email) => Validaciones_GO44.EsEmailValido(email);
         private static bool DniValido(string dni)     => Validaciones_GO44.EsDniValido(dni);
         private static bool TelefonoValido(string t)  => string.IsNullOrWhiteSpace(t) || Validaciones_GO44.EsTelefonoValido(t);
 
         // ============ CU02 Registrar Cliente ============
 
+        /// <summary>
+        /// Da de alta un cliente aplicando, en orden, las reglas del CU02: DNI no vacío, nombre y apellido
+        /// presentes, email con formato válido, y sin duplicados de DNI/email/teléfono. Devuelve un enum
+        /// con lo que pasó y audita el alta o cada rechazo.
+        /// </summary>
         public ResultadoRegistroCliente RegistrarCliente(string dni, string apellido, string nombre, string email, string telefono)
         {
             try
@@ -123,6 +132,7 @@ namespace BLL
 
         // ============ Consultas y utilidades ============
 
+        /// <summary>Indica si ya existe un cliente con ese DNI (delegación directa a la DAL).</summary>
         public bool ExisteDNI(string dni)
         {
             return _dalCliente.ExisteDNI(dni);
@@ -179,16 +189,19 @@ namespace BLL
             return false;
         }
 
+        /// <summary>Busca un cliente por DNI (null si no existe).</summary>
         public BE_Cliente_GO44 BuscarPorDNI(string dni)
         {
             return _dalCliente.BuscarPorDNI(dni);
         }
 
+        /// <summary>Lista todos los clientes.</summary>
         public List<BE_Cliente_GO44> Listar()
         {
             return _dalCliente.Listar();
         }
 
+        /// <summary>Cambia el email de un cliente validando formato y que no lo use otro cliente. Audita y recalcula integridad.</summary>
         public bool ModificarEmail(string dni, string email)
         {
             if (!EmailValido(email)) return false;
@@ -209,6 +222,7 @@ namespace BLL
             return filas > 0;
         }
 
+        /// <summary>Activa o desactiva (baja lógica) un cliente. Audita y recalcula integridad.</summary>
         public bool ActivarDesactivar(string dni, bool activo)
         {
             int filas = _dalCliente.ActivarDesactivar(dni, activo);

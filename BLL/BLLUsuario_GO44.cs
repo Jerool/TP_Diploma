@@ -2,18 +2,21 @@ using DAL;
 using Servicios;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BLL
 {
-
+    /// <summary>
+    /// BLL del USUARIO / autenticación. Concentra las reglas de seguridad del login:
+    /// verificación de credenciales (contra la contraseña cifrada), bloqueo por intentos fallidos
+    /// dentro de una ventana de tiempo, alta de usuarios con login y contraseña inicial derivados,
+    /// cambio de contraseña, desbloqueo e idioma. Audita todo y delega la persistencia en la DAL.
+    /// </summary>
     public class BLLUsuario_GO44
     {
         private readonly DALUsuario_GO44 _DALUsuario;
         private readonly BLLIntegridad_GO44 _bllIntegridad;
+
+        // Reglas de bloqueo: a los 3 intentos fallidos dentro de 1 hora, la cuenta se bloquea.
         public const int MAX_INTENTOS = 3;
         private static readonly TimeSpan VENTANA_INTENTOS = TimeSpan.FromHours(1);
 
@@ -23,11 +26,13 @@ namespace BLL
             _bllIntegridad = new BLLIntegridad_GO44();
         }
 
+        /// <summary>Reordena el dígito verificador de la tabla Usuario tras un cambio (best-effort).</summary>
         private void RecalcularUsuario()
         {
             try { _bllIntegridad.RecalcularTabla("Usuario"); } catch { }
         }
 
+        /// <summary>Formas posibles en que termina un intento de login (éxito o el motivo exacto del rechazo).</summary>
         public enum ResultadoLogin
         {
             Exitoso,
@@ -49,6 +54,12 @@ namespace BLL
             catch { /* la bitácora es best-effort; no debe romper la operación principal */ }
         }
 
+        /// <summary>
+        /// Intenta autenticar a un usuario. Flujo: no debe haber sesión activa; el usuario debe existir,
+        /// no estar bloqueado ni inactivo; la contraseña (cifrada) debe coincidir. Si no coincide, suma un
+        /// intento fallido y, al llegar a MAX_INTENTOS dentro de la ventana, bloquea la cuenta. Si todo OK,
+        /// resetea los intentos, carga el árbol de permisos del rol, inicia la sesión y aplica su idioma.
+        /// </summary>
         public ResultadoLogin IntentarLogin(string login, string contrasena)
         {
             try
@@ -85,10 +96,10 @@ namespace BLL
                     return ResultadoLogin.UsuarioInactivo;
                 }
 
+                // Se cifra lo ingresado y se compara con lo guardado (nunca se descifra la contraseña real).
                 string contrasenaCifrada = Encriptador_GO44.Instancia.EncriptarContrasena(contrasena);
                 if (usuario.Contrasena != contrasenaCifrada)
                 {
-
                     int nuevosIntentos = CalcularNuevosIntentos(usuario);
                     DateTime ahora = DateTime.Now;
 
@@ -135,6 +146,11 @@ namespace BLL
 
         }
 
+        /// <summary>
+        /// Calcula cuántos intentos fallidos lleva el usuario. Si el último intento fue hace poco (dentro
+        /// de la ventana de 1 hora), suma 1 al contador; si ya pasó mucho tiempo (o nunca falló), arranca de 1.
+        /// Así los intentos viejos no se acumulan indefinidamente.
+        /// </summary>
         private int CalcularNuevosIntentos(Usuario_GO44 usuario)
         {
             try
@@ -154,18 +170,16 @@ namespace BLL
 
         }
 
+        // Consultas simples que delegan directo en la DAL (sin reglas de negocio extra).
         public List<Usuario_GO44> ListarActivos() => _DALUsuario.ListarActivos();
         public List<Usuario_GO44> ListarTodos() => _DALUsuario.ListarTodos();
-
         public List<Rol_GO44> ListarRoles() => _DALUsuario.ListarRoles();
-
         public Usuario_GO44 BuscarPorLogin(string login) => _DALUsuario.BuscarPorLogin(login);
-
         public bool ExisteDNI(string dni) => _DALUsuario.ExisteDNI(dni);
 
+        /// <summary>Cambia el idioma de la app y, si hay usuario logueado, lo persiste como su preferencia y audita el cambio.</summary>
         public void CambiarIdioma(string codigoIdioma)
         {
-
             Usuario_GO44 actual = SessionManager_GO44.Instancia.ObtenerUsuarioActual();
             string idiomaAnterior = actual != null
                 ? (actual.Idioma ?? IdiomaManager_GO44.Instancia.IdiomaActual)
@@ -186,6 +200,10 @@ namespace BLL
             }
         }
 
+        /// <summary>
+        /// Desbloquea una cuenta (acción de administrador) y le resetea la contraseña a una inicial
+        /// derivada: nombre en minúscula + últimos 3 dígitos del DNI. El usuario deberá cambiarla al entrar.
+        /// </summary>
         public void Desbloquear(string dni, string login)
         {
             Usuario_GO44 usuario = _DALUsuario.BuscarPorLogin(login);
@@ -198,6 +216,7 @@ namespace BLL
             RecalcularUsuario();
         }
 
+        /// <summary>Activa o desactiva (baja lógica) un usuario. Audita y recalcula integridad.</summary>
         public void ActivarDesactivar(string dni, bool activo)
         {
             _DALUsuario.ActivarDesactivar(dni, activo);
@@ -206,6 +225,7 @@ namespace BLL
             RecalcularUsuario();
         }
 
+        /// <summary>Cambia el email de un usuario. Audita y recalcula integridad.</summary>
         public void ModificarEmail(string dni, string email)
         {
             _DALUsuario.ModificarEmail(dni, email);
@@ -213,6 +233,7 @@ namespace BLL
             RecalcularUsuario();
         }
 
+        /// <summary>Cambia el rol (permisos) de un usuario. Exige rol válido. Audita y recalcula integridad.</summary>
         public void ModificarRol(string dni, Rol_GO44 rol)
         {
             if (rol == null) throw new Exception(IdiomaManager_GO44.T("err.rolValido"));
@@ -220,6 +241,11 @@ namespace BLL
             Auditar(SessionManager_GO44.Instancia.ObtenerUsuarioActual().Login, "Admin","Rol modificado", $"DNI {dni} -> rol {rol.Nombre}", "Media");
             RecalcularUsuario();
         }
+        /// <summary>
+        /// Da de alta un usuario. Valida rol y DNI no duplicado. El login y la contraseña inicial se
+        /// derivan igual: nombre en minúscula + últimos 3 del DNI (controlando que el login no exista).
+        /// El usuario queda obligado a cambiar la contraseña en el primer ingreso (lo marca la DAL).
+        /// </summary>
         public void CrearUsuario(string dni, string apellido, string nombre, string email, Rol_GO44 rol)
         {
             if (rol == null)
@@ -253,6 +279,7 @@ namespace BLL
             RecalcularUsuario();
         }
 
+        /// <summary>Resultados posibles del cambio de contraseña.</summary>
         public enum ResultadoCambioContrasena
         {
             Exitoso,
@@ -262,6 +289,11 @@ namespace BLL
             NuevaIgualActual
         }
 
+        /// <summary>
+        /// Cambia la contraseña validando: que la nueva y su confirmación coincidan, que no sea igual a la
+        /// actual, que el usuario exista y que la contraseña actual ingresada sea correcta. Todo se compara
+        /// en su forma cifrada. Si pasa, guarda la nueva (cifrada) y audita.
+        /// </summary>
         public ResultadoCambioContrasena CambiarContrasena(string login, string contrasenaActual, string nuevaContrasena, string confirmarContrasena)
         {
             try
@@ -294,6 +326,7 @@ namespace BLL
             }
         }
 
+        /// <summary>Cierra la sesión: audita el logout, limpia el usuario actual y vuelve el idioma al español por defecto.</summary>
         public static void CerrarSesión()
         {
             BLLUsuario_GO44 bll = new BLLUsuario_GO44();

@@ -6,7 +6,16 @@ using System.Linq;
 
 namespace BLL
 {
-
+    /// <summary>
+    /// BLL de PERMISOS: el ABM de Roles y Familias del árbol de permisos (patrón Composite).
+    /// Es la clase con más reglas de negocio del módulo de seguridad. Además del alta/baja/modificación,
+    /// impone dos reglas clave sobre la composición de permisos:
+    ///  - NO redundancia: una patente no puede llegar dos veces (ni directa + por familia, ni por dos
+    ///    familias/subfamilias hermanas, ni a través de ancestros).
+    ///  - NO duplicación: no pueden existir dos roles/familias con exactamente el mismo conjunto de
+    ///    patentes "efectivas" (las que quedan al expandir todo el árbol).
+    /// También evita ciclos (una familia que termine conteniéndose a sí misma).
+    /// </summary>
     public class BLLPermisos_GO44
     {
         private readonly DALPatente_GO44 _dalPatente;
@@ -22,6 +31,7 @@ namespace BLL
             _bllIntegridad = new BLLIntegridad_GO44();
         }
 
+        /// <summary>Recalcula el dígito verificador de las 3 tablas de familias tras un cambio (best-effort).</summary>
         private void RecalcularFamilias()
         {
             if (BLLIntegridad_GO44.IntegridadConocidamenteRota) return;
@@ -33,6 +43,7 @@ namespace BLL
             } catch { }
         }
 
+        /// <summary>Recalcula el dígito verificador de las 3 tablas de roles tras un cambio (best-effort).</summary>
         private void RecalcularRoles()
         {
             if (BLLIntegridad_GO44.IntegridadConocidamenteRota) return;
@@ -55,6 +66,7 @@ namespace BLL
             catch { }
         }
 
+        // Listados simples y obtención de árboles (delegan en las DAL correspondientes).
         public List<Patente_GO44> ListarPatentes() => _dalPatente.ListarTodas();
         public List<Familia_GO44> ListarFamilias() => _dalFamilia.ListarTodasPlanas();
         public List<Rol_GO44> ListarRoles()      => _dalRol.ListarTodos();
@@ -62,6 +74,11 @@ namespace BLL
         public Familia_GO44 ObtenerArbolFamilia(int idFamilia) => _dalFamilia.ObtenerArbol(idFamilia);
         public Rol_GO44     ObtenerArbolRol(int idRol)         => _dalRol.ObtenerArbol(idRol);
 
+        /// <summary>
+        /// Crea una familia validando, en orden: nombre obligatorio y no duplicado, que tenga contenido
+        /// (al menos una patente o subfamilia), que no haya patentes redundantes, y que no exista ya otra
+        /// familia con la misma composición efectiva. Recién entonces la persiste, audita y recalcula integridad.
+        /// </summary>
         public int CrearFamilia(string nombre, List<int> idsPatentes, List<int> idsSubfamilias)
         {
             if (string.IsNullOrWhiteSpace(nombre))
@@ -70,6 +87,7 @@ namespace BLL
             if (_dalFamilia.ListarTodasPlanas().Any(f => f.Nombre.Equals(nombre, StringComparison.OrdinalIgnoreCase)))
                 throw new Exception(string.Format(IdiomaManager_GO44.T("err.familiaNombreDuplicado"), nombre));
 
+            // Normalizar las listas: sin nulls, sin repetidos y ordenadas.
             idsPatentes    = (idsPatentes ?? new List<int>()).Distinct().OrderBy(i => i).ToList();
             idsSubfamilias = (idsSubfamilias ?? new List<int>()).Distinct().OrderBy(i => i).ToList();
 
@@ -78,6 +96,8 @@ namespace BLL
 
             ValidarRedundanciaPatentesYSubfamilias(idsPatentes, idsSubfamilias);
 
+            // "Patentes efectivas" = todas las que quedan al expandir subfamilias; si otra familia ya tiene
+            // exactamente ese conjunto, sería un duplicado funcional y se rechaza.
             HashSet<int> patentesEfectivasNueva = ConstruirPatentesEfectivas(idsPatentes, idsSubfamilias);
             Familia_GO44 equivalente = BuscarFamiliaConMismasPatentesEfectivas(patentesEfectivasNueva);
             if (equivalente != null)
@@ -91,6 +111,11 @@ namespace BLL
             return idCreada;
         }
 
+        /// <summary>
+        /// Verifica que no haya patentes redundantes al armar una familia. Dos casos:
+        /// (a) una patente directa que ya aporta alguna subfamilia; (b) dos subfamilias hermanas que
+        /// comparten una patente. En ambos lanza excepción con el nombre de la patente y las familias en conflicto.
+        /// </summary>
         private void ValidarRedundanciaPatentesYSubfamilias(List<int> idsPatentes, List<int> idsSubfamilias)
         {
             // ── (a) Patente directa que ya viene por alguna subfamilia ──
@@ -148,6 +173,12 @@ namespace BLL
             }
         }
 
+        /// <summary>
+        /// Al MODIFICAR una familia, chequea que su nuevo conjunto de patentes efectivas no genere
+        /// redundancias "hacia arriba": recorre todas las familias y roles que la contienen (directa o
+        /// transitivamente) y verifica que ninguna patente nueva ya les llegue por otro camino. Es la
+        /// validación más costosa porque recorre todo el árbol de ancestros.
+        /// </summary>
         private void ValidarRedundanciaEnAscendentesFamilia(int idFamiliaModificada, HashSet<int> nuevasEfectivas)
         {
             foreach (var famAncestro in _dalFamilia.ListarTodasPlanas())
@@ -231,6 +262,7 @@ namespace BLL
             }
         }
 
+        /// <summary>Indica (recursivamente) si un rol contiene una familia, en cualquier nivel de su árbol.</summary>
         private bool RolContieneFamiliaRec(Rol_GO44 rol, int idFamiliaBuscada)
         {
             if (rol == null) return false;
@@ -245,6 +277,10 @@ namespace BLL
             return false;
         }
 
+        /// <summary>
+        /// Calcula el conjunto de patentes "efectivas": las directas más todas las que aportan las
+        /// subfamilias al expandir su árbol. Es la huella real de permisos de una familia/rol.
+        /// </summary>
         private HashSet<int> ConstruirPatentesEfectivas(List<int> idsPatentes, List<int> idsSubfamilias)
         {
             HashSet<int> efectivas = new HashSet<int>(idsPatentes);
@@ -258,6 +294,7 @@ namespace BLL
             return efectivas;
         }
 
+        /// <summary>Busca una familia (distinta de excluirId) cuyo conjunto de patentes efectivas sea idéntico al dado. SetEquals compara los dos conjuntos sin importar el orden.</summary>
         private Familia_GO44 BuscarFamiliaConMismasPatentesEfectivas(HashSet<int> patentesEfectivas, int excluirId = 0)
         {
             foreach (var fam in _dalFamilia.ListarTodasPlanas())
@@ -272,6 +309,7 @@ namespace BLL
             return null;
         }
 
+        /// <summary>Elimina una familia solo si nadie la usa: rechaza (con la lista de culpables) si algún rol o familia la contiene.</summary>
         public void EliminarFamilia(int idFamilia)
         {
             List<string> rolesQueLaUsan = _dalFamilia.NombresRolesQueUsan(idFamilia);
@@ -295,6 +333,7 @@ namespace BLL
             RecalcularFamilias();
         }
 
+        /// <summary>Crea un rol con las mismas validaciones que CrearFamilia (nombre, contenido, no redundancia, no duplicación), pero sobre roles.</summary>
         public int CrearRol(string nombre, List<int> idsPatentes, List<int> idsFamilias)
         {
             if (string.IsNullOrWhiteSpace(nombre))
@@ -324,6 +363,7 @@ namespace BLL
             return idCreado;
         }
 
+        /// <summary>Versión de ValidarRedundanciaPatentesYSubfamilias para roles: misma lógica (a) patente directa que ya aporta una familia, (b) dos familias hermanas que comparten patente.</summary>
         private void ValidarRedundanciaPatentesYFamilias(List<int> idsPatentes, List<int> idsFamilias)
         {
             // ── (a) Patente directa que ya viene por alguna familia ──
@@ -381,6 +421,7 @@ namespace BLL
             }
         }
 
+        /// <summary>Busca un rol (distinto de excluirId) con el mismo conjunto de patentes efectivas. Equivalente al de familias.</summary>
         private Rol_GO44 BuscarRolConMismasPatentesEfectivas(HashSet<int> patentesEfectivas, int excluirId = 0)
         {
             foreach (var rol in _dalRol.ListarTodos())
@@ -395,6 +436,7 @@ namespace BLL
             return null;
         }
 
+        /// <summary>Elimina un rol solo si no lo usa ningún usuario (si lo usan, rechaza indicando cuántos).</summary>
         public void EliminarRol(int idRol)
         {
             int cantUsuarios = _dalRol.CantidadUsuariosConRol(idRol);
@@ -408,12 +450,21 @@ namespace BLL
             RecalcularRoles();
         }
 
+        /// <summary>
+        /// Pregunta si un rol tiene un permiso concreto (por su DataKey). Arma el árbol del rol y le
+        /// pregunta a él (el Composite resuelve recursivamente). Es lo que usa la UI para habilitar menús.
+        /// </summary>
         public bool TienePermiso(int idRol, string dataKey)
         {
             Rol_GO44 rol = _dalRol.ObtenerArbol(idRol);
             return rol != null && rol.TienePermiso(dataKey);
         }
 
+        /// <summary>
+        /// Modifica una familia. Suma a las validaciones del alta dos controles de ciclo (que no se
+        /// contenga a sí misma ni directa ni transitivamente) y la validación de redundancia hacia los
+        /// ancestros, porque al cambiar sus patentes podría chocar con quien ya la contiene.
+        /// </summary>
         public void ModificarFamilia(int idFamilia, string nombre, List<int> idsPatentes, List<int> idsSubfamilias)
         {
             if (string.IsNullOrWhiteSpace(nombre))
@@ -451,11 +502,6 @@ namespace BLL
             if (equivalente != null)
                 throw new Exception(string.Format(IdiomaManager_GO44.T("err.familiaOtraComposicionDuplicada"), equivalente.Nombre));
 
-
-            if (equivalente != null)
-                throw new Exception(
-                    $"Ya existe otra familia con la misma composición efectiva de patentes: '{equivalente.Nombre}'.");
-
             _dalFamilia.Modificar(idFamilia, nombre, idsPatentes, idsSubfamilias);
             Auditar("Familia modificada",
                     $"IdFamilia: {idFamilia}, Nombre: '{nombre}', Patentes: {idsPatentes.Count}, Subfamilias: {idsSubfamilias.Count}",
@@ -463,6 +509,7 @@ namespace BLL
             RecalcularFamilias();
         }
 
+        /// <summary>Modifica un rol con las mismas validaciones de nombre, contenido, redundancia y no duplicación.</summary>
         public void ModificarRol(int idRol, string nombre, List<int> idsPatentes, List<int> idsFamilias)
         {
             if (string.IsNullOrWhiteSpace(nombre))
@@ -492,6 +539,7 @@ namespace BLL
             RecalcularRoles();
         }
 
+        /// <summary>Indica (recursivamente) si una familia contiene a otra, en cualquier nivel. Base de los chequeos de ciclo y de ancestros.</summary>
         private bool ContieneFamiliaRec(Familia_GO44 nodo, int idBuscado)
         {
             if (nodo == null) return false;

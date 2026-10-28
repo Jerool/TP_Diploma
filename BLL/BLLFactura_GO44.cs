@@ -15,6 +15,7 @@ namespace BLL
     /// </summary>
     public class BLLFactura_GO44
     {
+        // Alícuota de IVA aplicada a toda venta (21%). Constante del negocio, centralizada en un solo lugar.
         private const decimal ALICUOTA_IVA = 0.21m;
 
         private readonly DALFactura_GO44 _dalFactura;
@@ -30,6 +31,7 @@ namespace BLL
             _bllIntegridad = new BLLIntegridad_GO44();
         }
 
+        /// <summary>Formas en que puede terminar la facturación (éxito o motivo del rechazo).</summary>
         public enum ResultadoFactura
         {
             Exitoso,
@@ -41,6 +43,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Resultado de GenerarFacturaYCobrar: estado, la factura y el cobro generados, y un mensaje para la UI.</summary>
         public class FacturaVO
         {
             public ResultadoFactura Resultado { get; set; }
@@ -49,19 +52,22 @@ namespace BLL
             public string Mensaje { get; set; }
         }
 
-        // ============ Consultas para pantalla ============
+        // ============ Consultas para pantalla (delegan en la DAL) ============
 
+        /// <summary>Devuelve el carrito confirmado y sin facturar de un cliente (null si no hay). Base del CU04.</summary>
         public BE_Carrito_GO44 ObtenerCarritoPendiente(string dni)
         {
             if (string.IsNullOrWhiteSpace(dni)) return null;
             return _dalCarrito.BuscarPendientePorDNI(dni);
         }
 
+        /// <summary>Trae una factura completa por Id.</summary>
         public BE_Factura_GO44 BuscarPorId(int id)
         {
             return _dalFactura.BuscarPorId(id);
         }
 
+        /// <summary>Lista facturas con filtros (para el reporte de ventas).</summary>
         public List<BE_Factura_GO44> ListarConFiltros(DateTime? desde, DateTime? hasta, string dni, string estado)
         {
             return _dalFactura.ListarConFiltros(desde, hasta, dni, estado);
@@ -253,12 +259,14 @@ namespace BLL
             return subtotal + iva;
         }
 
+        /// <summary>Retorna solo el monto de IVA de un carrito (para desglosarlo en pantalla).</summary>
         public decimal CalcularIVA(BE_Carrito_GO44 carrito)
         {
             if (carrito == null) return 0m;
             return Math.Round(carrito.Total * ALICUOTA_IVA, 2);
         }
 
+        /// <summary>Expone la alícuota de IVA (0.21) para que la UI la muestre sin hardcodearla.</summary>
         public decimal AlicuotaIVA { get { return ALICUOTA_IVA; } }
     }
 }

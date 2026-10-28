@@ -3,13 +3,13 @@ using DAL;
 using Servicios;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BLL
 {
     /// <summary>
     /// BLL de Componente — implementa el CU03 Seleccionar Componente y provee búsquedas
     /// que consume el CU01 Cargar Carrito para verificar stock antes de agregar líneas.
+    /// Además maneja el ABM de productos. Nunca toca la base directo: todo pasa por su DAL.
     /// </summary>
     public class BLLComponente_GO44
     {
@@ -20,6 +20,7 @@ namespace BLL
             _dalComponente = new DALComponente_GO44();
         }
 
+        /// <summary>Posibles resultados de seleccionar un componente para el carrito (CU03).</summary>
         public enum ResultadoSeleccionComponente
         {
             Exitoso,
@@ -41,6 +42,10 @@ namespace BLL
             public string Mensaje { get; set; }
         }
 
+        /// <summary>
+        /// Registra un evento en la bitácora tomando el usuario de la sesión (o "SISTEMA" si no hay).
+        /// Va en try/catch porque la auditoría es best-effort: si falla, no debe tumbar la operación real.
+        /// </summary>
         private void Auditar(string modulo, string tipoEvento, string detalle, string criticidad)
         {
             try
@@ -54,6 +59,11 @@ namespace BLL
 
         // ============ CU03 Seleccionar Componente (por Id) ============
 
+        /// <summary>
+        /// Valida y selecciona un componente para agregar al carrito. Aplica, en orden, las reglas de
+        /// negocio del CU03: cantidad &gt; 0, que el componente exista, que esté activo y que haya stock.
+        /// Devuelve un VO con el resultado y, si fue exitoso, el componente listo para usar.
+        /// </summary>
         public SeleccionComponenteVO SeleccionarPorId(int idComponente, int cantidad)
         {
             SeleccionComponenteVO vo = new SeleccionComponenteVO();
@@ -82,6 +92,7 @@ namespace BLL
                     return vo;
                 }
 
+                // Última validación: ¿alcanza el stock? Si no, se audita (criticidad media) y se corta.
                 if (!comp.StockDisponible(cantidad))
                 {
                     Auditar("Componente", "Stock insuficiente",
@@ -107,6 +118,10 @@ namespace BLL
 
         // ============ CU03 Seleccionar Componente (por Código / SKU) ============
 
+        /// <summary>
+        /// Igual que SeleccionarPorId pero buscando por código. Si lo encuentra, delega en SeleccionarPorId
+        /// para no repetir las validaciones de stock/estado (reutiliza la misma lógica).
+        /// </summary>
         public SeleccionComponenteVO SeleccionarPorCodigo(string codigo, int cantidad)
         {
             SeleccionComponenteVO vo = new SeleccionComponenteVO();
@@ -128,18 +143,21 @@ namespace BLL
             return SeleccionarPorId(comp.Id, cantidad);
         }
 
-        // ============ Consultas para grillas ============
+        // ============ Consultas para grillas (delegan directo en la DAL) ============
 
+        /// <summary>Lista los componentes activos (para venta).</summary>
         public List<BE_Componente_GO44> ListarActivos()
         {
             return _dalComponente.ListarActivos();
         }
 
+        /// <summary>Lista todos los componentes, incluidos los dados de baja (para el ABM).</summary>
         public List<BE_Componente_GO44> ListarTodos()
         {
             return _dalComponente.ListarTodos();
         }
 
+        /// <summary>Busca un componente por Id.</summary>
         public BE_Componente_GO44 BuscarPorId(int id)
         {
             return _dalComponente.BuscarPorId(id);
@@ -147,6 +165,7 @@ namespace BLL
 
         // ============ ABM Productos ============
 
+        /// <summary>Posibles resultados del alta de un producto.</summary>
         public enum ResultadoAltaProducto
         {
             Exitoso,
@@ -157,6 +176,7 @@ namespace BLL
             Error
         }
 
+        /// <summary>Sobrecarga de Auditar fija al módulo "Componente" (azúcar para el ABM, que siempre audita ahí).</summary>
         private void Auditar(string tipoEvento, string detalle, string criticidad)
         {
             try
@@ -168,11 +188,16 @@ namespace BLL
             catch { /* la bitácora es best-effort; no debe romper la operación principal */ }
         }
 
+        /// <summary>
+        /// Da de alta un producto validando los datos (código y nombre obligatorios, precio y stock no
+        /// negativos, código no duplicado). Devuelve un enum que indica qué pasó. Audita el alta o el rechazo.
+        /// </summary>
         public ResultadoAltaProducto RegistrarProducto(string codigo, string nombre, string categoria,
                                                         string descripcion, decimal precio, int stockActual, int stockMinimo)
         {
             try
             {
+                // Validaciones de negocio antes de tocar la base.
                 if (string.IsNullOrWhiteSpace(codigo) || string.IsNullOrWhiteSpace(nombre))
                     return ResultadoAltaProducto.DatosIncompletos;
 
@@ -212,6 +237,7 @@ namespace BLL
             }
         }
 
+        /// <summary>Cambia el precio de un producto (rechaza negativos e inexistentes). Audita el cambio con precio viejo → nuevo.</summary>
         public bool ActualizarPrecio(int id, decimal nuevoPrecio)
         {
             if (nuevoPrecio < 0) return false;
@@ -229,6 +255,7 @@ namespace BLL
             return false;
         }
 
+        /// <summary>Da de baja (lógica) un producto si existe. Audita la baja.</summary>
         public bool DarDeBaja(int id)
         {
             BE_Componente_GO44 c = _dalComponente.BuscarPorId(id);
@@ -243,6 +270,7 @@ namespace BLL
             return false;
         }
 
+        /// <summary>Reactiva un producto dado de baja si existe. Audita la reactivación.</summary>
         public bool Reactivar(int id)
         {
             BE_Componente_GO44 c = _dalComponente.BuscarPorId(id);
