@@ -36,9 +36,9 @@ namespace DAL
             SqlParameter[] p = {
                 // La OC puede nacer sin SC de origen: si IdSolicitud es 0, se manda NULL a la base.
                 new SqlParameter("@IdSolicitud",    oc.IdSolicitud > 0 ? (object)oc.IdSolicitud : DBNull.Value),
-                new SqlParameter("@CuitProveedor",  oc.Proveedor.CUIT),
-                new SqlParameter("@LoginEncargado", oc.LoginEncargado),
-                new SqlParameter("@FechaEntrega",   oc.FechaEntrega),
+                new SqlParameter("@CuitProveedor",     oc.Proveedor.CUIT),
+                new SqlParameter("@UserNameEncargado", oc.UserNameEncargado),
+                new SqlParameter("@FechaEntrega",      oc.FechaEntrega),
                 new SqlParameter("@Total",          oc.Total)
             };
             object r = _acceso.leerEscalarSPEnTx("sp_OrdenCompra_Insertar_GO44", p, tx);
@@ -150,7 +150,7 @@ namespace DAL
                 NumeroOC       = row["NumeroOC"].ToString(),
                 IdSolicitud    = row["IdSolicitud"] == DBNull.Value ? 0 : Convert.ToInt32(row["IdSolicitud"]),
                 NumeroSC       = row.Table.Columns.Contains("NumeroSC") && row["NumeroSC"] != DBNull.Value ? row["NumeroSC"].ToString() : "",
-                LoginEncargado = row["LoginEncargado"].ToString(),
+                UserNameEncargado = row["UserNameEncargado"].ToString(),
                 FechaEmision   = Convert.ToDateTime(row["FechaEmision"]),
                 FechaEntrega   = Convert.ToDateTime(row["FechaEntrega"]),
                 Total          = Convert.ToDecimal(row["Total"]),

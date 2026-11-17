@@ -27,7 +27,7 @@ namespace BE
         public int IdSolicitud { get; set; }
         public string NumeroSC { get; set; }
         public BE_Proveedor_GO44 Proveedor { get; set; }
-        public string LoginEncargado { get; set; }
+        public string UserNameEncargado { get; set; }
         public DateTime FechaEmision { get; set; }
         public DateTime FechaEntrega { get; set; }
         public decimal Total { get; set; }

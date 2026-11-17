@@ -72,16 +72,13 @@ namespace BLL
 
                 Usuario_GO44 usuario = _DALUsuario.BuscarPorLogin(login);
 
+                // Si el usuario no existe: se audita y se corta el flujo. (Auditar ya traga sus propias
+                // excepciones, por eso el return va afuera y NO dentro de un try/catch: antes, sin este
+                // return, el flujo seguía a "usuario.Bloqueo" con usuario null → NullReferenceException.)
                 if (usuario == null)
                 {
-                    try
-                    {
-                        Auditar(login, "Usuario", "Usuario inexistente", "el usuario no existe", "Alta");
-                    }
-                    catch
-                    {
-                        return ResultadoLogin.UsuarioInexistente;
-                    }
+                    Auditar(login, "Usuario", "Usuario inexistente", "el usuario no existe", "Alta");
+                    return ResultadoLogin.UsuarioInexistente;
                 }
 
                 if (usuario.Bloqueo)

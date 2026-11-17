@@ -91,7 +91,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 this.miProductos, this.miClientes, this.miProductosCambios, this.miRegistrarProveedor});
             ConfigMenuHijo(this.miProductos, "Productos", this.miProductos_Click);
             ConfigMenuHijo(this.miClientes,  "Clientes",  this.miClientes_Click);
-            ConfigMenuHijo(this.miProductosCambios, "Productos - C", this.miProductosCambios_Click);
+            ConfigMenuHijo(this.miProductosCambios, "Componentes - C", this.miProductosCambios_Click);
             ConfigMenuHijo(this.miRegistrarProveedor, "Proveedores", this.miRegistrarProveedor_Click);
 
             // VENTAS

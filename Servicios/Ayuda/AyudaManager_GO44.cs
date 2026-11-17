@@ -56,12 +56,12 @@ namespace Servicios.Ayuda
                 "Alta y mantenimiento de los datos base del sistema.");
             maestros.Agregar("Productos",
                 "ABM de componentes (CPU, GPU, RAM, etc.). Alta, modificación de precio y baja lógica. " +
-                "Cada cambio queda registrado en 'Productos - C'.");
+                "Cada cambio queda registrado en 'Componentes - C'.");
             maestros.Agregar("Clientes",
                 "ABM de clientes. Validaciones de DNI (8), email, teléfono (10). Export/Import XML.");
-            maestros.Agregar("Productos - C",
-                "Bitácora de cambios de productos. Muestra el historial de cada componente (versionado): " +
-                "Cod_Prod, Fecha, Hora, Nombre, Existencia, Descripción y Act (vigente). " +
+            maestros.Agregar("Componentes - C",
+                "Bitácora de cambios de componentes. Muestra el historial de cada componente (versionado): " +
+                "Cod_Comp, Fecha, Hora, Nombre, Existencia, Descripción y Act (vigente). " +
                 "Filtrá por código, nombre y rango de fechas. 'ACTIVAR' marca una versión como vigente.");
             maestros.Agregar("Proveedores",
                 "Registro de proveedores (CUIT, datos de contacto y bancarios: CVU, Banco, Titular). " +

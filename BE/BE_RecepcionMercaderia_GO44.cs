@@ -14,7 +14,7 @@ namespace BE
         public int Id { get; set; }
         public int IdOrdenCompra { get; set; }
         public string NumeroOC { get; set; }
-        public string LoginAlmacenista { get; set; }
+        public string UserNameAlmacenista { get; set; }
         public DateTime FechaRecepcion { get; set; }
         /// <summary>True si al menos una línea se recibió con menos unidades de las pedidas.</summary>
         public bool ConFaltantes { get; set; }

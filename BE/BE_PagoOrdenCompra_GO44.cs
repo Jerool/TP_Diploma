@@ -19,7 +19,7 @@ namespace BE
         public string NroComprobante { get; set; }
         /// <summary>Siempre "Pagado" en esta versión (pago único y total).</summary>
         public string Estado { get; set; }
-        public string LoginEncargado { get; set; }
+        public string UserNameEncargado { get; set; }
 
         public BE_PagoOrdenCompra_GO44()
         {

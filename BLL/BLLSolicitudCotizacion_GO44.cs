@@ -80,7 +80,7 @@ namespace BLL
                 vo.Mensaje = "No hay sesión activa";
                 return vo;
             }
-            sc.LoginEncargado = usuario.Login;
+            sc.UserNameEncargado = usuario.Login;
 
             // Validar cantidades (1-999 según CU06)
             foreach (var l in sc.Lineas)

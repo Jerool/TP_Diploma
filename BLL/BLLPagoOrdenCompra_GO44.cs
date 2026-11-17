@@ -98,7 +98,7 @@ namespace BLL
             }
 
             pago.IdOrdenCompra = orden.Id;
-            pago.LoginEncargado = usuario.Login;
+            pago.UserNameEncargado = usuario.Login;
             // Datos bancarios del proveedor (snapshot al momento del pago)
             if (orden.Proveedor != null)
             {

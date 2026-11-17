@@ -104,7 +104,7 @@ namespace BLL
             }
 
             recepcion.IdOrdenCompra = orden.Id;
-            recepcion.LoginAlmacenista = usuario.Login;
+            recepcion.UserNameAlmacenista = usuario.Login;
             recepcion.ConFaltantes = recepcion.TieneFaltantes();
 
             SqlTransaction tx = null;

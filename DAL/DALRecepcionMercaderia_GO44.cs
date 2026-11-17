@@ -30,9 +30,9 @@ namespace DAL
         public int InsertarEncabezadoEnTx(BE_RecepcionMercaderia_GO44 recepcion, SqlTransaction tx)
         {
             SqlParameter[] p = {
-                new SqlParameter("@IdOrdenCompra",    recepcion.IdOrdenCompra),
-                new SqlParameter("@LoginAlmacenista", recepcion.LoginAlmacenista),
-                new SqlParameter("@ConFaltantes",     recepcion.ConFaltantes),
+                new SqlParameter("@IdOrdenCompra",       recepcion.IdOrdenCompra),
+                new SqlParameter("@UserNameAlmacenista", recepcion.UserNameAlmacenista),
+                new SqlParameter("@ConFaltantes",        recepcion.ConFaltantes),
                 new SqlParameter("@Observaciones",    (object)recepcion.Observaciones ?? DBNull.Value)
             };
             object r = _acceso.leerEscalarSPEnTx("sp_Recepcion_Insertar_GO44", p, tx);
@@ -61,8 +61,8 @@ namespace DAL
             var recepcion = new BE_RecepcionMercaderia_GO44
             {
                 Id               = Convert.ToInt32(row["Id"]),
-                IdOrdenCompra    = Convert.ToInt32(row["IdOrdenCompra"]),
-                LoginAlmacenista = row["LoginAlmacenista"].ToString(),
+                IdOrdenCompra       = Convert.ToInt32(row["IdOrdenCompra"]),
+                UserNameAlmacenista = row["UserNameAlmacenista"].ToString(),
                 FechaRecepcion   = Convert.ToDateTime(row["FechaRecepcion"]),
                 ConFaltantes     = Convert.ToBoolean(row["ConFaltantes"]),
                 Observaciones    = row["Observaciones"] == DBNull.Value ? null : row["Observaciones"].ToString()

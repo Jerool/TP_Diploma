@@ -23,7 +23,7 @@ namespace BE
         public string NumeroSC { get; set; }
         public DateTime FechaEmision { get; set; }
         public BE_Proveedor_GO44 Proveedor { get; set; }
-        public string LoginEncargado { get; set; }
+        public string UserNameEncargado { get; set; }
         public EstadoSolicitud Estado { get; set; }
         public List<BE_LineaSolicitudCotizacion_GO44> Lineas { get; set; }
 

@@ -33,8 +33,8 @@ namespace DAL
         public int InsertarEncabezado(BE_SolicitudCotizacion_GO44 sc)
         {
             SqlParameter[] p = {
-                new SqlParameter("@CuitProveedor",  sc.Proveedor.CUIT),
-                new SqlParameter("@LoginEncargado", sc.LoginEncargado)
+                new SqlParameter("@CuitProveedor",     sc.Proveedor.CUIT),
+                new SqlParameter("@UserNameEncargado", sc.UserNameEncargado)
             };
             object r = _acceso.leerEscalarSP("sp_SolicitudCotizacion_Insertar_GO44", p);
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
@@ -44,8 +44,8 @@ namespace DAL
         public int InsertarEncabezadoEnTx(BE_SolicitudCotizacion_GO44 sc, SqlTransaction tx)
         {
             SqlParameter[] p = {
-                new SqlParameter("@CuitProveedor",  sc.Proveedor.CUIT),
-                new SqlParameter("@LoginEncargado", sc.LoginEncargado)
+                new SqlParameter("@CuitProveedor",     sc.Proveedor.CUIT),
+                new SqlParameter("@UserNameEncargado", sc.UserNameEncargado)
             };
             object r = _acceso.leerEscalarSPEnTx("sp_SolicitudCotizacion_Insertar_GO44", p, tx);
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
@@ -138,8 +138,8 @@ namespace DAL
             {
                 Id             = Convert.ToInt32(row["Id"]),
                 NumeroSC       = row["NumeroSC"].ToString(),
-                FechaEmision   = Convert.ToDateTime(row["FechaEmision"]),
-                LoginEncargado = row["LoginEncargado"].ToString(),
+                FechaEmision      = Convert.ToDateTime(row["FechaEmision"]),
+                UserNameEncargado = row["UserNameEncargado"].ToString(),
                 Proveedor      = new BE_Proveedor_GO44 {
                     CUIT    = row["CuitProveedor"].ToString(),
                     Empresa = row["EmpresaProveedor"].ToString()

@@ -96,7 +96,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             if (dgvOrdenes.Columns.Count > 0)
             {
-                foreach (var col in new[] { "Id", "IdSolicitud", "LoginEncargado", "Proveedor", "Lineas", "CantidadItems" })
+                foreach (var col in new[] { "Id", "IdSolicitud", "UserNameEncargado", "Proveedor", "Lineas", "CantidadItems" })
                     if (dgvOrdenes.Columns.Contains(col)) dgvOrdenes.Columns[col].Visible = false;
                 if (dgvOrdenes.Columns.Contains("NumeroOC"))     dgvOrdenes.Columns["NumeroOC"].HeaderText = "N° OC";
                 if (dgvOrdenes.Columns.Contains("NumeroSC"))     dgvOrdenes.Columns["NumeroSC"].HeaderText = "N° SC";

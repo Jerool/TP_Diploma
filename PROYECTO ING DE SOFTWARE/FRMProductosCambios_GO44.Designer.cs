@@ -39,7 +39,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.lblTitulo.AutoSize = true; this.lblTitulo.Location = new System.Drawing.Point(20, 10);
             this.lblTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 14F, System.Drawing.FontStyle.Bold);
             this.lblTitulo.ForeColor = azul;
-            this.lblTitulo.Text = "Bitácora de Cambios — Tabla Productos_C";
+            this.lblTitulo.Text = "Bitácora de Cambios — Tabla Componentes_C";
 
             // Grilla (arriba)
             this.dgv.Location = new System.Drawing.Point(20, 45);
@@ -129,7 +129,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.Controls.Add(this.btnMarcar);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Name = "FRMProductosCambios_GO44";
-            this.Text = "Bitácora de Cambios — Tabla Productos_C";
+            this.Text = "Bitácora de Cambios — Tabla Componentes_C";
             this.Load += new System.EventHandler(this.FRMProductosCambios_GO44_Load);
 
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();

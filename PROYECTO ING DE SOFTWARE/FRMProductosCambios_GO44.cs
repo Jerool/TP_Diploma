@@ -8,7 +8,7 @@ using System.Windows.Forms;
 namespace PROYECTO_ING_DE_SOFTWARE
 {
     /// <summary>
-    /// "Productos - C" — Bitácora de cambios de productos (tabla Componentes_C).
+    /// "Componentes - C" — Bitácora de cambios de componentes (tabla Componentes_C).
     /// Muestra el historial de versiones de cada componente (generado por triggers SCD2) con
     /// filtros por Código, Nombre y rango de fechas. Permite marcar manualmente la versión vigente.
     /// Ubicación: menú Maestros.
@@ -46,8 +46,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
             dgv.AutoGenerateColumns = false;
             dgv.Columns.Clear();
 
-            // Columnas de la bitácora (PRODUCTOS_C): Cod_Prod · Fecha · Hora · Nombre · Exist. · Desc. · Act.
-            AgregarColumna("Codigo",      "Cod_Prod", 12, DataGridViewContentAlignment.MiddleLeft);
+            // Columnas de la bitácora (COMPONENTES_C): Cod_Comp · Fecha · Hora · Nombre · Exist. · Desc. · Act.
+            AgregarColumna("Codigo",      "Cod_Comp", 12, DataGridViewContentAlignment.MiddleLeft);
             AgregarColumna("FechaCambio", "Fecha",    12, DataGridViewContentAlignment.MiddleCenter);
             AgregarColumna("HoraCambio",  "Hora",     10, DataGridViewContentAlignment.MiddleCenter);
             AgregarColumna("Nombre",      "Nombre",   20, DataGridViewContentAlignment.MiddleLeft);
@@ -104,27 +104,27 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
             if (sel.Act)
             {
-                MessageBox.Show("Esa versión ya es la vigente del producto.", "Aviso",
+                MessageBox.Show("Esa versión ya es la vigente del componente.", "Aviso",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var r = MessageBox.Show(
-                "¿Restaurar el producto '" + sel.Codigo + "' a esta versión?\r\n\r\n" +
-                "Se sobreescriben nombre, precio, stock y estado del producto con los de esta fila, " +
+                "¿Restaurar el componente '" + sel.Codigo + "' a esta versión?\r\n\r\n" +
+                "Se sobreescriben nombre, precio, stock y estado del componente con los de esta fila, " +
                 "y queda registrada una versión nueva en la bitácora.",
                 "Confirmar restauración", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             if (_bll.MarcarActivo(sel.Id))
             {
-                MessageBox.Show("Producto restaurado a la versión seleccionada.", "Éxito",
+                MessageBox.Show("Componente restaurado a la versión seleccionada.", "Éxito",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Buscar();
             }
             else
             {
-                MessageBox.Show("No se pudo restaurar el producto.", "Error",
+                MessageBox.Show("No se pudo restaurar el componente.", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

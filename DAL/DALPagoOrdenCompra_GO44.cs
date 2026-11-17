@@ -34,8 +34,8 @@ namespace DAL
                 new SqlParameter("@Banco",          pago.Banco),
                 new SqlParameter("@Titular",        pago.Titular),
                 new SqlParameter("@MontoAbonado",   pago.MontoAbonado),
-                new SqlParameter("@NroComprobante", pago.NroComprobante),
-                new SqlParameter("@LoginEncargado", pago.LoginEncargado)
+                new SqlParameter("@NroComprobante",    pago.NroComprobante),
+                new SqlParameter("@UserNameEncargado", pago.UserNameEncargado)
             };
             object r = _acceso.leerEscalarSPEnTx("sp_PagoOrdenCompra_Insertar_GO44", p, tx);
             return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
@@ -58,8 +58,8 @@ namespace DAL
                 MontoAbonado   = Convert.ToDecimal(row["MontoAbonado"]),
                 FechaOperacion = Convert.ToDateTime(row["FechaOperacion"]),
                 NroComprobante = row["NroComprobante"].ToString(),
-                Estado         = row["Estado"].ToString(),
-                LoginEncargado = row["LoginEncargado"].ToString()
+                Estado            = row["Estado"].ToString(),
+                UserNameEncargado = row["UserNameEncargado"].ToString()
             };
         }
     }

@@ -86,7 +86,7 @@ namespace BLL
                 vo.Mensaje = "No hay sesión activa";
                 return vo;
             }
-            oc.LoginEncargado = usuario.Login;
+            oc.UserNameEncargado = usuario.Login;
 
             // Validar precios (> 0) y fecha de entrega (no anterior a hoy)
             foreach (var l in oc.Lineas)
