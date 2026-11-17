@@ -26,11 +26,24 @@ namespace BLL
         {
             // Sacar la instancia del CS configurado (App.config o hardcodeado)
             string instancia = new SqlConnectionStringBuilder(Acceso.ConnectionString).DataSource;
+            AsegurarBaseDatosEn(instancia);
+        }
 
+        /// <summary>
+        /// Asegura que la base exista y esté completa en la instancia indicada:
+        ///  - si no existe, la crea con EsquemaCompleto.sql;
+        ///  - si existe pero le faltan las tablas de negocio (base parcial o de otra versión),
+        ///    vuelve a correr EsquemaCompleto.sql a modo de REPARACIÓN (los lotes que ya están
+        ///    se ignoran solos).
+        /// NO depende de EsquemaNegocio_GO44.sql (ese script no se distribuye con la app), así que
+        /// nunca falla con "no se encontró el script" sobre una instancia que ya tenía una base.
+        /// </summary>
+        public static void AsegurarBaseDatosEn(string instancia)
+        {
             if (!ExisteBaseDatos(instancia))
                 InstalarBaseDatos(instancia);
             else if (!ExisteEsquemaNegocio(instancia))
-                InstalarEsquemaNegocio(instancia);
+                InstalarBaseDatos(instancia);   // reparación idempotente con el snapshot completo
         }
 
         public static bool ExisteBaseDatos(string instancia)

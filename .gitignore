@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Salida generada del instalador (binarios regenerables)
+Instalador/Output/
