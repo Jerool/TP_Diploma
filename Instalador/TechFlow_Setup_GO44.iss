@@ -69,6 +69,7 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}
 var
   PaginaInstancia: TWizardPage;
   ComboInstancia:  TNewComboBox;
+  BackupARestaurar: String;   { ruta del .bak elegido para restaurar ('' = no restaurar) }
 
 { --- Detección de instancias de SQL instaladas en la PC ------------------- }
 procedure DetectarInstancias(Lista: TStrings);
@@ -175,17 +176,62 @@ begin
             RegKeyExists(HKCU, Clave);
 end;
 
+{ Devuelve la ruta del .bak más reciente en C:\ProgramData\TechFlow\Backups, o '' si no hay. }
+function UltimoBackup(): String;
+var
+  Carpeta, MejorNombre: String;
+  Rec: TFindRec;
+begin
+  Result := '';
+  Carpeta := ExpandConstant('{commonappdata}\TechFlow\Backups');
+  MejorNombre := '';
+  if FindFirst(Carpeta + '\GestionUsuario_*.bak', Rec) then
+  begin
+    try
+      repeat
+        { el timestamp va en el nombre, así que el mayor alfabéticamente es el más nuevo }
+        if Rec.Name > MejorNombre then
+          MejorNombre := Rec.Name;
+      until not FindNext(Rec);
+    finally
+      FindClose(Rec);
+    end;
+  end;
+  if MejorNombre <> '' then
+    Result := Carpeta + '\' + MejorNombre;
+end;
+
 function InitializeSetup(): Boolean;
+var
+  Bak: String;
 begin
   Result := True;
+  BackupARestaurar := '';
   if HayInstalacionPrevia() then
   begin
     if MsgBox('{#MyAppName} ya está instalado en esta computadora.' + #13#10 + #13#10 +
               '¿Querés REINSTALARLO / repararlo?' + #13#10 +
               'Se van a volver a copiar los archivos y vas a poder elegir la instancia ' +
-              'de SQL otra vez. Los datos que ya tengas en la base NO se borran.',
+              'de SQL otra vez. Los datos que ya tengas en la base NO se borran, y ' +
+              'se hace un backup automático por las dudas.',
               mbConfirmation, MB_YESNO) = IDNO then
+    begin
       Result := False;   { el usuario no quiso reinstalar -> se cancela }
+      Exit;
+    end;
+
+    { Si hay algún backup previo, ofrecer RESTAURARLO. }
+    Bak := UltimoBackup();
+    if Bak <> '' then
+    begin
+      if MsgBox('Encontré un backup anterior de la base:' + #13#10 + #13#10 +
+                Bak + #13#10 + #13#10 +
+                '¿Querés RESTAURAR ese backup?' + #13#10 +
+                'Sí = volver la base a ese estado.' + #13#10 +
+                'No = dejar la base como está ahora (igual se hace un backup de seguridad).',
+                mbConfirmation, MB_YESNO) = IDYES then
+        BackupARestaurar := Bak;
+    end;
   end;
 end;
 
@@ -217,5 +263,24 @@ begin
       MsgBox('No se pudo ejecutar la configuración de la base de datos.' + #13#10 +
              'Se creará automáticamente al abrir la aplicación por primera vez.',
              mbInformation, MB_OK);
+
+    { Si el usuario eligió restaurar un backup, se hace DESPUÉS de configurar la base. }
+    if BackupARestaurar <> '' then
+    begin
+      WizardForm.StatusLabel.Caption := 'Restaurando la base desde el backup ...';
+      if Exec(Exe, '--restore-db "' + Instancia + '" "' + BackupARestaurar + '"',
+              ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, Codigo) then
+      begin
+        if Codigo <> 0 then
+          MsgBox('No se pudo restaurar el backup (código ' + IntToStr(Codigo) + ').' + #13#10 +
+                 'La base quedó en su estado actual. Detalle en:' + #13#10 + LogPath,
+                 mbError, MB_OK)
+        else
+          MsgBox('La base se restauró desde el backup:' + #13#10 + BackupARestaurar,
+                 mbInformation, MB_OK);
+      end
+      else
+        MsgBox('No se pudo ejecutar la restauración de la base.', mbError, MB_OK);
+    end;
   end;
 end;

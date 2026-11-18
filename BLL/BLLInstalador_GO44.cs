@@ -66,6 +66,26 @@ namespace BLL
             InstaladorBD_GO44.InstalarEsquemaNegocio(instancia);
         }
 
+        // --- Backup / Restore ("Restore sobre reinstalación") ------------------------------
+
+        /// <summary>Hace un backup de la base. Devuelve la ruta del .bak, o null si la base no existía.</summary>
+        public static string BackupBaseDatos(string instancia)
+        {
+            return InstaladorBD_GO44.BackupBaseDatos(instancia);
+        }
+
+        /// <summary>Restaura la base desde un archivo .bak, pisando la actual.</summary>
+        public static void RestaurarBaseDatos(string instancia, string rutaBak)
+        {
+            InstaladorBD_GO44.RestaurarBaseDatos(instancia, rutaBak);
+        }
+
+        /// <summary>Ruta del .bak más reciente de la carpeta de backups, o null si no hay.</summary>
+        public static string UltimoBackup()
+        {
+            return InstaladorBD_GO44.UltimoBackup();
+        }
+
         /// <summary>Fija la cadena de conexión global de Acceso para la instancia elegida por el usuario.</summary>
         public static void ConfigurarConexion(string instancia)
         {

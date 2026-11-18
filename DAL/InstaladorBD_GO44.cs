@@ -1,6 +1,8 @@
 using System;
 using System.Data.SqlClient;
 using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 
 namespace DAL
@@ -202,6 +204,153 @@ namespace DAL
                         cmd.ExecuteNonQuery();
                     }
                 }
+            }
+        }
+
+        // ====================================================================
+        //  BACKUP / RESTORE  ("Restore sobre reinstalación")
+        // --------------------------------------------------------------------
+        //  Al reinstalar sobre una base ya existente, el instalador hace un
+        //  backup automático ANTES de tocar nada, y permite RESTAURAR el último
+        //  backup para volver la base a un estado anterior.
+        //
+        //  OJO: el archivo .bak lo escribe/lee el PROCESO de SQL Server (no la
+        //  app). Por eso se usa una carpeta fija y accesible
+        //  (C:\ProgramData\TechFlow\Backups). Con LocalDB (corre como el usuario)
+        //  funciona directo; para un SQL Server como servicio, esa carpeta tiene
+        //  que ser escribible por la cuenta del servicio.
+        // ====================================================================
+
+        private static string RutaCarpetaBackups()
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "TechFlow", "Backups");
+        }
+
+        /// <summary>Carpeta donde se guardan los backups (.bak); la crea si no existe.</summary>
+        public static string CarpetaBackups()
+        {
+            string carpeta = RutaCarpetaBackups();
+            if (!Directory.Exists(carpeta))
+            {
+                Directory.CreateDirectory(carpeta);
+                // Best-effort: permiso de escritura a los usuarios locales, para que tanto
+                // LocalDB (usuario) como un SQL Express (servicio) puedan escribir el .bak.
+                try
+                {
+                    var di = new DirectoryInfo(carpeta);
+                    var sec = di.GetAccessControl();
+                    sec.AddAccessRule(new FileSystemAccessRule(
+                        new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
+                        FileSystemRights.Modify | FileSystemRights.Synchronize,
+                        InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                        PropagationFlags.None, AccessControlType.Allow));
+                    di.SetAccessControl(sec);
+                }
+                catch { }
+            }
+            return carpeta;
+        }
+
+        /// <summary>Devuelve el .bak más reciente de la carpeta de backups, o null si no hay.</summary>
+        public static string UltimoBackup()
+        {
+            string carpeta = RutaCarpetaBackups();
+            if (!Directory.Exists(carpeta)) return null;
+            string[] files = Directory.GetFiles(carpeta, "GestionUsuario_*.bak");
+            if (files.Length == 0) return null;
+            Array.Sort(files);               // el timestamp en el nombre ordena cronológicamente
+            return files[files.Length - 1];
+        }
+
+        /// <summary>
+        /// Hace un backup de la base en la carpeta de backups. Devuelve la ruta del .bak
+        /// generado, o null si la base no existía (nada para respaldar).
+        /// </summary>
+        public static string BackupBaseDatos(string instancia)
+        {
+            if (!ExisteBaseDatos(instancia)) return null;
+
+            string archivo = Path.Combine(CarpetaBackups(),
+                "GestionUsuario_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".bak");
+
+            string csMaster = $"Data Source={instancia};Initial Catalog=master;Integrated Security=True";
+            using (var conn = new SqlConnection(csMaster))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand(
+                    "BACKUP DATABASE [" + NOMBRE_BD + "] TO DISK = @ruta " +
+                    "WITH INIT, FORMAT, COPY_ONLY, NAME = N'TechFlow - backup automatico'", conn))
+                {
+                    cmd.CommandTimeout = 300;
+                    cmd.Parameters.AddWithValue("@ruta", archivo);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            return archivo;
+        }
+
+        /// <summary>
+        /// Restaura la base desde un archivo .bak, pisando la actual. Cierra las conexiones
+        /// abiertas (SINGLE_USER), restaura con REPLACE y vuelve a MULTI_USER. Pensado para
+        /// restaurar sobre la MISMA instancia que generó el backup (reinstalación).
+        /// </summary>
+        public static void RestaurarBaseDatos(string instancia, string rutaBak)
+        {
+            if (string.IsNullOrWhiteSpace(rutaBak) || !File.Exists(rutaBak))
+                throw new Exception("No se encontró el archivo de backup: " + rutaBak);
+
+            string csMaster = $"Data Source={instancia};Initial Catalog=master;Integrated Security=True";
+            using (var conn = new SqlConnection(csMaster))
+            {
+                conn.Open();
+
+                // Si la base está en uso, forzar el cierre de conexiones para poder restaurar.
+                if (ExisteEnConexion(conn))
+                {
+                    using (var cmd = new SqlCommand(
+                        "ALTER DATABASE [" + NOMBRE_BD + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", conn))
+                    {
+                        cmd.CommandTimeout = 120;
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                try
+                {
+                    using (var cmd = new SqlCommand(
+                        "RESTORE DATABASE [" + NOMBRE_BD + "] FROM DISK = @ruta WITH REPLACE", conn))
+                    {
+                        cmd.CommandTimeout = 600;
+                        cmd.Parameters.AddWithValue("@ruta", rutaBak);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                finally
+                {
+                    // Por las dudas (si el restore falló y la base quedó en SINGLE_USER), reabrirla.
+                    try
+                    {
+                        using (var cmd = new SqlCommand(
+                            "IF DB_ID(N'" + NOMBRE_BD + "') IS NOT NULL " +
+                            "ALTER DATABASE [" + NOMBRE_BD + "] SET MULTI_USER", conn))
+                        {
+                            cmd.CommandTimeout = 60;
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        private static bool ExisteEnConexion(SqlConnection conn)
+        {
+            using (var cmd = new SqlCommand("SELECT COUNT(1) FROM sys.databases WHERE name = @n", conn))
+            {
+                cmd.Parameters.AddWithValue("@n", NOMBRE_BD);
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
             }
         }
     }

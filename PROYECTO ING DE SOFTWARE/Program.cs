@@ -24,6 +24,19 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 return;
             }
 
+            // ── MODO RESTORE (desatendido) ──────────────────────────────────────────────
+            // Lo invoca el instalador cuando el usuario elige RESTAURAR un backup al reinstalar:
+            //     "PROYECTO ING DE SOFTWARE.exe" --restore-db "<instancia SQL>" "<ruta .bak>"
+            // Si no se pasa la ruta, restaura el último backup disponible.
+            if (args != null && args.Length >= 1 &&
+                string.Equals(args[0], "--restore-db", StringComparison.OrdinalIgnoreCase))
+            {
+                Environment.Exit(EjecutarRestoreBd(
+                    args.Length >= 2 ? args[1] : null,
+                    args.Length >= 3 ? args[2] : null));
+                return;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -105,11 +118,30 @@ namespace PROYECTO_ING_DE_SOFTWARE
                         "[" + DateTime.Now + "] AVISO: no se pudo escribir el .exe.config: " + exCfg.Message + Environment.NewLine);
                 }
 
-                // 2) Crear (o reparar) la base. Reusa EsquemaCompleto.sql que viaja junto al .exe.
+                bool existe = BLLInstalador_GO44.ExisteBaseDatos(instancia);
+
+                // 2) Si la base YA existe (reinstalación), backup automático ANTES de tocar nada.
+                if (existe)
+                {
+                    try
+                    {
+                        string bak = BLLInstalador_GO44.BackupBaseDatos(instancia);
+                        if (!string.IsNullOrEmpty(bak))
+                            File.AppendAllText(log,
+                                "[" + DateTime.Now + "] Backup automático de la base en: " + bak + Environment.NewLine);
+                    }
+                    catch (Exception exBk)
+                    {
+                        File.AppendAllText(log,
+                            "[" + DateTime.Now + "] AVISO: no se pudo hacer el backup automático: " + exBk.Message + Environment.NewLine);
+                    }
+                }
+
+                // 3) Crear (o reparar) la base. Reusa EsquemaCompleto.sql que viaja junto al .exe.
                 //    - No existe -> se crea.
                 //    - Existe pero incompleta (base vieja / de otra versión) -> se repara.
                 //    - Existe y completa -> no se toca.
-                if (!BLLInstalador_GO44.ExisteBaseDatos(instancia))
+                if (!existe)
                 {
                     BLLInstalador_GO44.InstalarBaseDatos(instancia);
                     File.AppendAllText(log,
@@ -135,6 +167,48 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 {
                     File.AppendAllText(log,
                         "[" + DateTime.Now + "] ERROR: " + ex.Message + Environment.NewLine +
+                        ex.StackTrace + Environment.NewLine);
+                }
+                catch { }
+                return 1;
+            }
+        }
+
+        /// <summary>
+        /// Modo restauración desatendida (lo llama el instalador con --restore-db cuando el usuario
+        /// elige restaurar un backup al reinstalar). Restaura la base desde el .bak indicado (o el
+        /// último disponible si no se pasa ruta). Devuelve 0 (OK) o 1 (error) y deja rastro en el log.
+        /// </summary>
+        private static int EjecutarRestoreBd(string instancia, string rutaBak)
+        {
+            string log = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "instalador_db.log");
+            try
+            {
+                if (string.IsNullOrWhiteSpace(instancia))
+                    instancia = @"(localdb)\MSSQLLocalDB";
+                instancia = instancia.Trim();
+
+                if (string.IsNullOrWhiteSpace(rutaBak))
+                    rutaBak = BLLInstalador_GO44.UltimoBackup();
+
+                if (string.IsNullOrWhiteSpace(rutaBak))
+                {
+                    File.AppendAllText(log,
+                        "[" + DateTime.Now + "] RESTORE: no hay ningún backup para restaurar." + Environment.NewLine);
+                    return 1;
+                }
+
+                BLLInstalador_GO44.RestaurarBaseDatos(instancia, rutaBak);
+                File.AppendAllText(log,
+                    "[" + DateTime.Now + "] Base restaurada desde: " + rutaBak + Environment.NewLine);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    File.AppendAllText(log,
+                        "[" + DateTime.Now + "] ERROR RESTORE: " + ex.Message + Environment.NewLine +
                         ex.StackTrace + Environment.NewLine);
                 }
                 catch { }
