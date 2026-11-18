@@ -52,9 +52,26 @@ namespace DAL
         }
 
         /// <summary>
-        /// Devuelve true si en la BD ya existe alguna tabla del módulo de negocio
-        /// (Clientes, Componentes, Carrito, LineaCarrito). Se usa para decidir
-        /// si hay que correr EsquemaNegocio_GO44.sql sobre una BD ya instalada.
+        /// Todas las tablas que tiene que tener una base COMPLETA (seguridad + negocio + facturación
+        /// + compras + integridad). Si falta aunque sea una, la base se considera incompleta y hay que
+        /// repararla volviendo a correr EsquemaCompleto.sql. Antes se chequeaban solo 4 tablas viejas,
+        /// por eso una base a la que le faltaba 'Proveedores' (o las de compras) pasaba como "completa"
+        /// y después el control de integridad explotaba con "Invalid object name 'Proveedores'".
+        /// </summary>
+        private static readonly string[] TABLAS_ESPERADAS = {
+            "Carrito", "Clientes", "CobrosFactura", "Componentes", "Componentes_C",
+            "EVENTOS", "Facturas", "Familia", "FamiliaIntegrada", "FamiliaPatente",
+            "IntegridadDVH", "IntegridadDVV", "LineaCarrito", "LineaFactura",
+            "LineasOrdenCompra", "LineasRecepcion", "LineasSolicitudCotizacion",
+            "Modulo", "OrdenesCompra", "PagosOrdenCompra", "Patente", "Proveedores",
+            "RecepcionesMercaderia", "RolFamilia", "RolPatente", "Roles",
+            "SolicitudesCotizacion", "TipoEvento", "Usuario"
+        };
+
+        /// <summary>
+        /// Devuelve true solo si la BD tiene TODAS las tablas esperadas (esquema completo). Si falta
+        /// alguna, devuelve false para que el instalador/arranque vuelva a correr EsquemaCompleto.sql
+        /// (idempotente: crea lo que falta y saltea lo que ya está) y así reparar bases viejas/parciales.
         /// </summary>
         public static bool ExisteEsquemaNegocio(string instancia)
         {
@@ -62,14 +79,16 @@ namespace DAL
             // Los [] son sintaxis SQL para identificadores, pero en la CS SqlConnection
             // acepta el nombre tal cual (con espacios y todo).
             string cs = $"Data Source={instancia};Initial Catalog={NOMBRE_BD};Integrated Security=True;Connect Timeout=3";
+            string inLista = string.Join(",", Array.ConvertAll(TABLAS_ESPERADAS, t => "'" + t + "'"));
             using (var conn = new SqlConnection(cs))
             {
                 conn.Open();
                 using (var cmd = new SqlCommand(
-                    "SELECT COUNT(1) FROM sys.tables WHERE name IN ('Clientes','Componentes','Carrito','LineaCarrito')", conn))
+                    $"SELECT COUNT(1) FROM sys.tables WHERE name IN ({inLista})", conn))
                 {
                     cmd.CommandTimeout = 5;
-                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                    // Está completa solo si están TODAS las tablas esperadas.
+                    return Convert.ToInt32(cmd.ExecuteScalar()) >= TABLAS_ESPERADAS.Length;
                 }
             }
         }
