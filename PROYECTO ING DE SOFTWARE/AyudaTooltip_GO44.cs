@@ -134,7 +134,25 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (c is DataGridView)
                 return IdiomaManager_GO44.T("tip.ctl.grilla");
 
-            return null; // sin pista específica -> sin tooltip
+            // Fallback: TODO botón / casilla sin pista específica igual recibe tooltip, usando su
+            // propio texto visible (ya traducido por el form). Así ningún botón queda sin ayuda.
+            if (c is Button || c is CheckBox || c is RadioButton)
+            {
+                string txt = LimpiarTexto(c.Text);
+                return txt.Length > 0 ? txt : IdiomaManager_GO44.T("tip.ctl.accion");
+            }
+
+            return null; // otros controles sin pista -> sin tooltip (para no hacer ruido)
+        }
+
+        /// <summary>Quita mnemónicos (&amp;) y símbolos/íconos iniciales del texto de un control.</summary>
+        private static string LimpiarTexto(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+            s = s.Replace("&", string.Empty);
+            int i = 0;
+            while (i < s.Length && !char.IsLetterOrDigit(s[i])) i++;
+            return s.Substring(i).Trim();
         }
     }
 }

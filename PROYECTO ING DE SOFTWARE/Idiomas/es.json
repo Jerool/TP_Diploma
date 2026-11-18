@@ -638,5 +638,6 @@
     "tip.ctl.categoria": "Categoría del componente.",
     "tip.ctl.cliente": "Cliente de la operación.",
     "tip.ctl.proveedor": "Proveedor de la operación.",
+    "tip.ctl.accion": "Ejecuta esta acción.",
     "tip.ctl.grilla": "Seleccioná una fila para operar sobre ese registro."
 }
