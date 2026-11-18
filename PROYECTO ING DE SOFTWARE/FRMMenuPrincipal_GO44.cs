@@ -233,6 +233,51 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (_menuIdioma != null)  _menuIdioma.Text  = IdiomaManager_GO44.T("menu.idioma");
             if (_itemEspanol != null) _itemEspanol.Text = IdiomaManager_GO44.T("general.espanol");
             if (_itemIngles != null)  _itemIngles.Text  = IdiomaManager_GO44.T("general.ingles");
+
+            // Ayuda "con posición de mouse": tooltips de cada opción de menú (en el idioma actual).
+            ActualizarTooltipsMenu();
+        }
+
+        /// <summary>
+        /// Pone un tooltip de ayuda a cada opción del menú (padre e hijos), en el idioma actual.
+        /// Es la ayuda "con posición de mouse" sobre el menú principal; se complementa con los
+        /// tooltips por control de cada pantalla (AyudaTooltip_GO44) y con F1.
+        /// </summary>
+        private void ActualizarTooltipsMenu()
+        {
+            // Necesario para que se muestren los tooltips de los ítems de nivel superior.
+            if (menuStrip1 != null) menuStrip1.ShowItemToolTips = true;
+
+            // Menús padre
+            if (menuAdmin != null)    menuAdmin.ToolTipText    = IdiomaManager_GO44.T("tip.menu.admin");
+            if (menuMaestros != null) menuMaestros.ToolTipText = IdiomaManager_GO44.T("tip.menu.maestros");
+            if (menuVentas != null)   menuVentas.ToolTipText   = IdiomaManager_GO44.T("tip.menu.ventas");
+            if (menuCompras != null)  menuCompras.ToolTipText  = IdiomaManager_GO44.T("tip.menu.compras");
+            if (menuReportes != null) menuReportes.ToolTipText = IdiomaManager_GO44.T("tip.menu.reportes");
+            if (menuUsuario != null)  menuUsuario.ToolTipText  = IdiomaManager_GO44.T("tip.menu.usuario");
+            if (menuAyuda != null)    menuAyuda.ToolTipText    = IdiomaManager_GO44.T("tip.menu.ayuda");
+
+            // Submenús
+            if (miUsuarios != null)           miUsuarios.ToolTipText           = IdiomaManager_GO44.T("tip.menu.usuarios");
+            if (miPermisos != null)           miPermisos.ToolTipText           = IdiomaManager_GO44.T("tip.menu.gestionPermisos");
+            if (miBitacora != null)           miBitacora.ToolTipText           = IdiomaManager_GO44.T("tip.menu.bitacora");
+            if (miBackup != null)             miBackup.ToolTipText             = IdiomaManager_GO44.T("tip.menu.backup");
+            if (miClientes != null)           miClientes.ToolTipText           = IdiomaManager_GO44.T("tip.menu.clientes");
+            if (miProductos != null)          miProductos.ToolTipText          = IdiomaManager_GO44.T("tip.menu.productos");
+            if (miProductosCambios != null)   miProductosCambios.ToolTipText   = IdiomaManager_GO44.T("tip.menu.productosCambios");
+            if (miRegistrarProveedor != null) miRegistrarProveedor.ToolTipText = IdiomaManager_GO44.T("tip.menu.registrarProveedor");
+            if (miCargarCarrito != null)      miCargarCarrito.ToolTipText      = IdiomaManager_GO44.T("tip.menu.cargarCarrito");
+            if (miFacturar != null)           miFacturar.ToolTipText           = IdiomaManager_GO44.T("tip.menu.facturar");
+            if (miReporteFacturas != null)    miReporteFacturas.ToolTipText    = IdiomaManager_GO44.T("tip.menu.reporteFacturas");
+            if (miReporteCompras != null)     miReporteCompras.ToolTipText     = IdiomaManager_GO44.T("tip.menu.reporteCompras");
+            if (miReporteInteligente != null) miReporteInteligente.ToolTipText = IdiomaManager_GO44.T("tip.menu.reporteInteligente");
+            if (miGenerarSC != null)          miGenerarSC.ToolTipText          = IdiomaManager_GO44.T("tip.menu.generarSC");
+            if (miGenerarOC != null)          miGenerarOC.ToolTipText          = IdiomaManager_GO44.T("tip.menu.generarOC");
+            if (miRecibirMercaderia != null)  miRecibirMercaderia.ToolTipText  = IdiomaManager_GO44.T("tip.menu.recibirMercaderia");
+            if (miCambiarClave != null)       miCambiarClave.ToolTipText       = IdiomaManager_GO44.T("tip.menu.cambiarClave");
+            if (miLogout != null)             miLogout.ToolTipText             = IdiomaManager_GO44.T("tip.menu.logout");
+            if (miAyudaIndice != null)        miAyudaIndice.ToolTipText        = IdiomaManager_GO44.T("tip.menu.ayudaIndice");
+            if (miAyudaVisita != null)        miAyudaVisita.ToolTipText        = IdiomaManager_GO44.T("tip.menu.ayudaVisita");
         }
 
         // ============ HOSTING DE FORMS HIJOS ============
@@ -253,6 +298,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             pnlContenido.Controls.Clear();
             pnlContenido.Controls.Add(f);
             f.Show();
+
+            // Ayuda contextual "con posición de mouse": tooltips en los controles de la pantalla.
+            AyudaTooltip_GO44.Aplicar(f);
+
             _formularioActual = f;
         }
 

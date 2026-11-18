@@ -211,6 +211,7 @@
     <Compile Include="FRMVisitaGuiada_GO44.Designer.cs">
       <DependentUpon>FRMVisitaGuiada_GO44.cs</DependentUpon>
     </Compile>
+    <Compile Include="AyudaTooltip_GO44.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FRMBitacoraDeEventos.resx">
