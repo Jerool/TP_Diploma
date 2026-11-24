@@ -109,7 +109,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 Proveedor = sc.Proveedor
             };
             foreach (var l in sc.Lineas)
-                _ordenEnCurso.Lineas.Add(new BE_LineaOrdenCompra_GO44(l.Componente, l.Cantidad, 0m));
+                _ordenEnCurso.Lineas.Add(new BE_LineaOrdenCompra_GO44
+                {
+                    Componente = l.Componente,
+                    Cantidad = l.Cantidad,
+                    PrecioUnitario = 0m
+                });
 
             lblProveedor.Text = "Proveedor: " + (sc.Proveedor != null ? sc.Proveedor.Empresa + " (" + sc.Proveedor.CUIT + ")" : "—");
             lblSCInfo.Text = "SC de origen: " + sc.NumeroSC;
@@ -159,13 +164,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void RecalcularTotal()
         {
-            decimal total = _ordenEnCurso.RecalcularTotal();
+            decimal total = _bllOC.RecalcularTotal(_ordenEnCurso);
             lblTotal.Text = "Total: $" + total.ToString("N2");
         }
 
         private void btnGenerar_Click(object sender, EventArgs e)
         {
-            if (_ordenEnCurso.EstaVacia())
+            if (_bllOC.EstaVacia(_ordenEnCurso))
             {
                 MessageBox.Show("Primero cargue una solicitud de cotización", "Aviso",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -209,7 +214,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
                               "  x" + l.Cantidad + " @ $" + l.PrecioUnitario.ToString("N2") +
                               " = $" + l.Subtotal.ToString("N2"));
             sb.AppendLine();
-            sb.AppendLine("TOTAL: $" + _ordenEnCurso.RecalcularTotal().ToString("N2"));
+            sb.AppendLine("TOTAL: $" + _bllOC.RecalcularTotal(_ordenEnCurso).ToString("N2"));
             return sb.ToString();
         }
 

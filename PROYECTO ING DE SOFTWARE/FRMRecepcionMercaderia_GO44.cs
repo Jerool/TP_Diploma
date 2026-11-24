@@ -115,7 +115,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // Armar la recepción en curso: una línea por cada línea de la OC, recibida = pedida
             _recepcionEnCurso = new BE_RecepcionMercaderia_GO44 { IdOrdenCompra = _ordenSeleccionada.Id };
             foreach (var l in _ordenSeleccionada.Lineas)
-                _recepcionEnCurso.Lineas.Add(new BE_LineaRecepcion_GO44(l.Componente, l.Cantidad, l.Cantidad));
+                _recepcionEnCurso.Lineas.Add(new BE_LineaRecepcion_GO44
+                {
+                    Componente = l.Componente,
+                    CantidadPedida = l.Cantidad,
+                    CantidadRecibida = l.Cantidad
+                });
 
             lblDetalleOC.Text = "OC " + _ordenSeleccionada.NumeroOC + "  ·  " +
                                 (_ordenSeleccionada.Proveedor != null ? _ordenSeleccionada.Proveedor.Empresa : "—");
@@ -197,7 +202,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             _recepcionEnCurso.Observaciones = string.IsNullOrWhiteSpace(txtObservaciones.Text) ? null : txtObservaciones.Text.Trim();
 
-            bool hayFaltantes = _recepcionEnCurso.TieneFaltantes();
+            bool hayFaltantes = _bllRecepcion.TieneFaltantes(_recepcionEnCurso);
             string msg = hayFaltantes
                 ? "Hay componentes con faltantes. La orden quedará en estado 'Recibida con faltantes'.\n\n¿Confirmar la recepción?"
                 : "¿Confirmar la recepción completa de la orden " + _ordenSeleccionada.NumeroOC + "?";

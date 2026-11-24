@@ -17,11 +17,13 @@ namespace BLL
     {
         private readonly DALOrdenCompra_GO44 _dal;
         private readonly DALSolicitudCotizacion_GO44 _dalSC;
+        private readonly BLLIntegridad_GO44 _bllIntegridad;
 
         public BLLOrdenCompra_GO44()
         {
             _dal   = new DALOrdenCompra_GO44();
             _dalSC = new DALSolicitudCotizacion_GO44();
+            _bllIntegridad = new BLLIntegridad_GO44();
         }
 
         /// <summary>Resultados posibles de generar una OC (éxito o motivo del rechazo).</summary>
@@ -66,7 +68,7 @@ namespace BLL
         {
             var vo = new GeneracionVO();
 
-            if (oc == null || oc.EstaVacia())
+            if (oc == null || EstaVacia(oc))
             {
                 vo.Resultado = ResultadoGeneracion.SinLineas;
                 vo.Mensaje = "La orden de compra no tiene componentes cargados";
@@ -111,7 +113,7 @@ namespace BLL
                 return vo;
             }
 
-            oc.RecalcularTotal();
+            RecalcularTotal(oc);
 
             SqlTransaction tx = null;
             try
@@ -136,6 +138,12 @@ namespace BLL
                 _dal.ConfirmarTransaccion(tx);
                 tx = null;
 
+                // La escritura salió bien: recalcular los dígitos verificadores de las tablas tocadas (best-effort).
+                // Incluye SolicitudesCotizacion porque, si la OC nació de una SC, le cambió el estado a "Cotizada".
+                try { _bllIntegridad.RecalcularTabla("OrdenesCompra"); } catch { }
+                try { _bllIntegridad.RecalcularTabla("LineasOrdenCompra"); } catch { }
+                try { _bllIntegridad.RecalcularTabla("SolicitudesCotizacion"); } catch { }
+
                 // Recuperar la OC completa (para tener NumeroOC generado por el SP)
                 var completa = _dal.BuscarPorId(idOC);
                 if (completa != null) oc.NumeroOC = completa.NumeroOC;
@@ -158,6 +166,24 @@ namespace BLL
                 vo.Mensaje = "Error al generar la orden de compra: " + ex.Message;
                 return vo;
             }
+        }
+
+        // ============ Operaciones sobre la OC en memoria (antes vivían en la BE) ============
+
+        /// <summary>true si la orden no tiene líneas cargadas.</summary>
+        public bool EstaVacia(BE_OrdenCompra_GO44 oc)
+        {
+            return oc == null || oc.Lineas == null || oc.Lineas.Count == 0;
+        }
+
+        /// <summary>Recalcula el total sumando los subtotales de las líneas y lo vuelca en oc.Total.</summary>
+        public decimal RecalcularTotal(BE_OrdenCompra_GO44 oc)
+        {
+            decimal t = 0m;
+            if (oc != null && oc.Lineas != null)
+                foreach (var l in oc.Lineas) t += l.Subtotal;
+            if (oc != null) oc.Total = t;
+            return t;
         }
 
         /// <summary>Lista todas las OC.</summary>

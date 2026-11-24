@@ -70,22 +70,5 @@ namespace BE
 
         /// <summary>Constructor vacío requerido por la serialización XML y por las DAL.</summary>
         public BE_Cliente_GO44() { }
-
-        /// <summary>Crea un cliente nuevo: marca la fecha de alta de hoy y lo deja activo.</summary>
-        public BE_Cliente_GO44(string dni, string apellido, string nombre, string email, string telefono)
-        {
-            DNI = dni;
-            Apellido = apellido;
-            Nombre = nombre;
-            Email = email;
-            Telefono = telefono;
-            FechaAlta = DateTime.Now;
-            Activo = true;
-        }
-
-        public override string ToString()
-        {
-            return NombreCompleto;
-        }
     }
 }

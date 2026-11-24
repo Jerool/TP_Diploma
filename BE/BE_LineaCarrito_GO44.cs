@@ -63,13 +63,5 @@ namespace BE
 
         /// <summary>Constructor vacío requerido por las DAL para rellenar por propiedades.</summary>
         public BE_LineaCarrito_GO44() { }
-
-        /// <summary>Crea la línea tomando el precio unitario del componente en ese instante (precio congelado).</summary>
-        public BE_LineaCarrito_GO44(BE_Componente_GO44 componente, int cantidad)
-        {
-            Componente = componente;
-            Cantidad = cantidad;
-            PrecioUnitario = componente != null ? componente.Precio : 0m;
-        }
     }
 }

@@ -42,11 +42,6 @@ namespace BE
             Lineas = new List<BE_LineaOrdenCompra_GO44>();
         }
 
-        public bool EstaVacia()
-        {
-            return Lineas == null || Lineas.Count == 0;
-        }
-
         public int CantidadItems
         {
             get
@@ -56,16 +51,6 @@ namespace BE
                     foreach (var l in Lineas) total += l.Cantidad;
                 return total;
             }
-        }
-
-        /// <summary>Recalcula el total sumando los subtotales de las líneas.</summary>
-        public decimal RecalcularTotal()
-        {
-            decimal t = 0m;
-            if (Lineas != null)
-                foreach (var l in Lineas) t += l.Subtotal;
-            Total = t;
-            return t;
         }
     }
 }

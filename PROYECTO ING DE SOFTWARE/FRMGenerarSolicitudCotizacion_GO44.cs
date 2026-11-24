@@ -181,7 +181,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 return;
             }
 
-            _solicitudEnCurso.AgregarLinea(comp, cantidad);
+            _bllSC.AgregarLinea(_solicitudEnCurso, comp, cantidad);
             RefrescarGrillaLineas();
             txtCantidad.Text = "1";
         }
@@ -197,7 +197,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             var linea = dgvLineas.CurrentRow.DataBoundItem as BE_LineaSolicitudCotizacion_GO44;
             if (linea == null || linea.Componente == null) return;
 
-            _solicitudEnCurso.QuitarLinea(linea.Componente.Id);
+            _bllSC.QuitarLinea(_solicitudEnCurso, linea.Componente.Id);
             RefrescarGrillaLineas();
         }
 
@@ -224,7 +224,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void btnFinalizar_Click(object sender, EventArgs e)
         {
-            if (_solicitudEnCurso.EstaVacia())
+            if (_bllSC.EstaVacia(_solicitudEnCurso))
             {
                 MessageBox.Show("Debe agregar al menos un componente a la cotización", "Aviso",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -282,7 +282,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            if (!_solicitudEnCurso.EstaVacia())
+            if (!_bllSC.EstaVacia(_solicitudEnCurso))
             {
                 var r = MessageBox.Show("¿Cancelar la solicitud actual? Se perderán las líneas cargadas.",
                     "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);

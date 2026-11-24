@@ -21,12 +21,5 @@ namespace BE
         public string ComponenteCategoria { get { return Componente != null ? Componente.Categoria : ""; } }
 
         public BE_LineaOrdenCompra_GO44() { }
-
-        public BE_LineaOrdenCompra_GO44(BE_Componente_GO44 componente, int cantidad, decimal precioUnitario)
-        {
-            Componente = componente;
-            Cantidad = cantidad;
-            PrecioUnitario = precioUnitario;
-        }
     }
 }

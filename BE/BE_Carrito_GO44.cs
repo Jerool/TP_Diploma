@@ -88,50 +88,5 @@ namespace BE
             _FechaCreacion = DateTime.Now;
             _Estado = EstadoCarrito.Abierto;
         }
-
-        /// <summary>
-        /// Agrega un componente al carrito. Si ese componente YA estaba, no duplica la línea:
-        /// le suma la cantidad a la línea existente (comportamiento típico de "agregar al carrito").
-        /// </summary>
-        public void AgregarLinea(BE_Componente_GO44 componente, int cantidad)
-        {
-            // Guardas defensivas: ignorar entradas inválidas en vez de romper.
-            if (componente == null) return;
-            if (cantidad <= 0) return;
-
-            // Busca si ya hay una línea para ese mismo componente (comparando por Id).
-            BE_LineaCarrito_GO44 existente = _Lineas.FirstOrDefault(l => l.Componente != null && l.Componente.Id == componente.Id);
-            if (existente != null)
-            {
-                // Ya existía: solo acumula la cantidad.
-                existente.Cantidad += cantidad;
-            }
-            else
-            {
-                // No existía: crea una línea nueva.
-                _Lineas.Add(new BE_LineaCarrito_GO44(componente, cantidad));
-            }
-        }
-
-        /// <summary>Quita del carrito la línea del componente indicado. Devuelve false si no estaba.</summary>
-        public bool QuitarLinea(int idComponente)
-        {
-            BE_LineaCarrito_GO44 linea = _Lineas.FirstOrDefault(l => l.Componente != null && l.Componente.Id == idComponente);
-            if (linea == null) return false; // no había nada que quitar
-            _Lineas.Remove(linea);
-            return true;
-        }
-
-        /// <summary>Vacía todas las líneas (por ejemplo al cancelar la venta).</summary>
-        public void Vaciar()
-        {
-            _Lineas.Clear();
-        }
-
-        /// <summary>true si el carrito no tiene líneas; se usa para impedir facturar un carrito vacío.</summary>
-        public bool EstaVacio()
-        {
-            return _Lineas == null || _Lineas.Count == 0;
-        }
     }
 }

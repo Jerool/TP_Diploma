@@ -45,37 +45,5 @@ namespace BE
             }
         }
 
-        public bool EstaVacia()
-        {
-            return Lineas == null || Lineas.Count == 0;
-        }
-
-        /// <summary>
-        /// Agrega una línea. Si el componente ya está, actualiza la cantidad
-        /// (requerimiento del CU06 paso 4 — no duplicar líneas).
-        /// </summary>
-        public void AgregarLinea(BE_Componente_GO44 componente, int cantidad)
-        {
-            if (componente == null || cantidad <= 0) return;
-            foreach (var l in Lineas)
-            {
-                if (l.Componente != null && l.Componente.Id == componente.Id)
-                {
-                    l.Cantidad = cantidad;   // actualizar
-                    return;
-                }
-            }
-            Lineas.Add(new BE_LineaSolicitudCotizacion_GO44(componente, cantidad));
-        }
-
-        public void QuitarLinea(int idComponente)
-        {
-            if (Lineas == null) return;
-            for (int i = Lineas.Count - 1; i >= 0; i--)
-            {
-                if (Lineas[i].Componente != null && Lineas[i].Componente.Id == idComponente)
-                    Lineas.RemoveAt(i);
-            }
-        }
     }
 }

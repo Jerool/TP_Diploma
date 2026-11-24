@@ -14,10 +14,12 @@ namespace BLL
     public class BLLSolicitudCotizacion_GO44
     {
         private readonly DALSolicitudCotizacion_GO44 _dal;
+        private readonly BLLIntegridad_GO44 _bllIntegridad;
 
         public BLLSolicitudCotizacion_GO44()
         {
             _dal = new DALSolicitudCotizacion_GO44();
+            _bllIntegridad = new BLLIntegridad_GO44();
         }
 
         /// <summary>Resultados posibles de generar una SC (éxito o motivo del rechazo).</summary>
@@ -60,7 +62,7 @@ namespace BLL
         {
             var vo = new GeneracionVO();
 
-            if (sc == null || sc.EstaVacia())
+            if (sc == null || EstaVacia(sc))
             {
                 vo.Resultado = ResultadoGeneracion.SinLineas;
                 vo.Mensaje = "La solicitud no tiene componentes cargados";
@@ -112,6 +114,10 @@ namespace BLL
                 _dal.ConfirmarTransaccion(tx);
                 tx = null;
 
+                // La escritura salió bien: recalcular los dígitos verificadores de las tablas tocadas (best-effort).
+                try { _bllIntegridad.RecalcularTabla("SolicitudesCotizacion"); } catch { }
+                try { _bllIntegridad.RecalcularTabla("LineasSolicitudCotizacion"); } catch { }
+
                 // Recuperar la SC completa (para tener NumeroSC generado por el SP)
                 var completa = _dal.BuscarPorId(idSC);
                 if (completa != null) sc.NumeroSC = completa.NumeroSC;
@@ -131,6 +137,48 @@ namespace BLL
                 vo.Resultado = ResultadoGeneracion.Error;
                 vo.Mensaje = "Error al generar solicitud: " + ex.Message;
                 return vo;
+            }
+        }
+
+        // ============ Operaciones sobre las líneas de la SC (antes vivían en la BE) ============
+
+        /// <summary>true si la solicitud no tiene líneas cargadas.</summary>
+        public bool EstaVacia(BE_SolicitudCotizacion_GO44 sc)
+        {
+            return sc == null || sc.Lineas == null || sc.Lineas.Count == 0;
+        }
+
+        /// <summary>
+        /// Agrega una línea a la solicitud. Si el componente ya está, actualiza la cantidad
+        /// (requerimiento del CU06 paso 4 — no duplicar líneas).
+        /// </summary>
+        public void AgregarLinea(BE_SolicitudCotizacion_GO44 sc, BE_Componente_GO44 componente, int cantidad)
+        {
+            if (sc == null || sc.Lineas == null) return;
+            if (componente == null || cantidad <= 0) return;
+            foreach (var l in sc.Lineas)
+            {
+                if (l.Componente != null && l.Componente.Id == componente.Id)
+                {
+                    l.Cantidad = cantidad;   // actualizar
+                    return;
+                }
+            }
+            sc.Lineas.Add(new BE_LineaSolicitudCotizacion_GO44
+            {
+                Componente = componente,
+                Cantidad = cantidad
+            });
+        }
+
+        /// <summary>Quita de la solicitud todas las líneas del componente indicado.</summary>
+        public void QuitarLinea(BE_SolicitudCotizacion_GO44 sc, int idComponente)
+        {
+            if (sc == null || sc.Lineas == null) return;
+            for (int i = sc.Lineas.Count - 1; i >= 0; i--)
+            {
+                if (sc.Lineas[i].Componente != null && sc.Lineas[i].Componente.Id == idComponente)
+                    sc.Lineas.RemoveAt(i);
             }
         }
 

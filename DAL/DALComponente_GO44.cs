@@ -82,6 +82,28 @@ namespace DAL
             return filas;
         }
 
+        /// <summary>
+        /// Actualiza los datos editables de un componente (nombre, descripción, categoría, precio y stock
+        /// mínimo). El Código y el StockActual NO se tocan (clave de negocio y stock operativo). El UPDATE
+        /// dispara el trigger que registra el cambio en la bitácora de componentes (Componentes_C).
+        /// Devuelve filas afectadas y recalcula el dígito verificador de la tabla.
+        /// </summary>
+        public int ActualizarDatos(int id, string nombre, string descripcion, string categoria,
+                                   decimal precio, int stockMinimo)
+        {
+            SqlParameter[] p = {
+                new SqlParameter("@Id",          id),
+                new SqlParameter("@Nombre",      nombre),
+                new SqlParameter("@Descripcion", (object)descripcion ?? DBNull.Value),
+                new SqlParameter("@Categoria",   (object)categoria   ?? DBNull.Value),
+                new SqlParameter("@Precio",      precio),
+                new SqlParameter("@StockMinimo", stockMinimo)
+            };
+            int filas = Convert.ToInt32(_acceso.leerEscalarSP("sp_Componente_ActualizarDatos_GO44", p));
+            RecalcularIntegridadComponente();
+            return filas;
+        }
+
         /// <summary>Baja lógica: marca Activo = 0 (no borra la fila). Devuelve filas afectadas.</summary>
         public int DarDeBaja(int id)
         {

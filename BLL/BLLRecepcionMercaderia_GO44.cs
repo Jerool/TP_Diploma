@@ -60,6 +60,23 @@ namespace BLL
         /// <summary>Recepción registrada de una OC (null si todavía no se recibió). Usado por el reporte RFN2.</summary>
         public BE_RecepcionMercaderia_GO44 BuscarPorOrden(int idOrdenCompra) => _dal.BuscarPorOrden(idOrdenCompra);
 
+        // ============ Operaciones sobre la recepción en memoria (antes vivían en la BE) ============
+
+        /// <summary>true si la recepción no tiene líneas cargadas.</summary>
+        public bool EstaVacia(BE_RecepcionMercaderia_GO44 recepcion)
+        {
+            return recepcion == null || recepcion.Lineas == null || recepcion.Lineas.Count == 0;
+        }
+
+        /// <summary>true si al menos una línea se recibió con menos unidades de las pedidas (recibida &lt; pedida).</summary>
+        public bool TieneFaltantes(BE_RecepcionMercaderia_GO44 recepcion)
+        {
+            if (recepcion == null || recepcion.Lineas == null) return false;
+            foreach (var l in recepcion.Lineas)
+                if (l.CantidadRecibida < l.CantidadPedida) return true;
+            return false;
+        }
+
         public RecepcionVO RecibirMercaderia(BE_OrdenCompra_GO44 orden, BE_RecepcionMercaderia_GO44 recepcion)
         {
             var vo = new RecepcionVO();
@@ -76,7 +93,7 @@ namespace BLL
                 vo.Mensaje = "Solo se puede recibir mercadería de una orden pagada (estado actual: " + orden.Estado + ")";
                 return vo;
             }
-            if (recepcion == null || recepcion.EstaVacia())
+            if (recepcion == null || EstaVacia(recepcion))
             {
                 vo.Resultado = ResultadoRecepcion.SinLineas;
                 vo.Mensaje = "La recepción no tiene líneas cargadas";
@@ -105,7 +122,7 @@ namespace BLL
 
             recepcion.IdOrdenCompra = orden.Id;
             recepcion.UserNameAlmacenista = usuario.Login;
-            recepcion.ConFaltantes = recepcion.TieneFaltantes();
+            recepcion.ConFaltantes = TieneFaltantes(recepcion);
 
             SqlTransaction tx = null;
             try
@@ -141,8 +158,9 @@ namespace BLL
 
                 orden.Estado = nuevoEstado;
 
-                // Recalcular DVH de Componentes post-commit (cambió el stock) — best-effort
+                // Recalcular DVH post-commit (best-effort): cambió el stock de Componentes y el estado de la OC.
                 try { _bllIntegridad.RecalcularTabla("Componentes"); } catch { }
+                try { _bllIntegridad.RecalcularTabla("OrdenesCompra"); } catch { }
 
                 Auditar(recepcion.ConFaltantes ? "Recepción con faltantes" : "Recepción de mercadería",
                         "OC " + orden.NumeroOC + " · " + recepcion.Lineas.Count + " componentes" +

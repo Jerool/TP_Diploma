@@ -302,7 +302,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 return;
             }
 
-            _carrito.AgregarLinea(vo.Componente, cantidad);
+            _bllCarrito.AgregarLinea(_carrito, vo.Componente, cantidad);
             RefrescarCarritoUI();
             txtCantidad.Text = "1";
         }
@@ -318,7 +318,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             BE_LineaCarrito_GO44 linea = dgvLineas.CurrentRow.DataBoundItem as BE_LineaCarrito_GO44;
             if (linea == null || linea.Componente == null) return;
 
-            _carrito.QuitarLinea(linea.Componente.Id);
+            _bllCarrito.QuitarLinea(_carrito, linea.Componente.Id);
             RefrescarCarritoUI();
         }
 
@@ -332,7 +332,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            if (_carrito.EstaVacio())
+            if (_bllCarrito.EstaVacio(_carrito))
             {
                 MessageBox.Show(IdiomaManager_GO44.T("carrito.carritoVacio"),
                     IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);

@@ -3,6 +3,7 @@ using DAL;
 using Servicios;
 using System;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace BLL
 {
@@ -72,7 +73,7 @@ namespace BLL
             ConfirmacionCarritoVO vo = new ConfirmacionCarritoVO();
 
             // --- Validaciones previas ---
-            if (carrito == null || carrito.EstaVacio())
+            if (carrito == null || EstaVacio(carrito))
             {
                 vo.Resultado = ResultadoConfirmacion.SinLineas;
                 vo.Mensaje = IdiomaManager_GO44.T("bll.carrito.sinLineas");
@@ -191,6 +192,55 @@ namespace BLL
                 vo.Mensaje = string.Format(IdiomaManager_GO44.T("bll.carrito.errConfirmar"), ex.Message);
                 return vo;
             }
+        }
+
+        // ============ Operaciones sobre las líneas del carrito (antes vivían en la BE) ============
+
+        /// <summary>
+        /// Agrega un componente al carrito en memoria. Si ese componente YA estaba, no duplica la línea:
+        /// le suma la cantidad a la línea existente (comportamiento típico de "agregar al carrito").
+        /// El precio unitario se "congela" tomando el del componente en este instante.
+        /// </summary>
+        public void AgregarLinea(BE_Carrito_GO44 carrito, BE_Componente_GO44 componente, int cantidad)
+        {
+            // Guardas defensivas: ignorar entradas inválidas en vez de romper.
+            if (carrito == null || carrito.Lineas == null) return;
+            if (componente == null) return;
+            if (cantidad <= 0) return;
+
+            // Busca si ya hay una línea para ese mismo componente (comparando por Id).
+            BE_LineaCarrito_GO44 existente = carrito.Lineas.FirstOrDefault(l => l.Componente != null && l.Componente.Id == componente.Id);
+            if (existente != null)
+            {
+                // Ya existía: solo acumula la cantidad.
+                existente.Cantidad += cantidad;
+            }
+            else
+            {
+                // No existía: crea una línea nueva con el precio congelado del momento.
+                carrito.Lineas.Add(new BE_LineaCarrito_GO44
+                {
+                    Componente = componente,
+                    Cantidad = cantidad,
+                    PrecioUnitario = componente.Precio
+                });
+            }
+        }
+
+        /// <summary>Quita del carrito la línea del componente indicado. Devuelve false si no estaba.</summary>
+        public bool QuitarLinea(BE_Carrito_GO44 carrito, int idComponente)
+        {
+            if (carrito == null || carrito.Lineas == null) return false;
+            BE_LineaCarrito_GO44 linea = carrito.Lineas.FirstOrDefault(l => l.Componente != null && l.Componente.Id == idComponente);
+            if (linea == null) return false; // no había nada que quitar
+            carrito.Lineas.Remove(linea);
+            return true;
+        }
+
+        /// <summary>true si el carrito no tiene líneas; se usa para impedir facturar un carrito vacío.</summary>
+        public bool EstaVacio(BE_Carrito_GO44 carrito)
+        {
+            return carrito == null || carrito.Lineas == null || carrito.Lineas.Count == 0;
         }
 
         // ============ Utilidades para la UI ============

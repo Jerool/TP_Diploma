@@ -13,7 +13,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// <summary>
     /// ABM completo de Productos (Componentes):
     ///   • Alta:       nuevo componente (código, nombre, categoría, precio, stock inicial y mínimo)
-    ///   • Modificar:  solo PRECIO (el resto es inmutable por decisión de negocio)
+    ///   • Modificar:  nombre, categoría, descripción, precio y stock mínimo (el Código y el Stock
+    ///                 Actual quedan fijos). Cada cambio se registra en la bitácora de componentes
+    ///                 (Componentes - C) por el trigger AFTER UPDATE de la tabla.
     ///   • Baja:       lógica (Activo = 0); si estaba dado de baja se puede Reactivar
     ///   • Consulta:   grilla con filtros; radio para ver Solo activos / Todos
     /// </summary>
@@ -85,7 +87,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 case "Consulta":         lblMensaje.Text = IdiomaManager_GO44.T("productos.modoConsulta"); break;
                 case "Nuevo":            lblMensaje.Text = string.Format(IdiomaManager_GO44.T("productos.modo"), IdiomaManager_GO44.T("productos.modoNuevo")); break;
-                case "Modificar precio": lblMensaje.Text = string.Format(IdiomaManager_GO44.T("productos.modo"), IdiomaManager_GO44.T("productos.modoModificarPrecio")); break;
+                case "Modificar":        lblMensaje.Text = string.Format(IdiomaManager_GO44.T("productos.modo"), IdiomaManager_GO44.T("productos.modoModificar")); break;
                 default:                 lblMensaje.Text = string.Format(IdiomaManager_GO44.T("productos.modo"), _modo); break;
             }
         }
@@ -254,11 +256,18 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            // Modificar: se pueden editar nombre, categoría, descripción, precio y stock mínimo.
+            // El Código (clave de negocio) y el Stock Actual (lo maneja ventas/compras) quedan fijos.
+            // Cada cambio queda registrado en la bitácora de componentes (Componentes - C).
             HabilitarCampos(false);
-            txtPrecio.Enabled = true;   // SOLO precio
-            ModoOperacion("Modificar precio");
-            txtPrecio.Focus();
-            txtPrecio.SelectAll();
+            txtNombre.Enabled      = true;
+            txtCategoria.Enabled   = true;
+            txtDescripcion.Enabled = true;
+            txtPrecio.Enabled      = true;
+            txtStockMinimo.Enabled = true;
+            ModoOperacion("Modificar");
+            txtNombre.Focus();
+            txtNombre.SelectAll();
         }
 
         private void btnBajaAlta_Click(object sender, EventArgs e)
@@ -278,7 +287,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             switch (_modo)
             {
                 case "Nuevo":              Nuevo(); break;
-                case "Modificar precio":   ModificarPrecio(); break;
+                case "Modificar":          ModificarProducto(); break;
                 case "Dar de baja":        DarDeBaja(); break;
                 case "Reactivar":          Reactivar(); break;
             }
@@ -338,8 +347,19 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
         }
 
-        private void ModificarPrecio()
+        private void ModificarProducto()
         {
+            // Nombre obligatorio.
+            string nombre = txtNombre.Text.Trim();
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                MessageBox.Show(IdiomaManager_GO44.T("productos.nombreObligatorio"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNombre.Focus();
+                return;
+            }
+
+            // Precio.
             decimal precio;
             if (!decimal.TryParse(txtPrecio.Text.Trim(), NumberStyles.Any, CultureInfo.CurrentCulture, out precio) &&
                 !decimal.TryParse(txtPrecio.Text.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out precio))
@@ -355,17 +375,28 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 return;
             }
 
-            bool ok = _bll.ActualizarPrecio(_seleccionado.Id, precio);
+            // Stock mínimo.
+            int stockMin;
+            if (!int.TryParse(txtStockMinimo.Text.Trim(), out stockMin) || stockMin < 0)
+            {
+                MessageBox.Show(IdiomaManager_GO44.T("productos.stockMinInvalido"),
+                    IdiomaManager_GO44.T("productos.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            bool ok = _bll.ActualizarProducto(_seleccionado.Id, nombre,
+                txtCategoria.Text.Trim(), txtDescripcion.Text.Trim(), precio, stockMin);
             if (ok)
             {
-                MessageBox.Show(IdiomaManager_GO44.T("productos.precioActualizado"),
+                MessageBox.Show(IdiomaManager_GO44.T("productos.modificadoOk"),
                     IdiomaManager_GO44.T("productos.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ModoConsulta();
                 CargarGrilla();
+                CargarCombosCategoria();
             }
             else
             {
-                MessageBox.Show(IdiomaManager_GO44.T("productos.noSeActualizoPrecio"),
+                MessageBox.Show(IdiomaManager_GO44.T("productos.noSeModifico"),
                     IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

@@ -35,11 +35,5 @@ namespace BE
         {
             get { return (Nombre + " " + Apellido).Trim(); }
         }
-
-        public override string ToString()
-        {
-            // Para que el ComboBox muestre "Empresa (CUIT)"
-            return string.Format("{0} ({1})", Empresa, CUIT);
-        }
     }
 }

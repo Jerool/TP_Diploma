@@ -27,7 +27,15 @@ namespace DAL
             "FamiliaPatente", "FamiliaIntegrada",
             "RolPatente", "RolFamilia",
             "Modulo", "TipoEvento",
-            "Proveedores"
+            "Proveedores",
+            // Negocio: clientes y catálogo
+            "Clientes", "Componentes",
+            // Venta: carrito, factura y cobro
+            "Carrito", "LineaCarrito",
+            "Facturas", "LineaFactura", "CobrosFactura",
+            // Compras: cotización y orden de compra
+            "SolicitudesCotizacion", "LineasSolicitudCotizacion",
+            "OrdenesCompra", "LineasOrdenCompra"
         };
 
         /// <summary>Bandera global: si la verificación detectó integridad rota, se prende y se evita seguir recalculando.</summary>
@@ -57,6 +65,17 @@ namespace DAL
                 case "Modulo":           return DVHsModulo();
                 case "TipoEvento":       return DVHsTipoEvento();
                 case "Proveedores":      return DVHsProveedores();
+                case "Clientes":                  return DVHsClientes();
+                case "Componentes":               return DVHsComponentes();
+                case "Carrito":                   return DVHsCarrito();
+                case "LineaCarrito":              return DVHsLineaCarrito();
+                case "Facturas":                  return DVHsFacturas();
+                case "LineaFactura":              return DVHsLineaFactura();
+                case "CobrosFactura":             return DVHsCobrosFactura();
+                case "SolicitudesCotizacion":     return DVHsSolicitudesCotizacion();
+                case "LineasSolicitudCotizacion": return DVHsLineasSolicitudCotizacion();
+                case "OrdenesCompra":             return DVHsOrdenesCompra();
+                case "LineasOrdenCompra":         return DVHsLineasOrdenCompra();
                 default: throw new Exception("Tabla protegida desconocida: " + nombreTabla);
             }
         }
@@ -205,6 +224,176 @@ namespace DAL
             {
                 string id = $"{r["IdRol"]}_{r["IdFamilia"]}";
                 dict[id] = CalculadorIntegridad_GO44.CalcularDVH(r["IdRol"], r["IdFamilia"]);
+            }
+            return dict;
+        }
+
+        // ====== Negocio: Clientes y Componentes ======
+
+        private Dictionary<string, string> DVHsClientes()
+        {
+            // Email va cifrado en la base: el DVH protege el valor cifrado tal como está guardado.
+            string q = "SELECT DNI, Apellido, Nombre, Email, Telefono, FechaAlta, Activo FROM Clientes";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["DNI"]); // clave = DNI (PK)
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["DNI"], r["Apellido"], r["Nombre"], r["Email"],
+                    r["Telefono"], r["FechaAlta"], r["Activo"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsComponentes()
+        {
+            string q = "SELECT Id, Codigo, Nombre, Descripcion, Categoria, Precio, StockActual, StockMinimo, Activo FROM Componentes";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["Codigo"], r["Nombre"], r["Descripcion"], r["Categoria"],
+                    r["Precio"], r["StockActual"], r["StockMinimo"], r["Activo"]);
+            }
+            return dict;
+        }
+
+        // ====== Venta: Carrito, Factura y Cobro ======
+
+        private Dictionary<string, string> DVHsCarrito()
+        {
+            string q = "SELECT Id, DniCliente, LoginVendedor, FechaCreacion, Estado, Total FROM Carrito";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["DniCliente"], r["LoginVendedor"], r["FechaCreacion"], r["Estado"], r["Total"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsLineaCarrito()
+        {
+            string q = "SELECT Id, IdCarrito, IdComponente, Cantidad, PrecioUnitario FROM LineaCarrito";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["IdCarrito"], r["IdComponente"], r["Cantidad"], r["PrecioUnitario"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsFacturas()
+        {
+            string q = "SELECT Id, NumeroFactura, IdCarrito, DniCliente, LoginCajero, " +
+                       "       FechaEmision, Subtotal, IVA, Total, Estado FROM Facturas";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["NumeroFactura"], r["IdCarrito"], r["DniCliente"], r["LoginCajero"],
+                    r["FechaEmision"], r["Subtotal"], r["IVA"], r["Total"], r["Estado"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsLineaFactura()
+        {
+            string q = "SELECT Id, IdFactura, IdComponente, Cantidad, PrecioUnitario, Subtotal FROM LineaFactura";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["IdFactura"], r["IdComponente"], r["Cantidad"], r["PrecioUnitario"], r["Subtotal"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsCobrosFactura()
+        {
+            // Datos sensibles del cobro (tarjeta enmascarada, banco, titular) → protegidos por DVH.
+            string q = "SELECT Id, IdFactura, MetodoPago, Monto, FechaCobro, NroTarjetaEnmasc, " +
+                       "       Banco, TitularNombre, TitularApellido, CodigoAutoriz FROM CobrosFactura";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["IdFactura"], r["MetodoPago"], r["Monto"], r["FechaCobro"],
+                    r["NroTarjetaEnmasc"], r["Banco"], r["TitularNombre"], r["TitularApellido"], r["CodigoAutoriz"]);
+            }
+            return dict;
+        }
+
+        // ====== Compras: Solicitud de Cotización y Orden de Compra ======
+
+        private Dictionary<string, string> DVHsSolicitudesCotizacion()
+        {
+            string q = "SELECT Id, NumeroSC, CuitProveedor, UserNameEncargado, FechaEmision, Estado FROM SolicitudesCotizacion";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["NumeroSC"], r["CuitProveedor"], r["UserNameEncargado"], r["FechaEmision"], r["Estado"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsLineasSolicitudCotizacion()
+        {
+            string q = "SELECT Id, IdSolicitud, IdComponente, Cantidad FROM LineasSolicitudCotizacion";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["IdSolicitud"], r["IdComponente"], r["Cantidad"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsOrdenesCompra()
+        {
+            string q = "SELECT Id, NumeroOC, IdSolicitud, CuitProveedor, UserNameEncargado, " +
+                       "       FechaEmision, FechaEntrega, Total, Estado FROM OrdenesCompra";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["NumeroOC"], r["IdSolicitud"], r["CuitProveedor"], r["UserNameEncargado"],
+                    r["FechaEmision"], r["FechaEntrega"], r["Total"], r["Estado"]);
+            }
+            return dict;
+        }
+
+        private Dictionary<string, string> DVHsLineasOrdenCompra()
+        {
+            string q = "SELECT Id, IdOrdenCompra, IdComponente, Cantidad, PrecioUnitario, Subtotal FROM LineasOrdenCompra";
+            DataTable dt = _acceso.leer(q, null);
+            var dict = new Dictionary<string, string>();
+            foreach (DataRow r in dt.Rows)
+            {
+                string id = Convert.ToString(r["Id"]);
+                dict[id] = CalculadorIntegridad_GO44.CalcularDVH(
+                    r["Id"], r["IdOrdenCompra"], r["IdComponente"], r["Cantidad"], r["PrecioUnitario"], r["Subtotal"]);
             }
             return dict;
         }

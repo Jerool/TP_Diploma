@@ -30,14 +30,5 @@ namespace BE
 
         /// <summary>Constructor vacío requerido por las DAL para rellenar por propiedades.</summary>
         public BE_LineaFactura_GO44() { }
-
-        /// <summary>Crea la línea y deja el subtotal ya calculado (precio × cantidad) como dato fijo.</summary>
-        public BE_LineaFactura_GO44(BE_Componente_GO44 componente, int cantidad, decimal precioUnitario)
-        {
-            Componente = componente;
-            Cantidad = cantidad;
-            PrecioUnitario = precioUnitario;
-            Subtotal = precioUnitario * cantidad;
-        }
     }
 }

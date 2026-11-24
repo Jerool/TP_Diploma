@@ -148,14 +148,21 @@ namespace BLL
         /// <summary>Recalcula la línea base de TODAS las tablas protegidas (las "sella" como íntegras ahora).</summary>
         public void Recalcular()
         {
+            // Se limpia PRIMERO el flag para que el guard de RecalcularTabla no bloquee el re-sellado:
+            // este método es justamente el que "repara" y vuelve a dar por íntegra la base.
+            IntegridadConocidamenteRota = false;
             foreach (var tabla in DALIntegridad_GO44.TABLAS_PROTEGIDAS)
                 RecalcularTabla(tabla);
-            IntegridadConocidamenteRota = false;
         }
 
-        /// <summary>Recalcula y guarda los DVH de una tabla y, a partir de ellos, su DVV. Lo llaman las DAL tras cada cambio legítimo.</summary>
+        /// <summary>
+        /// Recalcula y guarda los DVH de una tabla y, a partir de ellos, su DVV. Lo llaman las BLL tras
+        /// cada escritura legítima. Si la integridad ya está conocidamente rota, no se recalcula nada
+        /// (así no se "bendice" como legítimo un dato que ya fue detectado como alterado).
+        /// </summary>
         public void RecalcularTabla(string nombreTabla)
         {
+            if (DALIntegridad_GO44.IntegridadConocidamenteRota) return;
             Dictionary<string, string> dvhs = _dal.CalcularDVHsTabla(nombreTabla);
             _dal.GuardarDVHs(nombreTabla, dvhs);
             string dvv = CalculadorIntegridad_GO44.CalcularDVV(dvhs.Values);

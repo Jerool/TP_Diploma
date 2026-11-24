@@ -82,7 +82,7 @@ namespace BLL
         public FacturaVO GenerarFacturaYCobrar(BE_Carrito_GO44 carrito, BE_Cobro_GO44 cobro)
         {
             FacturaVO vo = new FacturaVO();
-            if (carrito == null || carrito.EstaVacio())
+            if (carrito == null || carrito.Lineas == null || carrito.Lineas.Count == 0)
             {
                 vo.Resultado = ResultadoFactura.CarritoInvalido;
                 vo.Mensaje = IdiomaManager_GO44.T("bll.factura.sinLineas");
@@ -122,7 +122,13 @@ namespace BLL
             };
             foreach (BE_LineaCarrito_GO44 lc in carrito.Lineas)
             {
-                factura.Lineas.Add(new BE_LineaFactura_GO44(lc.Componente, lc.Cantidad, lc.PrecioUnitario));
+                factura.Lineas.Add(new BE_LineaFactura_GO44
+                {
+                    Componente = lc.Componente,
+                    Cantidad = lc.Cantidad,
+                    PrecioUnitario = lc.PrecioUnitario,
+                    Subtotal = lc.PrecioUnitario * lc.Cantidad
+                });
             }
 
             // Validar monto del cobro

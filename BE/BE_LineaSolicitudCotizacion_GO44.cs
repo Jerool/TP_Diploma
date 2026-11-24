@@ -17,11 +17,5 @@ namespace BE
         public string ComponenteCategoria { get { return Componente != null ? Componente.Categoria : ""; } }
 
         public BE_LineaSolicitudCotizacion_GO44() { }
-
-        public BE_LineaSolicitudCotizacion_GO44(BE_Componente_GO44 componente, int cantidad)
-        {
-            Componente = componente;
-            Cantidad = cantidad;
-        }
     }
 }

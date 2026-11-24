@@ -79,36 +79,7 @@ namespace BE
             set { _Activo = value; }
         }
 
-        /// <summary>
-        /// Indica si hay stock suficiente para cubrir la cantidad pedida.
-        /// Ayuda de dominio usada por el carrito/venta antes de descontar stock.
-        /// </summary>
-        /// <param name="cantidadRequerida">Unidades que se quieren vender/reservar.</param>
-        /// <returns>true si StockActual alcanza o supera lo requerido.</returns>
-        public bool StockDisponible(int cantidadRequerida)
-        {
-            return _StockActual >= cantidadRequerida;
-        }
-
         /// <summary>Constructor vacío: necesario para que las DAL puedan instanciar y rellenar la entidad por propiedades.</summary>
         public BE_Componente_GO44() { }
-
-        /// <summary>Constructor de conveniencia para crear un componente nuevo; lo deja activo por defecto.</summary>
-        public BE_Componente_GO44(int id, string codigo, string nombre, decimal precio, int stockActual)
-        {
-            Id = id;
-            Codigo = codigo;
-            Nombre = nombre;
-            Precio = precio;
-            StockActual = stockActual;
-            Activo = true; // todo componente recién creado arranca habilitado
-        }
-
-        /// <summary>Representación legible ("Código - Nombre"); se usa al mostrarlo en combos y grillas.</summary>
-        public override string ToString()
-        {
-            // El operador ?? evita un NullReferenceException si alguno todavía no fue seteado.
-            return (_Codigo ?? string.Empty) + " - " + (_Nombre ?? string.Empty);
-        }
     }
 }

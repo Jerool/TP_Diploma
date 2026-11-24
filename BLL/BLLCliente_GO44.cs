@@ -105,7 +105,16 @@ namespace BLL
                     }
                 }
 
-                BE_Cliente_GO44 nuevo = new BE_Cliente_GO44(dni, apellido, nombre, email, telefono);
+                BE_Cliente_GO44 nuevo = new BE_Cliente_GO44
+                {
+                    DNI = dni,
+                    Apellido = apellido,
+                    Nombre = nombre,
+                    Email = email,
+                    Telefono = telefono,
+                    FechaAlta = DateTime.Now,
+                    Activo = true
+                };
                 int filas = _dalCliente.Insertar(nuevo);
 
                 if (filas == 0)

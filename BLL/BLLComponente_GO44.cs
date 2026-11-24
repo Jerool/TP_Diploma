@@ -93,7 +93,7 @@ namespace BLL
                 }
 
                 // Última validación: ¿alcanza el stock? Si no, se audita (criticidad media) y se corta.
-                if (!comp.StockDisponible(cantidad))
+                if (!StockDisponible(comp, cantidad))
                 {
                     Auditar("Componente", "Stock insuficiente",
                             "Se pidió " + cantidad + " de " + comp.Codigo + " y hay " + comp.StockActual, "Media");
@@ -141,6 +141,15 @@ namespace BLL
             }
 
             return SeleccionarPorId(comp.Id, cantidad);
+        }
+
+        /// <summary>
+        /// Indica si un componente tiene stock suficiente para cubrir la cantidad pedida.
+        /// Ayuda de dominio (antes vivía en la BE) usada antes de descontar stock.
+        /// </summary>
+        public bool StockDisponible(BE_Componente_GO44 comp, int cantidad)
+        {
+            return comp != null && comp.StockActual >= cantidad;
         }
 
         // ============ Consultas para grillas (delegan directo en la DAL) ============
@@ -250,6 +259,36 @@ namespace BLL
                 Auditar("Componente modificado",
                     "Precio " + actual.Codigo + ": $" + actual.Precio.ToString("N2") + " → $" + nuevoPrecio.ToString("N2"),
                     "Media");
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Modifica los datos de un producto (nombre, categoría, descripción, precio y stock mínimo).
+        /// Valida nombre obligatorio y valores no negativos. El UPDATE queda registrado automáticamente
+        /// en la bitácora de componentes (Componentes_C) por el trigger de la tabla. Audita el cambio.
+        /// </summary>
+        public bool ActualizarProducto(int id, string nombre, string categoria, string descripcion,
+                                       decimal precio, int stockMinimo)
+        {
+            if (string.IsNullOrWhiteSpace(nombre)) return false;
+            if (precio < 0 || stockMinimo < 0) return false;
+
+            BE_Componente_GO44 actual = _dalComponente.BuscarPorId(id);
+            if (actual == null) return false;
+
+            int filas = _dalComponente.ActualizarDatos(id, nombre.Trim(),
+                string.IsNullOrWhiteSpace(descripcion) ? null : descripcion.Trim(),
+                string.IsNullOrWhiteSpace(categoria) ? null : categoria.Trim(),
+                precio, stockMinimo);
+
+            if (filas > 0)
+            {
+                Auditar("Componente modificado",
+                    "Datos " + actual.Codigo + " · " + actual.Nombre +
+                    " → nombre '" + nombre.Trim() + "', precio $" + precio.ToString("N2") +
+                    ", stock mín. " + stockMinimo, "Media");
                 return true;
             }
             return false;

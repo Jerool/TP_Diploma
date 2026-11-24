@@ -26,19 +26,5 @@ namespace BE
             FechaRecepcion = DateTime.Now;
             Lineas = new List<BE_LineaRecepcion_GO44>();
         }
-
-        public bool EstaVacia()
-        {
-            return Lineas == null || Lineas.Count == 0;
-        }
-
-        /// <summary>Recalcula ConFaltantes a partir de las líneas (recibida &lt; pedida).</summary>
-        public bool TieneFaltantes()
-        {
-            if (Lineas == null) return false;
-            foreach (var l in Lineas)
-                if (l.CantidadRecibida < l.CantidadPedida) return true;
-            return false;
-        }
     }
 }

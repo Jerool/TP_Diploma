@@ -20,12 +20,5 @@ namespace BE
         public string ComponenteCategoria { get { return Componente != null ? Componente.Categoria : ""; } }
 
         public BE_LineaRecepcion_GO44() { }
-
-        public BE_LineaRecepcion_GO44(BE_Componente_GO44 componente, int cantidadPedida, int cantidadRecibida)
-        {
-            Componente = componente;
-            CantidadPedida = cantidadPedida;
-            CantidadRecibida = cantidadRecibida;
-        }
     }
 }

@@ -14,11 +14,13 @@ namespace BLL
     {
         private readonly DALPagoOrdenCompra_GO44 _dal;
         private readonly DALOrdenCompra_GO44 _dalOC;
+        private readonly BLLIntegridad_GO44 _bllIntegridad;
 
         public BLLPagoOrdenCompra_GO44()
         {
             _dal   = new DALPagoOrdenCompra_GO44();
             _dalOC = new DALOrdenCompra_GO44();
+            _bllIntegridad = new BLLIntegridad_GO44();
         }
 
         /// <summary>Resultados posibles del pago de una OC (éxito o motivo del rechazo).</summary>
@@ -120,6 +122,9 @@ namespace BLL
 
                 _dal.ConfirmarTransaccion(tx);
                 tx = null;
+
+                // Cambió el estado de la OC a "Pagada": recalcular su dígito verificador (best-effort).
+                try { _bllIntegridad.RecalcularTabla("OrdenesCompra"); } catch { }
 
                 orden.Estado = BE_OrdenCompra_GO44.EstadoOrden.Pagada;
 
