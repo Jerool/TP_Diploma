@@ -44,6 +44,19 @@ namespace BLL
                 InstalarBaseDatos(instancia);
             else if (!ExisteEsquemaNegocio(instancia))
                 InstalarBaseDatos(instancia);   // reparación idempotente con el snapshot completo
+
+            // Asegurar la patente "Maestros.ProductosCambios" y los roles supervisores
+            // (Supervisor de Ventas / de Compras). Idempotente y best-effort.
+            AplicarMigracionProductosCambios(instancia);
+        }
+
+        /// <summary>
+        /// Aplica la migración idempotente de la patente "Maestros.ProductosCambios" (Control de
+        /// cambios) y su asignación a los roles supervisores. Delega en la DAL.
+        /// </summary>
+        public static void AplicarMigracionProductosCambios(string instancia)
+        {
+            InstaladorBD_GO44.AplicarMigracionProductosCambios(instancia);
         }
 
         public static bool ExisteBaseDatos(string instancia)

@@ -207,6 +207,97 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// Migración idempotente de la patente "Maestros.ProductosCambios" (pantalla Control de
+        /// cambios) y su asignación a los roles supervisores (Supervisor de Ventas / de Compras),
+        /// usando el script Migracion_PatenteProductosCambios_GO44.sql que viaja junto al .exe.
+        /// Solo escribe si falta algo; en ese caso recalcula los dígitos verificadores de las tablas
+        /// tocadas (Patente, Roles, RolPatente). Best-effort: cualquier fallo se traga y queda en el log.
+        /// </summary>
+        public static void AplicarMigracionProductosCambios(string instancia)
+        {
+            try
+            {
+                string cs = $"Data Source={instancia};Initial Catalog={NOMBRE_BD};Integrated Security=True";
+                string ruta = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                           "Migracion_PatenteProductosCambios_GO44.sql");
+                if (!File.Exists(ruta)) return;   // si el script no viajó con la app, no frenar el arranque
+
+                using (var conn = new SqlConnection(cs))
+                {
+                    conn.Open();
+
+                    // Si ya está todo aplicado no se escribe ni se recalcula: así no se re-sella la
+                    // integridad en cada arranque (eso ocultaría una manipulación de estas tablas).
+                    if (MigracionProductosCambiosYaAplicada(conn)) return;
+
+                    string script = File.ReadAllText(ruta);
+                    var batches = Regex.Split(script, @"^\s*GO\s*$",
+                        RegexOptions.Multiline | RegexOptions.IgnoreCase);
+                    foreach (var batch in batches)
+                    {
+                        if (string.IsNullOrWhiteSpace(batch)) continue;
+                        string lote = batch.Trim();
+                        string sinComentarios = Regex.Replace(lote, @"/\*.*?\*/|--[^\r\n]*", "",
+                            RegexOptions.Singleline).Trim();
+                        if (sinComentarios.Length == 0) continue;
+                        if (Regex.IsMatch(sinComentarios, @"^USE\b", RegexOptions.IgnoreCase)) continue;
+
+                        using (var cmd = new SqlCommand(lote, conn))
+                        {
+                            cmd.CommandTimeout = 120;
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                // Se tocaron Patente / Roles / RolPatente: recalcular sus dígitos verificadores,
+                // igual que en el resto del sistema. No recalcular si la integridad ya está rota.
+                if (!DALIntegridad_GO44.IntegridadConocidamenteRota)
+                {
+                    var dalIntegridad = new DALIntegridad_GO44();
+                    try { dalIntegridad.RecalcularTabla("Patente"); } catch { }
+                    try { dalIntegridad.RecalcularTabla("Roles"); } catch { }
+                    try { dalIntegridad.RecalcularTabla("RolPatente"); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "instalador_db.log");
+                    File.AppendAllText(logPath,
+                        $"[{DateTime.Now}] AVISO migración ProductosCambios: {ex.Message}{Environment.NewLine}");
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>true si la patente, los dos roles supervisores y sus dos asignaciones ya existen.</summary>
+        private static bool MigracionProductosCambiosYaAplicada(SqlConnection conn)
+        {
+            const string q = @"
+SELECT CASE WHEN
+      EXISTS (SELECT 1 FROM dbo.Patente WHERE DataKey = N'Maestros.ProductosCambios')
+  AND EXISTS (SELECT 1 FROM dbo.Roles   WHERE Nombre  = N'Supervisor de Ventas')
+  AND EXISTS (SELECT 1 FROM dbo.Roles   WHERE Nombre  = N'Supervisor de Compras')
+  AND EXISTS (SELECT 1 FROM dbo.RolPatente rp
+               JOIN dbo.Roles   r ON r.Id = rp.IdRol
+               JOIN dbo.Patente p ON p.Id = rp.IdPatente
+              WHERE p.DataKey = N'Maestros.ProductosCambios' AND r.Nombre = N'Supervisor de Ventas')
+  AND EXISTS (SELECT 1 FROM dbo.RolPatente rp
+               JOIN dbo.Roles   r ON r.Id = rp.IdRol
+               JOIN dbo.Patente p ON p.Id = rp.IdPatente
+              WHERE p.DataKey = N'Maestros.ProductosCambios' AND r.Nombre = N'Supervisor de Compras')
+  THEN 1 ELSE 0 END";
+            using (var cmd = new SqlCommand(q, conn))
+            {
+                cmd.CommandTimeout = 15;
+                object r = cmd.ExecuteScalar();
+                return r != null && r != DBNull.Value && Convert.ToInt32(r) == 1;
+            }
+        }
+
         // ====================================================================
         //  BACKUP / RESTORE  ("Restore sobre reinstalación")
         // --------------------------------------------------------------------

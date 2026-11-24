@@ -27,8 +27,27 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void FRMProductosCambios_GO44_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
-            dtpFechaIni.ShowCheckBox = true; dtpFechaIni.Checked = false;
-            dtpFechaFin.ShowCheckBox = true; dtpFechaFin.Checked = false;
+            EstablecerVistaInicial();
+        }
+
+        /// <summary>
+        /// Estado inicial de la pantalla (consigna "Control de cambios"): limpia los filtros de
+        /// texto, deja las fechas tildadas mostrando el ÚLTIMO MES (desde hace un mes hasta hoy)
+        /// y recarga la grilla. Es la vista a la que también vuelve el botón LIMPIAR.
+        /// </summary>
+        private void EstablecerVistaInicial()
+        {
+            txtCodigo.Clear();
+            txtNombre.Clear();
+
+            dtpFechaIni.ShowCheckBox = true;
+            dtpFechaIni.Value = DateTime.Today.AddMonths(-1);
+            dtpFechaIni.Checked = true;
+
+            dtpFechaFin.ShowCheckBox = true;
+            dtpFechaFin.Value = DateTime.Today;
+            dtpFechaFin.Checked = true;
+
             Buscar();
         }
 
@@ -88,9 +107,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void btnLimpiar_Click(object sender, EventArgs e)
         {
-            txtCodigo.Clear(); txtNombre.Clear();
-            dtpFechaIni.Checked = false; dtpFechaFin.Checked = false;
-            Buscar();
+            // LIMPIAR = volver exactamente a la vista inicial (último mes).
+            EstablecerVistaInicial();
         }
 
         private void btnMarcar_Click(object sender, EventArgs e)

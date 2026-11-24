@@ -53,6 +53,7 @@ Source: "{#CarpetaRelease}\{#MyAppExeName}";        DestDir: "{app}"; Flags: ign
 Source: "{#CarpetaRelease}\{#MyAppExeName}.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#CarpetaRelease}\*.dll";                  DestDir: "{app}"; Flags: ignoreversion
 Source: "{#CarpetaRelease}\EsquemaCompleto.sql";    DestDir: "{app}"; Flags: ignoreversion
+Source: "{#CarpetaRelease}\Migracion_PatenteProductosCambios_GO44.sql"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#CarpetaRelease}\Idiomas\*";              DestDir: "{app}\Idiomas"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Nota: los .pdb (símbolos de depuración) NO se incluyen a propósito.
 

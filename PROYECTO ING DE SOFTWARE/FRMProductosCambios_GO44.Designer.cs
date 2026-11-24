@@ -52,7 +52,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.lblContador.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 
             // Filtros (abajo, izquierda)
-            this.lblCodigo.AutoSize = true; this.lblCodigo.Location = new System.Drawing.Point(20, 486); this.lblCodigo.Text = "Cod_Prod:";
+            this.lblCodigo.AutoSize = true; this.lblCodigo.Location = new System.Drawing.Point(20, 486); this.lblCodigo.Text = "Cod_Comp:";
             this.lblCodigo.Font = new System.Drawing.Font("Segoe UI", 9F); this.lblCodigo.ForeColor = System.Drawing.Color.Black;
             this.lblCodigo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtCodigo.Location = new System.Drawing.Point(110, 483); this.txtCodigo.Size = new System.Drawing.Size(150, 22);
@@ -78,7 +78,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.dtpFechaFin.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this.dtpFechaFin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 
-            // Botones (abajo, verdes) — APLICAR / SALIR / LIMPAR / ACTIVAR
+            // Botones (abajo, verdes) — APLICAR / SALIR / LIMPIAR / ACTIVAR
             this.btnBuscar.Location = new System.Drawing.Point(300, 513); this.btnBuscar.Size = new System.Drawing.Size(150, 36);
             this.btnBuscar.Text = "APLICAR"; this.btnBuscar.BackColor = verde; this.btnBuscar.ForeColor = System.Drawing.Color.White;
             this.btnBuscar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -94,7 +94,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.btnSalir.Click += new System.EventHandler(this.btnSalir_Click);
 
             this.btnLimpiar.Location = new System.Drawing.Point(300, 553); this.btnLimpiar.Size = new System.Drawing.Size(150, 36);
-            this.btnLimpiar.Text = "LIMPAR"; this.btnLimpiar.BackColor = verde; this.btnLimpiar.ForeColor = System.Drawing.Color.White;
+            this.btnLimpiar.Text = "LIMPIAR"; this.btnLimpiar.BackColor = verde; this.btnLimpiar.ForeColor = System.Drawing.Color.White;
             this.btnLimpiar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLimpiar.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.btnLimpiar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
