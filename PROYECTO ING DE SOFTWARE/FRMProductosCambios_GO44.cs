@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,7 +14,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// filtros por Código, Nombre y rango de fechas. Permite marcar manualmente la versión vigente.
     /// Ubicación: menú Maestros.
     /// </summary>
-    public partial class FRMProductosCambios_GO44 : Form
+    public partial class FRMProductosCambios_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLComponenteCambio_GO44 _bll;
         private readonly BindingSource _bs = new BindingSource();
@@ -22,12 +23,45 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             InitializeComponent();
             _bll = new BLLComponenteCambio_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMProductosCambios_GO44_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
+            ActualizarIdioma();
             EstablecerVistaInicial();
+        }
+
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("cambios.titulo");
+            if (lblTitulo != null)   lblTitulo.Text   = IdiomaManager_GO44.T("cambios.titulo");
+            if (lblCodigo != null)   lblCodigo.Text   = IdiomaManager_GO44.T("cambios.lblCodigo");
+            if (lblNombre != null)   lblNombre.Text   = IdiomaManager_GO44.T("cambios.lblNombre");
+            if (lblFechaIni != null) lblFechaIni.Text = IdiomaManager_GO44.T("cambios.lblFechaIni");
+            if (lblFechaFin != null) lblFechaFin.Text = IdiomaManager_GO44.T("cambios.lblFechaFin");
+            if (btnBuscar != null)   btnBuscar.Text   = IdiomaManager_GO44.T("cambios.btnBuscar");
+            if (btnSalir != null)    btnSalir.Text    = IdiomaManager_GO44.T("cambios.btnSalir");
+            if (btnLimpiar != null)  btnLimpiar.Text  = IdiomaManager_GO44.T("cambios.btnLimpiar");
+            if (btnMarcar != null)   btnMarcar.Text   = IdiomaManager_GO44.T("cambios.btnMarcar");
+            ActualizarEncabezadosGrilla();
+            if (lblContador != null) lblContador.Text = string.Format(IdiomaManager_GO44.T("cambios.registros"), _bs.Count);
+        }
+
+        /// <summary>Traduce los encabezados de las columnas de la grilla (se re-aplica al cambiar de idioma).</summary>
+        private void ActualizarEncabezadosGrilla()
+        {
+            if (dgv.Columns.Count == 0) return;
+            if (dgv.Columns.Contains("Codigo"))      dgv.Columns["Codigo"].HeaderText      = IdiomaManager_GO44.T("cambios.colCodigo");
+            if (dgv.Columns.Contains("FechaCambio")) dgv.Columns["FechaCambio"].HeaderText = IdiomaManager_GO44.T("cambios.colFecha");
+            if (dgv.Columns.Contains("HoraCambio"))  dgv.Columns["HoraCambio"].HeaderText  = IdiomaManager_GO44.T("cambios.colHora");
+            if (dgv.Columns.Contains("Nombre"))      dgv.Columns["Nombre"].HeaderText      = IdiomaManager_GO44.T("cambios.colNombre");
+            if (dgv.Columns.Contains("StockActual")) dgv.Columns["StockActual"].HeaderText = IdiomaManager_GO44.T("cambios.colStock");
+            if (dgv.Columns.Contains("Descripcion")) dgv.Columns["Descripcion"].HeaderText = IdiomaManager_GO44.T("cambios.colDesc");
+            if (dgv.Columns.Contains("ActInt"))      dgv.Columns["ActInt"].HeaderText      = IdiomaManager_GO44.T("cambios.colAct");
         }
 
         /// <summary>
@@ -81,6 +115,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             var col = new DataGridViewTextBoxColumn
             {
+                Name = prop,                 // para poder re-traducir el encabezado por nombre
                 DataPropertyName = prop,
                 HeaderText = header,
                 FillWeight = fillWeight,
@@ -100,7 +135,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _bs.DataSource = lista ?? new List<BE_ComponenteCambio_GO44>();
             _bs.ResetBindings(false);
 
-            lblContador.Text = "Registros: " + _bs.Count;
+            lblContador.Text = string.Format(IdiomaManager_GO44.T("cambios.registros"), _bs.Count);
         }
 
         private void btnBuscar_Click(object sender, EventArgs e) { Buscar(); }
@@ -116,33 +151,31 @@ namespace PROYECTO_ING_DE_SOFTWARE
             var sel = dgv.CurrentRow != null ? dgv.CurrentRow.DataBoundItem as BE_ComponenteCambio_GO44 : null;
             if (sel == null)
             {
-                MessageBox.Show("Seleccione una versión del historial", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("cambios.seleccioneVersion"), IdiomaManager_GO44.T("cambios.aviso"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (sel.Act)
             {
-                MessageBox.Show("Esa versión ya es la vigente del componente.", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("cambios.yaVigente"), IdiomaManager_GO44.T("cambios.aviso"),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var r = MessageBox.Show(
-                "¿Restaurar el componente '" + sel.Codigo + "' a esta versión?\r\n\r\n" +
-                "Se sobreescriben nombre, precio, stock y estado del componente con los de esta fila, " +
-                "y queda registrada una versión nueva en la bitácora.",
-                "Confirmar restauración", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                string.Format(IdiomaManager_GO44.T("cambios.confirmarRestaurar"), sel.Codigo),
+                IdiomaManager_GO44.T("cambios.confirmarRestaurarTitulo"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             if (_bll.MarcarActivo(sel.Id))
             {
-                MessageBox.Show("Componente restaurado a la versión seleccionada.", "Éxito",
+                MessageBox.Show(IdiomaManager_GO44.T("cambios.restauradoOk"), IdiomaManager_GO44.T("cambios.exito"),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Buscar();
             }
             else
             {
-                MessageBox.Show("No se pudo restaurar el componente.", "Error",
+                MessageBox.Show(IdiomaManager_GO44.T("cambios.noSeRestauro"), IdiomaManager_GO44.T("general.error"),
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
