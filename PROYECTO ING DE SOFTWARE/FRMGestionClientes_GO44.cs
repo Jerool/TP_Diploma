@@ -15,6 +15,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private readonly BLLCliente_GO44 _bll;
         private string _modo = "Consulta";
         private BE_Cliente_GO44 _clienteSeleccionado = null;
+        // true cuando la grilla muestra clientes des-serializados de un XML (no los de la base).
+        private bool _datosDeserializados = false;
 
         public FRMGestionClientes_GO44()
         {
@@ -48,8 +50,19 @@ namespace PROYECTO_ING_DE_SOFTWARE
             if (btnAplicar != null)  btnAplicar.Text  = IdiomaManager_GO44.T("clientes.btnAplicar");
             if (btnCancelar != null) btnCancelar.Text = IdiomaManager_GO44.T("clientes.btnCancelar");
             if (btnSalir != null)    btnSalir.Text    = IdiomaManager_GO44.T("clientes.btnSalir");
-            if (btnExportarXml != null) btnExportarXml.Text = IdiomaManager_GO44.T("clientes.btnExportarXml");
-            if (btnImportarXml != null) btnImportarXml.Text = IdiomaManager_GO44.T("clientes.btnImportarXml");
+            if (btnSerializar != null)    btnSerializar.Text    = IdiomaManager_GO44.T("clientes.btnSerializar");
+            if (btnDesserializar != null) btnDesserializar.Text = IdiomaManager_GO44.T("clientes.btnDesserializar");
+            if (btnLimpiarGrilla != null) btnLimpiarGrilla.Text = IdiomaManager_GO44.T("clientes.btnLimpiarGrilla");
+            if (btnActualizar != null)    btnActualizar.Text    = IdiomaManager_GO44.T("clientes.btnActualizar");
+
+            // Tooltips traducibles de los 4 botones.
+            if (ttClientes != null)
+            {
+                if (btnSerializar != null)    ttClientes.SetToolTip(btnSerializar,    IdiomaManager_GO44.T("clientes.tipSerializar"));
+                if (btnDesserializar != null) ttClientes.SetToolTip(btnDesserializar, IdiomaManager_GO44.T("clientes.tipDesserializar"));
+                if (btnLimpiarGrilla != null) ttClientes.SetToolTip(btnLimpiarGrilla, IdiomaManager_GO44.T("clientes.tipLimpiarGrilla"));
+                if (btnActualizar != null)    ttClientes.SetToolTip(btnActualizar,    IdiomaManager_GO44.T("clientes.tipActualizar"));
+            }
             RefrescarLblMensaje();
         }
 
@@ -96,7 +109,17 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void CargarGrilla()
         {
-            List<BE_Cliente_GO44> lista = _bll.Listar();
+            // Datos reales desde la base: la grilla deja el modo "des-serializado".
+            _datosDeserializados = false;
+            MostrarClientesEnGrilla(_bll.Listar());
+        }
+
+        /// <summary>
+        /// Vuelca una lista de clientes en la grilla (oculta NombreCompleto y pinta en rojo los
+        /// inactivos). La usan tanto la carga desde la base como la des-serialización de un XML.
+        /// </summary>
+        private void MostrarClientesEnGrilla(List<BE_Cliente_GO44> lista)
+        {
             dgvClientes.DataSource = null;
             dgvClientes.DataSource = lista;
 
@@ -162,8 +185,22 @@ namespace PROYECTO_ING_DE_SOFTWARE
             txtTelefono.Text = _clienteSeleccionado.Telefono;
         }
 
+        /// <summary>
+        /// true (y avisa) si la grilla muestra datos des-serializados de un XML: el ABM
+        /// (alta/modificación/baja) no debe operar sobre esas filas. Con "Actualizar" se vuelve a
+        /// los datos reales de la base.
+        /// </summary>
+        private bool BloquearPorDeserializados()
+        {
+            if (!_datosDeserializados) return false;
+            MessageBox.Show(IdiomaManager_GO44.T("clientes.abmDeserializado"),
+                IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return true;
+        }
+
         private void btnNuevo_Click(object sender, EventArgs e)
         {
+            if (BloquearPorDeserializados()) return;
             LimpiarCampos();
             HabilitarCampos(true);
             dgvClientes.Enabled = false;
@@ -172,6 +209,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void btnModificar_Click(object sender, EventArgs e)
         {
+            if (BloquearPorDeserializados()) return;
             if (_clienteSeleccionado == null)
             {
                 MessageBox.Show(IdiomaManager_GO44.T("clientes.seleccione"),
@@ -187,6 +225,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void btnActivarDesactivar_Click(object sender, EventArgs e)
         {
+            if (BloquearPorDeserializados()) return;
             if (_clienteSeleccionado == null)
             {
                 MessageBox.Show(IdiomaManager_GO44.T("clientes.seleccione"),
@@ -365,12 +404,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.Close();
         }
 
-        // ============ SERIALIZACIÓN XML ============
+        // ============ SERIALIZACIÓN XML / UTILIDADES DE GRILLA ============
 
-        private void btnExportarXml_Click(object sender, EventArgs e)
+        private void btnSerializar_Click(object sender, EventArgs e)
         {
-            List<BE_Cliente_GO44> lista = _bll.Listar();
-            if (lista == null || lista.Count == 0)
+            // Serializa a XML lo que SE VE en la grilla (no lo que hay en la base).
+            List<BE_Cliente_GO44> lista = ClientesEnGrilla();
+            if (lista.Count == 0)
             {
                 MessageBox.Show(IdiomaManager_GO44.T("clientes.sinExportar"),
                     IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -381,7 +421,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 sfd.Filter = "XML (*.xml)|*.xml";
                 sfd.FileName = "Clientes_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xml";
-                sfd.Title = IdiomaManager_GO44.T("clientes.btnExportarXml");
+                sfd.Title = IdiomaManager_GO44.T("clientes.btnSerializar");
                 if (sfd.ShowDialog() != DialogResult.OK) return;
 
                 try
@@ -400,12 +440,25 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
         }
 
-        private void btnImportarXml_Click(object sender, EventArgs e)
+        /// <summary>Clientes que se ven actualmente en la grilla (filas visibles, vía DataBoundItem).</summary>
+        private List<BE_Cliente_GO44> ClientesEnGrilla()
+        {
+            var lista = new List<BE_Cliente_GO44>();
+            foreach (DataGridViewRow row in dgvClientes.Rows)
+            {
+                if (!row.Visible) continue;
+                BE_Cliente_GO44 cli = row.DataBoundItem as BE_Cliente_GO44;
+                if (cli != null) lista.Add(cli);
+            }
+            return lista;
+        }
+
+        private void btnDesserializar_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
                 ofd.Filter = "XML (*.xml)|*.xml";
-                ofd.Title = IdiomaManager_GO44.T("clientes.btnImportarXml");
+                ofd.Title = IdiomaManager_GO44.T("clientes.btnDesserializar");
                 if (ofd.ShowDialog() != DialogResult.OK) return;
 
                 try
@@ -418,26 +471,15 @@ namespace PROYECTO_ING_DE_SOFTWARE
                         return;
                     }
 
-                    var confirm = MessageBox.Show(
-                        string.Format(IdiomaManager_GO44.T("clientes.confirmImport"), export.Clientes.Count),
-                        IdiomaManager_GO44.T("clientes.aviso"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    if (confirm != DialogResult.Yes) return;
-
-                    int importados = 0, saltados = 0, errores = 0;
-                    foreach (BE_Cliente_GO44 cli in export.Clientes)
-                    {
-                        if (cli == null || string.IsNullOrWhiteSpace(cli.DNI)) { saltados++; continue; }
-                        if (_bll.ExisteDNI(cli.DNI)) { saltados++; continue; }
-
-                        var r = _bll.RegistrarCliente(cli.DNI, cli.Apellido, cli.Nombre, cli.Email, cli.Telefono);
-                        if (r == BLLCliente_GO44.ResultadoRegistroCliente.Exitoso) importados++;
-                        else errores++;
-                    }
+                    // Mostrar en la grilla SIN guardar nada en la base.
+                    // La grilla queda en "modo des-serializado" y el ABM no opera sobre estas filas.
+                    _datosDeserializados = true;
+                    _clienteSeleccionado = null;
+                    MostrarClientesEnGrilla(export.Clientes);
 
                     MessageBox.Show(
-                        string.Format(IdiomaManager_GO44.T("clientes.importOk"), importados, export.Clientes.Count, saltados),
+                        string.Format(IdiomaManager_GO44.T("clientes.deserializadoOk"), export.Clientes.Count),
                         IdiomaManager_GO44.T("clientes.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    CargarGrilla();
                 }
                 catch (Exception ex)
                 {
@@ -445,6 +487,20 @@ namespace PROYECTO_ING_DE_SOFTWARE
                         IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private void btnLimpiarGrilla_Click(object sender, EventArgs e)
+        {
+            // Vacía la grilla (no toca la base). Sale del modo des-serializado.
+            _datosDeserializados = false;
+            dgvClientes.DataSource = null;
+            _clienteSeleccionado = null;
+        }
+
+        private void btnActualizar_Click(object sender, EventArgs e)
+        {
+            // Vuelve a cargar los clientes reales desde la base.
+            CargarGrilla();
         }
     }
 }

@@ -14,6 +14,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.lblTitulo = new System.Windows.Forms.Label();
             this.lblDNI = new System.Windows.Forms.Label();
             this.lblApellido = new System.Windows.Forms.Label();
@@ -31,8 +32,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.btnAplicar = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.btnSalir = new System.Windows.Forms.Button();
-            this.btnExportarXml = new System.Windows.Forms.Button();
-            this.btnImportarXml = new System.Windows.Forms.Button();
+            this.btnSerializar = new System.Windows.Forms.Button();
+            this.btnDesserializar = new System.Windows.Forms.Button();
+            this.btnLimpiarGrilla = new System.Windows.Forms.Button();
+            this.btnActualizar = new System.Windows.Forms.Button();
+            this.ttClientes = new System.Windows.Forms.ToolTip(this.components);
             this.dgvClientes = new System.Windows.Forms.DataGridView();
             this.lblMensaje = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvClientes)).BeginInit();
@@ -106,21 +110,35 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.btnSalir.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSalir.Click += new System.EventHandler(this.btnSalir_Click);
             //
-            // Botones de serialización XML
+            // Botones de serialización XML y utilidades de la grilla
             //
-            this.btnExportarXml.Location = new System.Drawing.Point(560, 55); this.btnExportarXml.Size = new System.Drawing.Size(120, 30);
-            this.btnExportarXml.Text = "⇩ Exportar XML";
-            this.btnExportarXml.BackColor = System.Drawing.Color.DarkSlateBlue;
-            this.btnExportarXml.ForeColor = System.Drawing.Color.White;
-            this.btnExportarXml.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnExportarXml.Click += new System.EventHandler(this.btnExportarXml_Click);
+            this.btnSerializar.Location = new System.Drawing.Point(560, 55); this.btnSerializar.Size = new System.Drawing.Size(120, 30);
+            this.btnSerializar.Text = "Serializar";
+            this.btnSerializar.BackColor = System.Drawing.Color.DarkSlateBlue;
+            this.btnSerializar.ForeColor = System.Drawing.Color.White;
+            this.btnSerializar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSerializar.Click += new System.EventHandler(this.btnSerializar_Click);
 
-            this.btnImportarXml.Location = new System.Drawing.Point(560, 90); this.btnImportarXml.Size = new System.Drawing.Size(120, 30);
-            this.btnImportarXml.Text = "⇧ Importar XML";
-            this.btnImportarXml.BackColor = System.Drawing.Color.DarkSlateBlue;
-            this.btnImportarXml.ForeColor = System.Drawing.Color.White;
-            this.btnImportarXml.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnImportarXml.Click += new System.EventHandler(this.btnImportarXml_Click);
+            this.btnDesserializar.Location = new System.Drawing.Point(560, 90); this.btnDesserializar.Size = new System.Drawing.Size(120, 30);
+            this.btnDesserializar.Text = "Des-serializar";
+            this.btnDesserializar.BackColor = System.Drawing.Color.DarkSlateBlue;
+            this.btnDesserializar.ForeColor = System.Drawing.Color.White;
+            this.btnDesserializar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDesserializar.Click += new System.EventHandler(this.btnDesserializar_Click);
+
+            this.btnLimpiarGrilla.Location = new System.Drawing.Point(700, 55); this.btnLimpiarGrilla.Size = new System.Drawing.Size(85, 30);
+            this.btnLimpiarGrilla.Text = "LIMPIAR";
+            this.btnLimpiarGrilla.BackColor = System.Drawing.Color.DarkSlateBlue;
+            this.btnLimpiarGrilla.ForeColor = System.Drawing.Color.White;
+            this.btnLimpiarGrilla.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLimpiarGrilla.Click += new System.EventHandler(this.btnLimpiarGrilla_Click);
+
+            this.btnActualizar.Location = new System.Drawing.Point(700, 90); this.btnActualizar.Size = new System.Drawing.Size(85, 30);
+            this.btnActualizar.Text = "Actualizar";
+            this.btnActualizar.BackColor = System.Drawing.Color.DarkSlateBlue;
+            this.btnActualizar.ForeColor = System.Drawing.Color.White;
+            this.btnActualizar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnActualizar.Click += new System.EventHandler(this.btnActualizar_Click);
             //
             // lblMensaje
             //
@@ -165,8 +183,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             this.Controls.Add(this.btnAplicar);
             this.Controls.Add(this.btnCancelar);
             this.Controls.Add(this.btnSalir);
-            this.Controls.Add(this.btnExportarXml);
-            this.Controls.Add(this.btnImportarXml);
+            this.Controls.Add(this.btnSerializar);
+            this.Controls.Add(this.btnDesserializar);
+            this.Controls.Add(this.btnLimpiarGrilla);
+            this.Controls.Add(this.btnActualizar);
             this.Controls.Add(this.lblMensaje);
             this.Controls.Add(this.dgvClientes);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -198,8 +218,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private System.Windows.Forms.Button btnAplicar;
         private System.Windows.Forms.Button btnCancelar;
         private System.Windows.Forms.Button btnSalir;
-        private System.Windows.Forms.Button btnExportarXml;
-        private System.Windows.Forms.Button btnImportarXml;
+        private System.Windows.Forms.Button btnSerializar;
+        private System.Windows.Forms.Button btnDesserializar;
+        private System.Windows.Forms.Button btnLimpiarGrilla;
+        private System.Windows.Forms.Button btnActualizar;
+        private System.Windows.Forms.ToolTip ttClientes;
         private System.Windows.Forms.Label lblMensaje;
         private System.Windows.Forms.DataGridView dgvClientes;
     }
