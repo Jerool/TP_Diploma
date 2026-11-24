@@ -1,4 +1,3 @@
-using BE;
 using DAL;
 using Servicios;
 using System;
@@ -20,7 +19,7 @@ namespace BLL
         }
 
         /// <summary>Lista versiones del historial con filtros opcionales (delega en la DAL).</summary>
-        public List<BE_ComponenteCambio_GO44> ListarConFiltros(string codigo, string nombre, DateTime? fechaIni, DateTime? fechaFin)
+        public List<ComponenteCambio_GO44> ListarConFiltros(string codigo, string nombre, DateTime? fechaIni, DateTime? fechaFin)
         {
             return _dal.ListarConFiltros(codigo, nombre, fechaIni, fechaFin);
         }

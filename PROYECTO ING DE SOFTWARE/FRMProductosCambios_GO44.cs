@@ -1,4 +1,3 @@
-using BE;
 using BLL;
 using Servicios;
 using System;
@@ -132,7 +131,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             var lista = _bll.ListarConFiltros(txtCodigo.Text.Trim(), txtNombre.Text.Trim(), fi, ff);
             _bs.DataSource = null;
-            _bs.DataSource = lista ?? new List<BE_ComponenteCambio_GO44>();
+            _bs.DataSource = lista ?? new List<ComponenteCambio_GO44>();
             _bs.ResetBindings(false);
 
             lblContador.Text = string.Format(IdiomaManager_GO44.T("cambios.registros"), _bs.Count);
@@ -148,7 +147,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void btnMarcar_Click(object sender, EventArgs e)
         {
-            var sel = dgv.CurrentRow != null ? dgv.CurrentRow.DataBoundItem as BE_ComponenteCambio_GO44 : null;
+            var sel = dgv.CurrentRow != null ? dgv.CurrentRow.DataBoundItem as ComponenteCambio_GO44 : null;
             if (sel == null)
             {
                 MessageBox.Show(IdiomaManager_GO44.T("cambios.seleccioneVersion"), IdiomaManager_GO44.T("cambios.aviso"),

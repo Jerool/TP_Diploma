@@ -56,7 +56,6 @@
     <Compile Include="BE_PagoOrdenCompra_GO44.cs" />
     <Compile Include="BE_RecepcionMercaderia_GO44.cs" />
     <Compile Include="BE_LineaRecepcion_GO44.cs" />
-    <Compile Include="BE_ComponenteCambio_GO44.cs" />
     <Compile Include="BE_ReporteInteligente_GO44.cs" />
     <Compile Include="BE_Promocion_GO44.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

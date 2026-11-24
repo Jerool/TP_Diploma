@@ -1,4 +1,4 @@
-using BE;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -24,7 +24,7 @@ namespace DAL
         /// Lista versiones del historial aplicando filtros opcionales (código, nombre, rango de fechas).
         /// Cada filtro vacío se manda como NULL para que el SP lo ignore.
         /// </summary>
-        public List<BE_ComponenteCambio_GO44> ListarConFiltros(string codigo, string nombre, DateTime? fechaIni, DateTime? fechaFin)
+        public List<ComponenteCambio_GO44> ListarConFiltros(string codigo, string nombre, DateTime? fechaIni, DateTime? fechaFin)
         {
             SqlParameter[] p = {
                 new SqlParameter("@Codigo",   string.IsNullOrWhiteSpace(codigo) ? (object)DBNull.Value : codigo),
@@ -33,7 +33,7 @@ namespace DAL
                 new SqlParameter("@FechaFin", (object)fechaFin ?? DBNull.Value)
             };
             DataTable dt = _acceso.leerSP("sp_ComponenteCambio_ListarConFiltros_GO44", p);
-            var lista = new List<BE_ComponenteCambio_GO44>();
+            var lista = new List<ComponenteCambio_GO44>();
             foreach (DataRow row in dt.Rows) lista.Add(Mapear(row));
             return lista;
         }
@@ -51,9 +51,9 @@ namespace DAL
         }
 
         /// <summary>Mapea una fila de Componentes_C a la entidad, tratando los campos que pueden venir NULL (Descripcion/Categoria/FechaFin).</summary>
-        private BE_ComponenteCambio_GO44 Mapear(DataRow row)
+        private ComponenteCambio_GO44 Mapear(DataRow row)
         {
-            return new BE_ComponenteCambio_GO44
+            return new ComponenteCambio_GO44
             {
                 Id             = Convert.ToInt32(row["Id"]),
                 IdComponente   = Convert.ToInt32(row["IdComponente"]),

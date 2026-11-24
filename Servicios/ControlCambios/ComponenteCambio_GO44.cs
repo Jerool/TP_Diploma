@@ -1,12 +1,12 @@
 using System;
 
-namespace BE
+namespace Servicios
 {
     /// <summary>
     /// Registro histórico de un componente (tabla Componentes_C) — bitácora de cambios SCD2.
     /// Cada alta/modificación/baja de un producto genera una fila nueva; la vigente tiene Act = 1.
     /// </summary>
-    public class BE_ComponenteCambio_GO44
+    public class ComponenteCambio_GO44
     {
         public int Id { get; set; }
         public int IdComponente { get; set; }
