@@ -1,5 +1,6 @@
 using BE;
 using DAL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,12 +48,14 @@ namespace BLL
 
                 if (urgente)
                 {
-                    r.Alerta = "Reponer urgente";
+                    r.AlertaCod = "REPONER";
+                    r.Alerta = IdiomaManager_GO44.T("ri.alertaReponer");
                     r.DescuentoSugerido = 0m;
                 }
                 else if (muerto)
                 {
-                    r.Alerta = "Stock muerto";
+                    r.AlertaCod = "MUERTO";
+                    r.Alerta = IdiomaManager_GO44.T("ri.alertaMuerto");
                     // Descuento escalonado: arranca en 10% y sube 1% por cada 10 días extra sin vender,
                     // con tope entre 10% y 30%. Si nunca se vendió (DiasSinVenta < 0) se asume 90 días.
                     int dias = r.DiasSinVenta < 0 ? 90 : r.DiasSinVenta;
@@ -63,7 +66,8 @@ namespace BLL
                 }
                 else
                 {
-                    r.Alerta = "OK";
+                    r.AlertaCod = "OK";
+                    r.Alerta = IdiomaManager_GO44.T("ri.alertaOk");
                     r.DescuentoSugerido = 0m;
                 }
             }
@@ -91,18 +95,21 @@ namespace BLL
             if (datos == null) return promos;
 
             var topSellers = datos.Where(x => x.Vendidas30 > 0).OrderByDescending(x => x.Vendidas30).ToList();
-            var muertos    = datos.Where(x => x.Alerta == "Stock muerto").OrderByDescending(x => x.DiasSinVenta).ToList();
-            var urgentes   = datos.Where(x => x.Alerta == "Reponer urgente").ToList();
+            var muertos    = datos.Where(x => x.AlertaCod == "MUERTO").OrderByDescending(x => x.DiasSinVenta).ToList();
+            var urgentes   = datos.Where(x => x.AlertaCod == "REPONER").ToList();
 
             // 1) Liquidaciones de stock muerto
             foreach (var m in muertos)
             {
+                string diasTxt = m.DiasSinVenta < 0
+                    ? IdiomaManager_GO44.T("promo.liqSinVentas")
+                    : string.Format(IdiomaManager_GO44.T("promo.liqDiasSinVenta"), m.DiasSinVenta);
                 promos.Add(new BE_Promocion_GO44
                 {
-                    Tipo = "Liquidación",
-                    Titulo = "Liquidar " + m.Nombre,
-                    Detalle = (m.DiasSinVenta < 0 ? "Sin ventas registradas" : m.DiasSinVenta + " días sin venta") +
-                              " · stock " + m.StockActual + " u.",
+                    TipoCod = "LIQ",
+                    Tipo = IdiomaManager_GO44.T("promo.tipoLiquidacion"),
+                    Titulo = string.Format(IdiomaManager_GO44.T("promo.liqTitulo"), m.Nombre),
+                    Detalle = string.Format(IdiomaManager_GO44.T("promo.liqDetalle"), diasTxt, m.StockActual),
                     Descuento = m.DescuentoSugerido
                 });
             }
@@ -119,10 +126,10 @@ namespace BLL
                 decimal desc = Math.Max(10m, dead.DescuentoSugerido);
                 promos.Add(new BE_Promocion_GO44
                 {
-                    Tipo = "Combo",
-                    Titulo = "Combo: " + top.Nombre + " + " + dead.Nombre,
-                    Detalle = "Llevando el más vendido (" + top.Nombre + ") + " + dead.Nombre +
-                              " con " + desc.ToString("N0") + "% en el 2do producto",
+                    TipoCod = "COMBO",
+                    Tipo = IdiomaManager_GO44.T("promo.tipoCombo"),
+                    Titulo = string.Format(IdiomaManager_GO44.T("promo.comboTitulo"), top.Nombre, dead.Nombre),
+                    Detalle = string.Format(IdiomaManager_GO44.T("promo.comboDetalle"), top.Nombre, dead.Nombre, desc.ToString("N0")),
                     Descuento = desc
                 });
             }
@@ -132,9 +139,10 @@ namespace BLL
             {
                 promos.Add(new BE_Promocion_GO44
                 {
-                    Tipo = "Reposición",
-                    Titulo = "Reponer " + u.Nombre,
-                    Detalle = "Stock " + u.StockActual + " u. insuficiente para la demanda (vende " + u.VentaDiariaTxt + "/día)",
+                    TipoCod = "REPO",
+                    Tipo = IdiomaManager_GO44.T("promo.tipoReposicion"),
+                    Titulo = string.Format(IdiomaManager_GO44.T("promo.repoTitulo"), u.Nombre),
+                    Detalle = string.Format(IdiomaManager_GO44.T("promo.repoDetalle"), u.StockActual, u.VentaDiariaTxt),
                     Descuento = 0m
                 });
             }

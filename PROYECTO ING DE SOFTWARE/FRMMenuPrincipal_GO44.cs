@@ -361,13 +361,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void IniciarVisitaGuiada()
         {
             var pasos = new List<FRMVisitaGuiada_GO44.PasoVisita_GO44>();
-            AgregarPaso(pasos, menuAdmin,    "Administración", "Gestión de usuarios, perfiles, eventos (bitácora) y respaldos.");
-            AgregarPaso(pasos, menuMaestros, "Maestros", "Productos, Clientes, Productos - C (historial de cambios) y Proveedores.");
-            AgregarPaso(pasos, menuUsuario,  "Usuario", "Cambiar clave, cerrar sesión y cambiar idioma.");
-            AgregarPaso(pasos, menuVentas,   "Ventas", "Cargar carrito y facturar la venta (RFN1).");
-            AgregarPaso(pasos, menuCompras,  "Compras", "Cotizaciones, órdenes de compra y recepción de mercadería (RFN2).");
-            AgregarPaso(pasos, menuReportes, "Reportes", "Facturas (RFN1), compras (RFN2) y reporte inteligente.");
-            AgregarPaso(pasos, menuAyuda,    "Ayuda", "Ayuda en línea (árbol + PDF), F1 contextual y esta visita guiada.");
+            AgregarPaso(pasos, menuAdmin,    IdiomaManager_GO44.T("visita.admin.tit"),    IdiomaManager_GO44.T("visita.admin.txt"));
+            AgregarPaso(pasos, menuMaestros, IdiomaManager_GO44.T("visita.maestros.tit"), IdiomaManager_GO44.T("visita.maestros.txt"));
+            AgregarPaso(pasos, menuUsuario,  IdiomaManager_GO44.T("visita.usuario.tit"),  IdiomaManager_GO44.T("visita.usuario.txt"));
+            AgregarPaso(pasos, menuVentas,   IdiomaManager_GO44.T("visita.ventas.tit"),   IdiomaManager_GO44.T("visita.ventas.txt"));
+            AgregarPaso(pasos, menuCompras,  IdiomaManager_GO44.T("visita.compras.tit"),  IdiomaManager_GO44.T("visita.compras.txt"));
+            AgregarPaso(pasos, menuReportes, IdiomaManager_GO44.T("visita.reportes.tit"), IdiomaManager_GO44.T("visita.reportes.txt"));
+            AgregarPaso(pasos, menuAyuda,    IdiomaManager_GO44.T("visita.ayuda.tit"),    IdiomaManager_GO44.T("visita.ayuda.txt"));
 
             if (pasos.Count == 0) return;
             using (var tour = new FRMVisitaGuiada_GO44(menuStrip1, pasos))
@@ -380,9 +380,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 pasos.Add(new FRMVisitaGuiada_GO44.PasoVisita_GO44(titulo, texto, item));
         }
         private void miAyudaIndice_Click(object sender, EventArgs e)   { AbrirAyuda(null); }
-        private void miAyudaMaestros_Click(object sender, EventArgs e) { AbrirAyuda("Maestros"); }
-        private void miAyudaVentas_Click(object sender, EventArgs e)   { AbrirAyuda("Ventas"); }
-        private void miAyudaCompras_Click(object sender, EventArgs e)  { AbrirAyuda("Compras"); }
+        private void miAyudaMaestros_Click(object sender, EventArgs e) { AbrirAyuda(IdiomaManager_GO44.T("ayuda.maestros.tit")); }
+        private void miAyudaVentas_Click(object sender, EventArgs e)   { AbrirAyuda(IdiomaManager_GO44.T("ayuda.ventas.tit")); }
+        private void miAyudaCompras_Click(object sender, EventArgs e)  { AbrirAyuda(IdiomaManager_GO44.T("ayuda.compras.tit")); }
 
         private void miLogout_Click(object sender, EventArgs e)
         {

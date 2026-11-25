@@ -12,7 +12,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// Al cerrar con OK, expone el proveedor registrado en ProveedorRegistrado para
     /// que la pantalla padre lo pueda seleccionar automáticamente en el combo.
     /// </summary>
-    public partial class FRMRegistrarProveedor_GO44 : Form
+    public partial class FRMRegistrarProveedor_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLProveedor_GO44 _bll;
 
@@ -23,6 +23,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             InitializeComponent();
             _bll = new BLLProveedor_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMRegistrarProveedor_GO44_Load(object sender, EventArgs e)
@@ -35,6 +38,25 @@ namespace PROYECTO_ING_DE_SOFTWARE
             txtNombre.KeyPress   += SoloLetras;
             txtApellido.KeyPress += SoloLetras;
             txtTitular.KeyPress  += SoloLetras;
+
+            ActualizarIdioma();
+        }
+
+        /// <summary>Aplica los textos del idioma activo a títulos, etiquetas y botones.</summary>
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("prov.titulo");
+            if (lblTitulo != null)   lblTitulo.Text   = IdiomaManager_GO44.T("prov.titulo");
+            if (lblCUIT != null)     lblCUIT.Text      = IdiomaManager_GO44.T("prov.cuit");
+            if (lblNombre != null)   lblNombre.Text    = IdiomaManager_GO44.T("prov.nombre");
+            if (lblApellido != null) lblApellido.Text  = IdiomaManager_GO44.T("prov.apellido");
+            if (lblEmpresa != null)  lblEmpresa.Text   = IdiomaManager_GO44.T("prov.empresa");
+            if (lblTelefono != null) lblTelefono.Text  = IdiomaManager_GO44.T("prov.telefono");
+            if (lblCVU != null)      lblCVU.Text        = IdiomaManager_GO44.T("prov.cvu");
+            if (lblBanco != null)    lblBanco.Text     = IdiomaManager_GO44.T("prov.banco");
+            if (lblTitular != null)  lblTitular.Text   = IdiomaManager_GO44.T("prov.titular");
+            if (btnGuardar != null)  btnGuardar.Text   = IdiomaManager_GO44.T("prov.btnGuardar");
+            if (btnCancelar != null) btnCancelar.Text  = IdiomaManager_GO44.T("prov.btnCancelar");
         }
 
         private void SoloDigitos(object sender, KeyPressEventArgs e)
@@ -65,7 +87,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             switch (vo.Resultado)
             {
                 case BLLProveedor_GO44.ResultadoRegistro.Exitoso:
-                    MessageBox.Show(vo.Mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(vo.Mensaje, IdiomaManager_GO44.T("general.exito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ProveedorRegistrado = vo.Proveedor;
                     if (this.Modal)
                     {
@@ -84,31 +106,31 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 case BLLProveedor_GO44.ResultadoRegistro.CuitInvalido:
                     Aviso(Validaciones_GO44.MENSAJE_CUIT, txtCUIT); break;
                 case BLLProveedor_GO44.ResultadoRegistro.CuitDuplicado:
-                    Aviso("Ya existe un proveedor con el CUIT " + prov.CUIT, txtCUIT); break;
+                    Aviso(string.Format(IdiomaManager_GO44.T("prov.cuitDuplicado"), prov.CUIT), txtCUIT); break;
                 case BLLProveedor_GO44.ResultadoRegistro.NombreInvalido:
                     Aviso(Validaciones_GO44.MENSAJE_NOMBRE, txtNombre); break;
                 case BLLProveedor_GO44.ResultadoRegistro.ApellidoInvalido:
                     Aviso(Validaciones_GO44.MENSAJE_APELLIDO, txtApellido); break;
                 case BLLProveedor_GO44.ResultadoRegistro.EmpresaVacia:
-                    Aviso("La empresa es obligatoria.", txtEmpresa); break;
+                    Aviso(IdiomaManager_GO44.T("prov.empresaObligatoria"), txtEmpresa); break;
                 case BLLProveedor_GO44.ResultadoRegistro.TelefonoInvalido:
                     Aviso(Validaciones_GO44.MENSAJE_TELEFONO, txtTelefono); break;
                 case BLLProveedor_GO44.ResultadoRegistro.CvuInvalido:
                     Aviso(Validaciones_GO44.MENSAJE_CVU, txtCVU); break;
                 case BLLProveedor_GO44.ResultadoRegistro.BancoVacio:
-                    Aviso("El banco es obligatorio.", txtBanco); break;
+                    Aviso(IdiomaManager_GO44.T("prov.bancoObligatorio"), txtBanco); break;
                 case BLLProveedor_GO44.ResultadoRegistro.TitularInvalido:
-                    Aviso("El titular solo puede contener letras y espacios.", txtTitular); break;
+                    Aviso(IdiomaManager_GO44.T("prov.titularInvalido"), txtTitular); break;
                 default:
-                    MessageBox.Show(vo.Mensaje ?? "Error al registrar el proveedor",
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(vo.Mensaje ?? IdiomaManager_GO44.T("prov.errorRegistrar"),
+                        IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     break;
             }
         }
 
         private void Aviso(string texto, Control foco)
         {
-            MessageBox.Show(texto, "Datos inválidos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(texto, IdiomaManager_GO44.T("prov.datosInvalidos"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             if (foco != null) foco.Focus();
         }
 

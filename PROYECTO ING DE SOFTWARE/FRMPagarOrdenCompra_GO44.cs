@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,7 +14,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// datos bancarios del proveedor (CVU, Banco, Titular). El encargado ingresa el monto
     /// abonado y el nro de comprobante, y confirma. La OC pasa a "Pagada".
     /// </summary>
-    public partial class FRMPagarOrdenCompra_GO44 : Form
+    public partial class FRMPagarOrdenCompra_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLOrdenCompra_GO44 _bllOC;
         private readonly BLLPagoOrdenCompra_GO44 _bllPago;
@@ -28,6 +29,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _bllOC        = new BLLOrdenCompra_GO44();
             _bllPago      = new BLLPagoOrdenCompra_GO44();
             _bllProveedor = new BLLProveedor_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMPagarOrdenCompra_GO44_Load(object sender, EventArgs e)
@@ -43,6 +47,42 @@ namespace PROYECTO_ING_DE_SOFTWARE
             // Cargar al final: así la auto-selección de la grilla completa el detalle sin que
             // nada lo borre después.
             CargarOrdenes();
+            ActualizarIdioma();
+        }
+
+        /// <summary>Aplica los textos del idioma activo a títulos, etiquetas, botones y encabezados de la grilla.</summary>
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("pago.titulo");
+            if (lblTitulo != null)          lblTitulo.Text          = IdiomaManager_GO44.T("pago.titulo");
+            if (grpOrdenes != null)         grpOrdenes.Text         = IdiomaManager_GO44.T("pago.grpOrdenes");
+            if (lblAvisoSinOrdenes != null) lblAvisoSinOrdenes.Text = IdiomaManager_GO44.T("pago.avisoSinOrdenes");
+            if (btnActualizar != null)      btnActualizar.Text      = IdiomaManager_GO44.T("pago.btnActualizar");
+            if (grpPago != null)            grpPago.Text            = IdiomaManager_GO44.T("pago.grpPago");
+            if (lblCVU != null)             lblCVU.Text             = IdiomaManager_GO44.T("pago.lblCVU");
+            if (lblBanco != null)           lblBanco.Text           = IdiomaManager_GO44.T("pago.lblBanco");
+            if (lblTitular != null)         lblTitular.Text         = IdiomaManager_GO44.T("pago.lblTitular");
+            if (lblMonto != null)           lblMonto.Text           = IdiomaManager_GO44.T("pago.lblMonto");
+            if (lblComprobante != null)     lblComprobante.Text     = IdiomaManager_GO44.T("pago.lblComprobante");
+            if (btnPagar != null)           btnPagar.Text           = IdiomaManager_GO44.T("pago.btnPagar");
+            if (btnSalir != null)           btnSalir.Text           = IdiomaManager_GO44.T("pago.btnSalir");
+            ActualizarEncabezadosGrilla();
+            if (_ordenSeleccionada == null)
+            {
+                if (lblDetalleOC != null)    lblDetalleOC.Text    = IdiomaManager_GO44.T("pago.seleccioneOrdenDetalle");
+                if (lblDetalleTotal != null) lblDetalleTotal.Text = IdiomaManager_GO44.T("pago.totalVacio");
+            }
+        }
+
+        /// <summary>Traduce los encabezados de la grilla de órdenes.</summary>
+        private void ActualizarEncabezadosGrilla()
+        {
+            if (dgvOrdenes.Columns.Count == 0) return;
+            if (dgvOrdenes.Columns.Contains("NumeroOC"))     dgvOrdenes.Columns["NumeroOC"].HeaderText     = IdiomaManager_GO44.T("pago.colNumeroOC");
+            if (dgvOrdenes.Columns.Contains("NumeroSC"))     dgvOrdenes.Columns["NumeroSC"].HeaderText     = IdiomaManager_GO44.T("pago.colNumeroSC");
+            if (dgvOrdenes.Columns.Contains("FechaEntrega")) dgvOrdenes.Columns["FechaEntrega"].HeaderText = IdiomaManager_GO44.T("pago.colEntrega");
+            if (dgvOrdenes.Columns.Contains("Total"))        dgvOrdenes.Columns["Total"].HeaderText        = IdiomaManager_GO44.T("pago.colTotal");
+            if (dgvOrdenes.Columns.Contains("Estado"))       dgvOrdenes.Columns["Estado"].HeaderText       = IdiomaManager_GO44.T("pago.colEstado");
         }
 
         private void ConfigurarGrilla()
@@ -73,11 +113,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 foreach (var col in new[] { "IdSolicitud", "UserNameEncargado", "Proveedor", "Lineas", "FechaEmision" })
                     if (dgvOrdenes.Columns.Contains(col)) dgvOrdenes.Columns[col].Visible = false;
                 if (dgvOrdenes.Columns.Contains("Id"))           dgvOrdenes.Columns["Id"].Visible = false;
-                if (dgvOrdenes.Columns.Contains("NumeroOC"))     dgvOrdenes.Columns["NumeroOC"].HeaderText = "N° OC";
-                if (dgvOrdenes.Columns.Contains("NumeroSC"))     dgvOrdenes.Columns["NumeroSC"].HeaderText = "N° SC";
-                if (dgvOrdenes.Columns.Contains("FechaEntrega")) { dgvOrdenes.Columns["FechaEntrega"].HeaderText = "Entrega"; dgvOrdenes.Columns["FechaEntrega"].DefaultCellStyle.Format = "dd/MM/yyyy"; }
-                if (dgvOrdenes.Columns.Contains("Total"))        { dgvOrdenes.Columns["Total"].HeaderText = "Total"; dgvOrdenes.Columns["Total"].DefaultCellStyle.Format = "N2"; }
-                if (dgvOrdenes.Columns.Contains("Estado"))       dgvOrdenes.Columns["Estado"].HeaderText = "Estado";
+                if (dgvOrdenes.Columns.Contains("NumeroOC"))     dgvOrdenes.Columns["NumeroOC"].HeaderText = IdiomaManager_GO44.T("pago.colNumeroOC");
+                if (dgvOrdenes.Columns.Contains("NumeroSC"))     dgvOrdenes.Columns["NumeroSC"].HeaderText = IdiomaManager_GO44.T("pago.colNumeroSC");
+                if (dgvOrdenes.Columns.Contains("FechaEntrega")) { dgvOrdenes.Columns["FechaEntrega"].HeaderText = IdiomaManager_GO44.T("pago.colEntrega"); dgvOrdenes.Columns["FechaEntrega"].DefaultCellStyle.Format = "dd/MM/yyyy"; }
+                if (dgvOrdenes.Columns.Contains("Total"))        { dgvOrdenes.Columns["Total"].HeaderText = IdiomaManager_GO44.T("pago.colTotal"); dgvOrdenes.Columns["Total"].DefaultCellStyle.Format = "N2"; }
+                if (dgvOrdenes.Columns.Contains("Estado"))       dgvOrdenes.Columns["Estado"].HeaderText = IdiomaManager_GO44.T("pago.colEstado");
                 if (dgvOrdenes.Columns.Contains("CantidadItems")) dgvOrdenes.Columns["CantidadItems"].Visible = false;
             }
 
@@ -123,9 +163,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             }
 
             var prov = _ordenSeleccionada.Proveedor;
-            lblDetalleOC.Text = "OC " + _ordenSeleccionada.NumeroOC + "  ·  " +
-                                (prov != null ? prov.Empresa : "—");
-            lblDetalleTotal.Text = "Total a pagar: $" + _ordenSeleccionada.Total.ToString("N2");
+            lblDetalleOC.Text = string.Format(IdiomaManager_GO44.T("pago.detalleOC"),
+                                _ordenSeleccionada.NumeroOC, prov != null ? prov.Empresa : "—");
+            lblDetalleTotal.Text = string.Format(IdiomaManager_GO44.T("pago.totalAPagar"), _ordenSeleccionada.Total.ToString("N2"));
             txtCVU.Text     = prov != null ? prov.CVU : "";
             txtBanco.Text   = prov != null ? prov.Banco : "";
             txtTitular.Text = prov != null ? prov.Titular : "";
@@ -146,8 +186,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         private void LimpiarDetalle()
         {
             _ordenSeleccionada = null;
-            lblDetalleOC.Text = "Seleccione una orden de compra";
-            lblDetalleTotal.Text = "Total a pagar: —";
+            lblDetalleOC.Text = IdiomaManager_GO44.T("pago.seleccioneOrdenDetalle");
+            lblDetalleTotal.Text = IdiomaManager_GO44.T("pago.totalVacio");
             txtCVU.Text = ""; txtBanco.Text = ""; txtTitular.Text = "";
             txtMonto.Text = ""; txtComprobante.Text = "";
             btnPagar.Enabled = false;
@@ -157,7 +197,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_ordenSeleccionada == null)
             {
-                MessageBox.Show("Seleccione una orden de compra", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("pago.seleccioneOrdenDetalle"), IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -165,7 +205,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             decimal monto;
             if (!decimal.TryParse(txtMonto.Text.Trim(), out monto) || monto <= 0)
             {
-                MessageBox.Show("Ingrese un monto válido", "Monto inválido",
+                MessageBox.Show(IdiomaManager_GO44.T("pago.montoInvalidoMsg"), IdiomaManager_GO44.T("pago.montoInvalidoTit"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtMonto.Focus();
                 return;
@@ -181,22 +221,21 @@ namespace PROYECTO_ING_DE_SOFTWARE
             };
 
             var r = MessageBox.Show(
-                "¿Confirmar el pago de la orden " + _ordenSeleccionada.NumeroOC +
-                " por $" + monto.ToString("N2") + "?",
-                "Confirmar pago", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                string.Format(IdiomaManager_GO44.T("pago.confirmarPagoMsg"), _ordenSeleccionada.NumeroOC, monto.ToString("N2")),
+                IdiomaManager_GO44.T("pago.confirmarPagoTit"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             var ordenPagada = _ordenSeleccionada;   // referencia antes de recargar la grilla
             var vo = _bllPago.PagarOrden(_ordenSeleccionada, pago);
             if (vo.Resultado == BLLPagoOrdenCompra_GO44.ResultadoPago.Exitoso)
             {
-                MessageBox.Show(vo.Mensaje, "Pago registrado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(vo.Mensaje, IdiomaManager_GO44.T("pago.pagoRegistrado"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 OfrecerComprobantePdf(ordenPagada, vo.Pago);
                 CargarOrdenes();
             }
             else
             {
-                MessageBox.Show(vo.Mensaje, "No se pudo pagar", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(vo.Mensaje, IdiomaManager_GO44.T("pago.noSePudoPagar"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -208,8 +247,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (orden == null || pago == null) return;
 
-            var r = MessageBox.Show("¿Desea generar el comprobante de pago en PDF?",
-                "Comprobante de pago", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var r = MessageBox.Show(IdiomaManager_GO44.T("pago.generarPdfMsg"),
+                IdiomaManager_GO44.T("pago.comprobanteTit"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             using (var sfd = new SaveFileDialog())
@@ -221,14 +260,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 try
                 {
                     var prov = orden.Proveedor;
-                    string titulo = "TECHFLOW - ELECTROPOINT · COMPROBANTE DE PAGO " + pago.NroComprobante;
-                    string subtitulo =
-                        "OC: " + orden.NumeroOC +
-                        "   |   Fecha: " + pago.FechaOperacion.ToString("dd/MM/yyyy HH:mm") +
-                        "   |   Proveedor: " + (prov != null ? prov.Empresa : "") +
-                        "   |   Estado: " + pago.Estado;
+                    string titulo = string.Format(IdiomaManager_GO44.T("pago.pdfTitulo"), pago.NroComprobante);
+                    string subtitulo = string.Format(IdiomaManager_GO44.T("pago.pdfSubtitulo"),
+                        orden.NumeroOC,
+                        pago.FechaOperacion.ToString("dd/MM/yyyy HH:mm"),
+                        prov != null ? prov.Empresa : "",
+                        pago.Estado);
 
-                    string[] headers = { "Codigo", "Componente", "Cant", "Precio Unit.", "Subtotal" };
+                    string[] headers = { IdiomaManager_GO44.T("pago.pdfColCodigo"), IdiomaManager_GO44.T("pago.pdfColComponente"), IdiomaManager_GO44.T("pago.pdfColCant"), IdiomaManager_GO44.T("pago.pdfColPrecio"), IdiomaManager_GO44.T("pago.pdfColSubtotal") };
                     float[] anchos = { 0.12f, 0.48f, 0.10f, 0.15f, 0.15f };
 
                     var filas = new List<string[]>();
@@ -246,27 +285,27 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
                     // Totales y datos del pago
                     filas.Add(new string[] { "", "", "", "", "" });
-                    filas.Add(new string[] { "", "", "", "TOTAL OC:",  "$ " + orden.Total.ToString("N2") });
-                    filas.Add(new string[] { "", "", "", "ABONADO:",   "$ " + pago.MontoAbonado.ToString("N2") });
+                    filas.Add(new string[] { "", "", "", IdiomaManager_GO44.T("pago.pdfTotalOC"),  "$ " + orden.Total.ToString("N2") });
+                    filas.Add(new string[] { "", "", "", IdiomaManager_GO44.T("pago.pdfAbonado"),   "$ " + pago.MontoAbonado.ToString("N2") });
                     filas.Add(new string[] { "", "", "", "", "" });
-                    filas.Add(new string[] { "DATOS DEL PAGO", "", "", "", "" });
-                    filas.Add(new string[] { "CVU",         prov != null ? prov.CVU : "",     "", "", "" });
-                    filas.Add(new string[] { "Banco",       prov != null ? prov.Banco : "",   "", "", "" });
-                    filas.Add(new string[] { "Titular",     prov != null ? prov.Titular : "", "", "", "" });
-                    filas.Add(new string[] { "Comprobante", pago.NroComprobante,               "", "", "" });
+                    filas.Add(new string[] { IdiomaManager_GO44.T("pago.pdfDatosPago"), "", "", "", "" });
+                    filas.Add(new string[] { IdiomaManager_GO44.T("pago.pdfCVU"),         prov != null ? prov.CVU : "",     "", "", "" });
+                    filas.Add(new string[] { IdiomaManager_GO44.T("pago.pdfBanco"),       prov != null ? prov.Banco : "",   "", "", "" });
+                    filas.Add(new string[] { IdiomaManager_GO44.T("pago.pdfTitular"),     prov != null ? prov.Titular : "", "", "", "" });
+                    filas.Add(new string[] { IdiomaManager_GO44.T("pago.pdfComprobante"), pago.NroComprobante,               "", "", "" });
 
                     var gen = new GeneradorPdf_GO44();
                     gen.Generar(sfd.FileName, titulo, subtitulo, headers, anchos, filas);
 
-                    var abrir = MessageBox.Show("Comprobante generado en:\n" + sfd.FileName + "\n\n¿Desea abrirlo?",
-                        "Comprobante de pago", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    var abrir = MessageBox.Show(string.Format(IdiomaManager_GO44.T("pago.pdfGenerado"), sfd.FileName),
+                        IdiomaManager_GO44.T("pago.comprobanteTit"), MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                     if (abrir == DialogResult.Yes && System.IO.File.Exists(sfd.FileName))
                         System.Diagnostics.Process.Start(sfd.FileName);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("No se pudo generar el comprobante PDF: " + ex.Message,
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("pago.pdfError"), ex.Message),
+                        IdiomaManager_GO44.T("general.error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

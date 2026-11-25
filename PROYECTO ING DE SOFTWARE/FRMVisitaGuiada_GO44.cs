@@ -1,3 +1,4 @@
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -38,6 +39,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
         private void FRMVisitaGuiada_GO44_Load(object sender, EventArgs e)
         {
+            btnSaltar.Text = IdiomaManager_GO44.T("visita.saltar");
+            btnAnterior.Text = IdiomaManager_GO44.T("visita.anterior");
             if (_pasos.Count == 0) { Close(); return; }
             Mostrar(0);
         }
@@ -50,10 +53,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             var p = _pasos[_idx];
             lblTitulo.Text = p.Titulo;
-            lblContador.Text = (_idx + 1) + " de " + _pasos.Count;
+            lblContador.Text = string.Format(IdiomaManager_GO44.T("visita.contador"), _idx + 1, _pasos.Count);
             lblTexto.Text = p.Texto;
             btnAnterior.Enabled = _idx > 0;
-            btnSiguiente.Text = _idx == _pasos.Count - 1 ? "Finalizar" : "Siguiente";
+            btnSiguiente.Text = _idx == _pasos.Count - 1
+                ? IdiomaManager_GO44.T("visita.finalizar")
+                : IdiomaManager_GO44.T("visita.siguiente");
 
             Posicionar(p.Target);
         }

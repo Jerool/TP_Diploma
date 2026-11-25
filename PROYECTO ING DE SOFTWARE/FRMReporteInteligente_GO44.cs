@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,7 +13,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// Cruza la velocidad de salida de cada componente con el stock para calcular rotación,
     /// días de inventario, reposición urgente y stock muerto (con descuento sugerido).
     /// </summary>
-    public partial class FRMReporteInteligente_GO44 : Form
+    public partial class FRMReporteInteligente_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLReporteInteligente_GO44 _bll;
         private readonly BindingSource _bs = new BindingSource();
@@ -21,12 +22,43 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             InitializeComponent();
             _bll = new BLLReporteInteligente_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMReporteInteligente_GO44_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
             nudLeadTime.Value = BLLReporteInteligente_GO44.LEAD_TIME_DEFAULT;
+            ActualizarIdioma();
+        }
+
+        /// <summary>Aplica los textos del idioma activo a títulos, etiquetas, botones y grilla.</summary>
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("ri.ventana");
+            if (lblTitulo != null)   lblTitulo.Text   = IdiomaManager_GO44.T("ri.titulo");
+            if (lblLeadTime != null) lblLeadTime.Text = IdiomaManager_GO44.T("ri.leadTime");
+            if (btnGenerar != null)  btnGenerar.Text  = IdiomaManager_GO44.T("rep.generar");
+            if (btnPromos != null)   btnPromos.Text   = IdiomaManager_GO44.T("ri.btnPromos");
+            if (btnExportar != null) btnExportar.Text = IdiomaManager_GO44.T("rep.exportarPdf");
+            if (btnSalir != null)    btnSalir.Text    = IdiomaManager_GO44.T("general.salir");
+
+            if (dgv.Columns.Count >= 11)
+            {
+                dgv.Columns[0].HeaderText  = IdiomaManager_GO44.T("ri.colCodigo");
+                dgv.Columns[1].HeaderText  = IdiomaManager_GO44.T("ri.colProducto");
+                dgv.Columns[2].HeaderText  = IdiomaManager_GO44.T("ri.colCategoria");
+                dgv.Columns[3].HeaderText  = IdiomaManager_GO44.T("ri.colStock");
+                dgv.Columns[4].HeaderText  = IdiomaManager_GO44.T("ri.colVend30");
+                dgv.Columns[5].HeaderText  = IdiomaManager_GO44.T("ri.colVentaDia");
+                dgv.Columns[6].HeaderText  = IdiomaManager_GO44.T("ri.colDiasInv");
+                dgv.Columns[7].HeaderText  = IdiomaManager_GO44.T("ri.colRotacion");
+                dgv.Columns[8].HeaderText  = IdiomaManager_GO44.T("ri.colDiasSinVenta");
+                dgv.Columns[9].HeaderText  = IdiomaManager_GO44.T("ri.colAlerta");
+                dgv.Columns[10].HeaderText = IdiomaManager_GO44.T("ri.colDesc");
+            }
             Generar();
         }
 
@@ -55,6 +87,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             Col("Alerta",            "Alerta",      13, DataGridViewContentAlignment.MiddleLeft);
             Col("DescuentoTxt",      "Desc.",        7, DataGridViewContentAlignment.MiddleCenter);
             dgv.DataSource = _bs;
+            dgv.CellFormatting += dgv_CellFormatting;
         }
 
         private void Col(string prop, string header, int fill, DataGridViewContentAlignment align)
@@ -70,6 +103,17 @@ namespace PROYECTO_ING_DE_SOFTWARE
             dgv.Columns.Add(c);
         }
 
+        /// <summary>Traduce al vuelo el "nunca" de la columna Días s/venta (viene en texto desde el BE).</summary>
+        private void dgv_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.Value == null) return;
+            if (dgv.Columns[e.ColumnIndex].DataPropertyName == "DiasSinVentaTxt" && e.Value.ToString() == "nunca")
+            {
+                e.Value = IdiomaManager_GO44.T("ri.nunca");
+                e.FormattingApplied = true;
+            }
+        }
+
         private void Generar()
         {
             var lista = _bll.Generar((int)nudLeadTime.Value);
@@ -82,10 +126,10 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 var r = row.DataBoundItem as BE_ReporteInteligente_GO44;
                 if (r == null) continue;
-                if (r.Alerta == "Reponer urgente") { row.DefaultCellStyle.BackColor = Color.LightCoral; urgentes++; }
-                else if (r.Alerta == "Stock muerto") { row.DefaultCellStyle.BackColor = Color.Gainsboro; muertos++; }
+                if (r.AlertaCod == "REPONER") { row.DefaultCellStyle.BackColor = Color.LightCoral; urgentes++; }
+                else if (r.AlertaCod == "MUERTO") { row.DefaultCellStyle.BackColor = Color.Gainsboro; muertos++; }
             }
-            lblResumen.Text = "Productos: " + _bs.Count + "   ·   Reponer urgente: " + urgentes + "   ·   Stock muerto: " + muertos;
+            lblResumen.Text = string.Format(IdiomaManager_GO44.T("ri.resumen"), _bs.Count, urgentes, muertos);
         }
 
         private void btnGenerar_Click(object sender, EventArgs e) { Generar(); }
@@ -100,7 +144,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_bs.Count == 0)
             {
-                MessageBox.Show("No hay datos para exportar", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(IdiomaManager_GO44.T("rep.sinDatos"), IdiomaManager_GO44.T("general.advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             using (var sfd = new SaveFileDialog())
@@ -110,29 +154,36 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 if (sfd.ShowDialog() != DialogResult.OK) return;
                 try
                 {
-                    string titulo = "TECHFLOW - ESTRATEGIA DE VENTAS (Reporte Inteligente)";
-                    string subtitulo = "Tiempo de entrega estimado: " + (int)nudLeadTime.Value +
-                                       " días   |   Generado: " + DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                    string[] headers = { "Código", "Producto", "Stock", "Vend.30d", "Días inv.", "Rotación", "Días s/v", "Alerta" };
+                    string titulo = IdiomaManager_GO44.T("ri.pdfTitulo");
+                    string subtitulo = string.Format(IdiomaManager_GO44.T("ri.pdfSubtitulo"),
+                        (int)nudLeadTime.Value, DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+                    string[] headers =
+                    {
+                        IdiomaManager_GO44.T("ri.colCodigo"), IdiomaManager_GO44.T("ri.colProducto"),
+                        IdiomaManager_GO44.T("ri.colStock"), IdiomaManager_GO44.T("ri.colVend30"),
+                        IdiomaManager_GO44.T("ri.colDiasInv"), IdiomaManager_GO44.T("ri.colRotacion"),
+                        IdiomaManager_GO44.T("ri.pdfColDiasSinVenta"), IdiomaManager_GO44.T("ri.colAlerta")
+                    };
                     float[] anchos = { 0.11f, 0.29f, 0.09f, 0.10f, 0.10f, 0.10f, 0.10f, 0.11f };
                     var filas = new List<string[]>();
                     foreach (DataGridViewRow row in dgv.Rows)
                     {
                         var r = row.DataBoundItem as BE_ReporteInteligente_GO44;
                         if (r == null) continue;
-                        string alerta = r.Alerta + (r.DescuentoSugerido > 0 ? " (" + r.DescuentoSugerido.ToString("N0") + "% desc.)" : "");
+                        string diasSinVenta = r.DiasSinVenta < 0 ? IdiomaManager_GO44.T("ri.nunca") : r.DiasSinVentaTxt;
+                        string alerta = r.Alerta + (r.DescuentoSugerido > 0 ? string.Format(IdiomaManager_GO44.T("ri.pdfDescSuffix"), r.DescuentoSugerido.ToString("N0")) : "");
                         filas.Add(new string[] { r.Codigo ?? "", r.Nombre ?? "", r.StockActual.ToString(),
-                            r.Vendidas30.ToString(), r.DiasInventarioTxt, r.RotacionTxt, r.DiasSinVentaTxt, alerta });
+                            r.Vendidas30.ToString(), r.DiasInventarioTxt, r.RotacionTxt, diasSinVenta, alerta });
                     }
                     new BLL.GeneradorPdf_GO44().Generar(sfd.FileName, titulo, subtitulo, headers, anchos, filas);
-                    var abrir = MessageBox.Show("Reporte generado en:\n" + sfd.FileName + "\n\n¿Abrirlo?",
-                        "Reporte", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    var abrir = MessageBox.Show(string.Format(IdiomaManager_GO44.T("rep.pdfGenerado"), sfd.FileName),
+                        IdiomaManager_GO44.T("rep.reporte"), MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                     if (abrir == DialogResult.Yes && System.IO.File.Exists(sfd.FileName))
                         System.Diagnostics.Process.Start(sfd.FileName);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("No se pudo generar el PDF: " + ex.Message, "Error",
+                    MessageBox.Show(string.Format(IdiomaManager_GO44.T("rep.pdfError"), ex.Message), IdiomaManager_GO44.T("general.error"),
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }

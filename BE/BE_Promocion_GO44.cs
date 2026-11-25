@@ -7,6 +7,8 @@ namespace BE
     public class BE_Promocion_GO44
     {
         public string Tipo { get; set; }
+        /// <summary>Código estable del tipo (independiente del idioma): COMBO · LIQ · REPO.</summary>
+        public string TipoCod { get; set; }
         public string Titulo { get; set; }
         public string Detalle { get; set; }
         /// <summary>% de descuento sugerido (0 si no aplica, ej. reposición).</summary>

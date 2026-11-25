@@ -37,8 +37,10 @@ namespace BE
 
         // ===== Completados por la BLL =====
 
-        /// <summary>OK · Reponer urgente · Stock muerto.</summary>
+        /// <summary>OK · Reponer urgente · Stock muerto (texto traducido para mostrar).</summary>
         public string Alerta { get; set; }
+        /// <summary>Código estable de la alerta (independiente del idioma): OK · REPONER · MUERTO.</summary>
+        public string AlertaCod { get; set; }
         /// <summary>% de descuento sugerido para liquidar stock muerto (0 si no aplica).</summary>
         public decimal DescuentoSugerido { get; set; }
 

@@ -33,117 +33,79 @@ namespace Servicios.Ayuda
     /// </summary>
     public static class AyudaManager_GO44
     {
-        /// <summary>Árbol completo de temas de ayuda.</summary>
+        private static string T(string clave) { return IdiomaManager_GO44.T(clave); }
+
+        /// <summary>Árbol completo de temas de ayuda (títulos y contenidos traducidos al idioma activo).</summary>
         public static List<NodoAyuda_GO44> ObtenerArbol()
         {
             var raiz = new List<NodoAyuda_GO44>();
 
-            var general = new NodoAyuda_GO44("General",
-                "Sistema de compra y venta de componentes de hardware.\r\n\r\n" +
-                "• Ingresá con tu usuario y contraseña. Según tu rol vas a ver distintos menús.\r\n" +
-                "• Los menús se habilitan por permisos (patentes). Un administrador ve todo.\r\n" +
-                "• Podés cambiar el idioma desde Usuario → Cambiar idioma.\r\n" +
-                "• Presioná F1 en cualquier pantalla para ver su ayuda.");
-            general.Agregar("Inicio de sesión",
-                "Ingresá tu nombre de usuario y contraseña. Tras 3 intentos fallidos el usuario se bloquea " +
-                "y debe desbloquearlo un administrador.");
-            general.Agregar("Roles y permisos",
-                "Cada usuario tiene un rol (Administrador, Cajero, Encargado de compras, Almacenista). " +
-                "El rol define qué opciones de menú están visibles.");
+            var general = new NodoAyuda_GO44(T("ayuda.general.tit"), T("ayuda.general.cont"));
+            general.Agregar(T("ayuda.login.tit"), T("ayuda.login.cont"));
+            general.Agregar(T("ayuda.roles.tit"), T("ayuda.roles.cont"));
             raiz.Add(general);
 
-            var maestros = new NodoAyuda_GO44("Maestros",
-                "Alta y mantenimiento de los datos base del sistema.");
-            maestros.Agregar("Productos",
-                "ABM de componentes (CPU, GPU, RAM, etc.). Alta, modificación de precio y baja lógica. " +
-                "Cada cambio queda registrado en 'Componentes - C'.");
-            maestros.Agregar("Clientes",
-                "ABM de clientes. Validaciones de DNI (8), email, teléfono (10). Export/Import XML.");
-            maestros.Agregar("Componentes - C",
-                "Bitácora de cambios de componentes. Muestra el historial de cada componente (versionado): " +
-                "Cod_Comp, Fecha, Hora, Nombre, Existencia, Descripción y Act (vigente). " +
-                "Filtrá por código, nombre y rango de fechas. 'ACTIVAR' marca una versión como vigente.");
-            maestros.Agregar("Proveedores",
-                "Registro de proveedores (CUIT, datos de contacto y bancarios: CVU, Banco, Titular). " +
-                "Se puede abrir desde acá o como paso del armado de una solicitud de cotización.");
+            var maestros = new NodoAyuda_GO44(T("ayuda.maestros.tit"), T("ayuda.maestros.cont"));
+            maestros.Agregar(T("ayuda.productos.tit"), T("ayuda.productos.cont"));
+            maestros.Agregar(T("ayuda.clientes.tit"), T("ayuda.clientes.cont"));
+            maestros.Agregar(T("ayuda.compC.tit"), T("ayuda.compC.cont"));
+            maestros.Agregar(T("ayuda.proveedores.tit"), T("ayuda.proveedores.cont"));
             raiz.Add(maestros);
 
-            var ventas = new NodoAyuda_GO44("Ventas",
-                "Proceso de venta en la tienda (RFN1).");
-            ventas.Agregar("Cargar carrito",
-                "Seleccioná el cliente y agregá componentes con su cantidad. El sistema valida el stock.");
-            ventas.Agregar("Facturar",
-                "Genera la factura del carrito y registra el cobro (efectivo o tarjeta con validación Luhn + CVV) " +
-                "en una sola operación. Descuenta el stock al cobrar.");
+            var ventas = new NodoAyuda_GO44(T("ayuda.ventas.tit"), T("ayuda.ventas.cont"));
+            ventas.Agregar(T("ayuda.carrito.tit"), T("ayuda.carrito.cont"));
+            ventas.Agregar(T("ayuda.facturar.tit"), T("ayuda.facturar.cont"));
             raiz.Add(ventas);
 
-            var compras = new NodoAyuda_GO44("Compras",
-                "Reposición de stock: cotizaciones, órdenes de compra, pago y recepción (RFN2).");
-            compras.Agregar("Cotizaciones",
-                "Generá una solicitud de cotización (SC) eligiendo componentes y un proveedor. " +
-                "Si el proveedor no existe, registralo desde el mismo paso.");
-            compras.Agregar("Orden de Compra",
-                "Generá la orden de compra a partir de una SC: cargá el precio unitario cotizado y la fecha de entrega. " +
-                "Desde acá también podés pagar la orden con el botón 'Pagar orden'.");
-            compras.Agregar("Pagar orden",
-                "Registra el pago al proveedor con sus datos bancarios. El N° de comprobante se genera solo. " +
-                "La orden pasa a 'Pagada' y se puede exportar el comprobante en PDF.");
-            compras.Agregar("Recepción",
-                "El almacenista registra la cantidad recibida de cada componente. El stock sube y, si falta algo, " +
-                "la orden queda 'Recibida con faltantes'.");
+            var compras = new NodoAyuda_GO44(T("ayuda.compras.tit"), T("ayuda.compras.cont"));
+            compras.Agregar(T("ayuda.cotizaciones.tit"), T("ayuda.cotizaciones.cont"));
+            compras.Agregar(T("ayuda.oc.tit"), T("ayuda.oc.cont"));
+            compras.Agregar(T("ayuda.pago.tit"), T("ayuda.pago.cont"));
+            compras.Agregar(T("ayuda.recepcion.tit"), T("ayuda.recepcion.cont"));
             raiz.Add(compras);
 
-            var reportes = new NodoAyuda_GO44("Reportes",
-                "Informes del sistema.");
-            reportes.Agregar("Rep. 1 (RFN1) — Facturas",
-                "Ventas por período con filtros de fecha, cliente y estado. Exporta a PDF.");
-            reportes.Agregar("Rep. 2 (RFN2) — Compras",
-                "Recomposición de componentes: órdenes de compra con pedido vs recibido, proveedor y pago. Exporta a PDF.");
-            reportes.Agregar("Rep. 3 (INT.) — Inteligente",
-                "Estrategia de ventas: rotación, días de inventario, reposición urgente y stock muerto. " +
-                "Incluye gráfico de más vendidos y plan de combos/promociones.");
+            var reportes = new NodoAyuda_GO44(T("ayuda.reportes.tit"), T("ayuda.reportes.cont"));
+            reportes.Agregar(T("ayuda.rep1.tit"), T("ayuda.rep1.cont"));
+            reportes.Agregar(T("ayuda.rep2.tit"), T("ayuda.rep2.cont"));
+            reportes.Agregar(T("ayuda.rep3.tit"), T("ayuda.rep3.cont"));
             raiz.Add(reportes);
 
-            var admin = new NodoAyuda_GO44("Administración",
-                "Funciones de administración del sistema.");
-            admin.Agregar("Gestión de usuarios",
-                "Alta, modificación, bloqueo/desbloqueo y activación de usuarios.");
-            admin.Agregar("Gestión de perfiles",
-                "Asignación de familias y patentes a los roles (permisos, patrón Composite).");
-            admin.Agregar("Eventos (bitácora)",
-                "Auditoría de las operaciones del sistema, con filtros y export a PDF.");
-            admin.Agregar("Respaldos",
-                "Backup y restore de la base de datos. Backups automáticos cada 3 horas.");
+            var admin = new NodoAyuda_GO44(T("ayuda.admin.tit"), T("ayuda.admin.cont"));
+            admin.Agregar(T("ayuda.usuarios.tit"), T("ayuda.usuarios.cont"));
+            admin.Agregar(T("ayuda.perfiles.tit"), T("ayuda.perfiles.cont"));
+            admin.Agregar(T("ayuda.eventos.tit"), T("ayuda.eventos.cont"));
+            admin.Agregar(T("ayuda.respaldos.tit"), T("ayuda.respaldos.cont"));
             raiz.Add(admin);
 
             return raiz;
         }
 
         /// <summary>
-        /// Ayuda contextual de un formulario (para F1). Devuelve el título del tema que mejor aplica.
+        /// Ayuda contextual de un formulario (para F1). Devuelve el título del tema que mejor aplica,
+        /// traducido al idioma activo (coincide con el título del nodo en el árbol).
         /// </summary>
         public static string TemaDeFormulario(string nombreFormulario)
         {
-            if (string.IsNullOrEmpty(nombreFormulario)) return "General";
+            if (string.IsNullOrEmpty(nombreFormulario)) return T("ayuda.general.tit");
             string n = nombreFormulario.ToLower();
-            if (n.Contains("productoscambios"))  return "Productos - C";
-            if (n.Contains("gestionproductos"))  return "Productos";
-            if (n.Contains("gestionclientes"))   return "Clientes";
-            if (n.Contains("registrarproveedor"))return "Proveedores";
-            if (n.Contains("cargarcarrito"))     return "Cargar carrito";
-            if (n.Contains("facturar"))          return "Facturar";
-            if (n.Contains("solicitudcotizacion")) return "Cotizaciones";
-            if (n.Contains("generarordencompra"))return "Orden de Compra";
-            if (n.Contains("pagarordencompra"))  return "Pagar orden";
-            if (n.Contains("recepcion"))         return "Recepción";
-            if (n.Contains("reportefacturas"))   return "Rep. 1 (RFN1) — Facturas";
-            if (n.Contains("reportecompras"))    return "Rep. 2 (RFN2) — Compras";
-            if (n.Contains("reporteinteligente") || n.Contains("promociones")) return "Rep. 3 (INT.) — Inteligente";
-            if (n.Contains("gestionusuarios"))   return "Gestión de usuarios";
-            if (n.Contains("gestionpermisos"))   return "Gestión de perfiles";
-            if (n.Contains("bitacora"))          return "Eventos (bitácora)";
-            if (n.Contains("backup"))            return "Respaldos";
-            return "General";
+            if (n.Contains("productoscambios"))  return T("ayuda.compC.tit");
+            if (n.Contains("gestionproductos"))  return T("ayuda.productos.tit");
+            if (n.Contains("gestionclientes"))   return T("ayuda.clientes.tit");
+            if (n.Contains("registrarproveedor"))return T("ayuda.proveedores.tit");
+            if (n.Contains("cargarcarrito"))     return T("ayuda.carrito.tit");
+            if (n.Contains("facturar"))          return T("ayuda.facturar.tit");
+            if (n.Contains("solicitudcotizacion")) return T("ayuda.cotizaciones.tit");
+            if (n.Contains("generarordencompra"))return T("ayuda.oc.tit");
+            if (n.Contains("pagarordencompra"))  return T("ayuda.pago.tit");
+            if (n.Contains("recepcion"))         return T("ayuda.recepcion.tit");
+            if (n.Contains("reportefacturas"))   return T("ayuda.rep1.tit");
+            if (n.Contains("reportecompras"))    return T("ayuda.rep2.tit");
+            if (n.Contains("reporteinteligente") || n.Contains("promociones")) return T("ayuda.rep3.tit");
+            if (n.Contains("gestionusuarios"))   return T("ayuda.usuarios.tit");
+            if (n.Contains("gestionpermisos"))   return T("ayuda.perfiles.tit");
+            if (n.Contains("bitacora"))          return T("ayuda.eventos.tit");
+            if (n.Contains("backup"))            return T("ayuda.respaldos.tit");
+            return T("ayuda.general.tit");
         }
 
         /// <summary>
@@ -162,7 +124,7 @@ namespace Servicios.Ayuda
         {
             string sangria = new string(' ', nivel * 4);
             string prefijo = nivel == 0 ? "■ " : "– ";
-            string resumen = (nodo.Contenido ?? "").Replace("\r\n", " ");
+            string resumen = (nodo.Contenido ?? "").Replace("\r\n", " ").Replace("\n", " ");
             if (resumen.Length > 110) resumen = resumen.Substring(0, 107) + "...";
             filas.Add(new string[] { sangria + prefijo + nodo.Titulo, resumen });
             foreach (var hijo in nodo.Hijos)

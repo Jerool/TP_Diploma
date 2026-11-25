@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,7 +14,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// Grafica los componentes con más salida y propone combos/promociones automáticamente:
     /// liquidar stock muerto, armar combos (top-seller + producto parado) y reponer urgentes.
     /// </summary>
-    public partial class FRMPromociones_GO44 : Form
+    public partial class FRMPromociones_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLReporteInteligente_GO44 _bll;
         private readonly BindingSource _bsPromos = new BindingSource();
@@ -25,6 +26,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             InitializeComponent();
             _bll = new BLLReporteInteligente_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMPromociones_GO44_Load(object sender, EventArgs e)
@@ -32,6 +36,27 @@ namespace PROYECTO_ING_DE_SOFTWARE
             ConfigurarGrilla();
             nudLeadTime.Value = BLLReporteInteligente_GO44.LEAD_TIME_DEFAULT;
             pnlGrafico.Paint += pnlGrafico_Paint;
+            ActualizarIdioma();
+        }
+
+        /// <summary>Aplica los textos del idioma activo a títulos, etiquetas, botones y grilla.</summary>
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("promo.ventana");
+            if (lblTitulo != null)   lblTitulo.Text   = IdiomaManager_GO44.T("promo.titulo");
+            if (lblLeadTime != null) lblLeadTime.Text = IdiomaManager_GO44.T("promo.leadTime");
+            if (btnGenerar != null)  btnGenerar.Text  = IdiomaManager_GO44.T("rep.generar");
+            if (grpPromos != null)   grpPromos.Text   = IdiomaManager_GO44.T("promo.grupo");
+            if (lblLeyenda != null)  lblLeyenda.Text  = IdiomaManager_GO44.T("promo.leyenda");
+            if (btnSalir != null)    btnSalir.Text    = IdiomaManager_GO44.T("general.salir");
+
+            if (dgvPromos.Columns.Count >= 4)
+            {
+                dgvPromos.Columns[0].HeaderText = IdiomaManager_GO44.T("promo.colTipo");
+                dgvPromos.Columns[1].HeaderText = IdiomaManager_GO44.T("promo.colPropuesta");
+                dgvPromos.Columns[2].HeaderText = IdiomaManager_GO44.T("promo.colDetalle");
+                dgvPromos.Columns[3].HeaderText = IdiomaManager_GO44.T("promo.colDesc");
+            }
             Generar();
         }
 
@@ -82,12 +107,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 var p = row.DataBoundItem as BE_Promocion_GO44;
                 if (p == null) continue;
-                if (p.Tipo == "Combo") row.DefaultCellStyle.BackColor = Color.LightCyan;
-                else if (p.Tipo == "Liquidación") row.DefaultCellStyle.BackColor = Color.Gainsboro;
-                else if (p.Tipo == "Reposición") row.DefaultCellStyle.BackColor = Color.MistyRose;
+                if (p.TipoCod == "COMBO") row.DefaultCellStyle.BackColor = Color.LightCyan;
+                else if (p.TipoCod == "LIQ") row.DefaultCellStyle.BackColor = Color.Gainsboro;
+                else if (p.TipoCod == "REPO") row.DefaultCellStyle.BackColor = Color.MistyRose;
             }
 
-            lblResumen.Text = "Propuestas: " + _bsPromos.Count;
+            lblResumen.Text = string.Format(IdiomaManager_GO44.T("promo.resumen"), _bsPromos.Count);
             pnlGrafico.Invalidate();
         }
 
@@ -99,14 +124,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
             g.Clear(Color.White);
 
             using (var fTitulo = new Font("Segoe UI Semibold", 10F, FontStyle.Bold))
-                TextRenderer.DrawText(g, "Componentes más vendidos (últimos 30 días)",
+                TextRenderer.DrawText(g, IdiomaManager_GO44.T("promo.grafTitulo"),
                     fTitulo, new Rectangle(0, 4, rect.Width, 20), Azul,
                     TextFormatFlags.HorizontalCenter);
 
             if (_topVendidos == null || _topVendidos.Count == 0)
             {
                 using (var f = new Font("Segoe UI", 10F, FontStyle.Italic))
-                    TextRenderer.DrawText(g, "Sin ventas registradas para graficar", f, rect, Color.Gray,
+                    TextRenderer.DrawText(g, IdiomaManager_GO44.T("promo.grafSinVentas"), f, rect, Color.Gray,
                         TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 return;
             }

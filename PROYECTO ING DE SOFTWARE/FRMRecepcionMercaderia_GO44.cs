@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using Servicios;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,7 +14,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     /// pedida y una columna editable "Cantidad recibida" (precargada con la pedida). Al confirmar,
     /// el sistema suma al stock lo recibido y, si hay faltantes, marca la OC "Recibida con faltantes".
     /// </summary>
-    public partial class FRMRecepcionMercaderia_GO44 : Form
+    public partial class FRMRecepcionMercaderia_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLOrdenCompra_GO44 _bllOC;
         private readonly BLLRecepcionMercaderia_GO44 _bllRecepcion;
@@ -28,12 +29,54 @@ namespace PROYECTO_ING_DE_SOFTWARE
             InitializeComponent();
             _bllOC        = new BLLOrdenCompra_GO44();
             _bllRecepcion = new BLLRecepcionMercaderia_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMRecepcionMercaderia_GO44_Load(object sender, EventArgs e)
         {
             ConfigurarGrillas();
             CargarOrdenes();
+            ActualizarIdioma();
+        }
+
+        /// <summary>Aplica los textos del idioma activo a títulos, etiquetas, botones y encabezados de las grillas.</summary>
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("recep.titulo");
+            if (lblTitulo != null)          lblTitulo.Text          = IdiomaManager_GO44.T("recep.titulo");
+            if (grpOrdenes != null)         grpOrdenes.Text         = IdiomaManager_GO44.T("recep.grpOrdenes");
+            if (lblAvisoSinOrdenes != null) lblAvisoSinOrdenes.Text = IdiomaManager_GO44.T("recep.avisoSinOrdenes");
+            if (btnActualizar != null)      btnActualizar.Text      = IdiomaManager_GO44.T("recep.btnActualizar");
+            if (grpRecepcion != null)       grpRecepcion.Text       = IdiomaManager_GO44.T("recep.grpRecepcion");
+            if (lblObs != null)             lblObs.Text             = IdiomaManager_GO44.T("recep.lblObs");
+            if (btnRecibir != null)         btnRecibir.Text         = IdiomaManager_GO44.T("recep.btnRecibir");
+            if (btnSalir != null)           btnSalir.Text           = IdiomaManager_GO44.T("recep.btnSalir");
+            ActualizarEncabezadosGrillas();
+            if (_ordenSeleccionada == null && lblDetalleOC != null)
+                lblDetalleOC.Text = IdiomaManager_GO44.T("recep.seleccioneOrdenDetalle");
+        }
+
+        /// <summary>Traduce los encabezados de las grillas de órdenes y de líneas de recepción.</summary>
+        private void ActualizarEncabezadosGrillas()
+        {
+            if (dgvOrdenes.Columns.Count > 0)
+            {
+                if (dgvOrdenes.Columns.Contains("NumeroOC"))     dgvOrdenes.Columns["NumeroOC"].HeaderText     = IdiomaManager_GO44.T("recep.colNumeroOC");
+                if (dgvOrdenes.Columns.Contains("NumeroSC"))     dgvOrdenes.Columns["NumeroSC"].HeaderText     = IdiomaManager_GO44.T("recep.colNumeroSC");
+                if (dgvOrdenes.Columns.Contains("FechaEntrega")) dgvOrdenes.Columns["FechaEntrega"].HeaderText = IdiomaManager_GO44.T("recep.colEntrega");
+                if (dgvOrdenes.Columns.Contains("Total"))        dgvOrdenes.Columns["Total"].HeaderText        = IdiomaManager_GO44.T("recep.colTotal");
+                if (dgvOrdenes.Columns.Contains("Estado"))       dgvOrdenes.Columns["Estado"].HeaderText       = IdiomaManager_GO44.T("recep.colEstado");
+            }
+            if (dgvLineas.Columns.Count > 0)
+            {
+                if (dgvLineas.Columns.Contains("ComponenteCodigo")) dgvLineas.Columns["ComponenteCodigo"].HeaderText = IdiomaManager_GO44.T("recep.colCodigo");
+                if (dgvLineas.Columns.Contains("ComponenteNombre")) dgvLineas.Columns["ComponenteNombre"].HeaderText = IdiomaManager_GO44.T("recep.colComponente");
+                if (dgvLineas.Columns.Contains("CantidadPedida"))   dgvLineas.Columns["CantidadPedida"].HeaderText   = IdiomaManager_GO44.T("recep.colPedida");
+                if (dgvLineas.Columns.Contains("Discrepancia"))     dgvLineas.Columns["Discrepancia"].HeaderText     = IdiomaManager_GO44.T("recep.colFaltante");
+                if (dgvLineas.Columns.Contains("CantidadRecibida")) dgvLineas.Columns["CantidadRecibida"].HeaderText = IdiomaManager_GO44.T("recep.colRecibida");
+            }
         }
 
         private void ConfigurarGrillas()
@@ -74,11 +117,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 foreach (var col in new[] { "IdSolicitud", "UserNameEncargado", "Proveedor", "Lineas", "FechaEmision", "CantidadItems" })
                     if (dgvOrdenes.Columns.Contains(col)) dgvOrdenes.Columns[col].Visible = false;
                 if (dgvOrdenes.Columns.Contains("Id"))           dgvOrdenes.Columns["Id"].Visible = false;
-                if (dgvOrdenes.Columns.Contains("NumeroOC"))     dgvOrdenes.Columns["NumeroOC"].HeaderText = "N° OC";
-                if (dgvOrdenes.Columns.Contains("NumeroSC"))     dgvOrdenes.Columns["NumeroSC"].HeaderText = "N° SC";
-                if (dgvOrdenes.Columns.Contains("FechaEntrega")) { dgvOrdenes.Columns["FechaEntrega"].HeaderText = "Entrega"; dgvOrdenes.Columns["FechaEntrega"].DefaultCellStyle.Format = "dd/MM/yyyy"; }
-                if (dgvOrdenes.Columns.Contains("Total"))        { dgvOrdenes.Columns["Total"].HeaderText = "Total"; dgvOrdenes.Columns["Total"].DefaultCellStyle.Format = "N2"; }
-                if (dgvOrdenes.Columns.Contains("Estado"))       dgvOrdenes.Columns["Estado"].HeaderText = "Estado";
+                if (dgvOrdenes.Columns.Contains("NumeroOC"))     dgvOrdenes.Columns["NumeroOC"].HeaderText = IdiomaManager_GO44.T("recep.colNumeroOC");
+                if (dgvOrdenes.Columns.Contains("NumeroSC"))     dgvOrdenes.Columns["NumeroSC"].HeaderText = IdiomaManager_GO44.T("recep.colNumeroSC");
+                if (dgvOrdenes.Columns.Contains("FechaEntrega")) { dgvOrdenes.Columns["FechaEntrega"].HeaderText = IdiomaManager_GO44.T("recep.colEntrega"); dgvOrdenes.Columns["FechaEntrega"].DefaultCellStyle.Format = "dd/MM/yyyy"; }
+                if (dgvOrdenes.Columns.Contains("Total"))        { dgvOrdenes.Columns["Total"].HeaderText = IdiomaManager_GO44.T("recep.colTotal"); dgvOrdenes.Columns["Total"].DefaultCellStyle.Format = "N2"; }
+                if (dgvOrdenes.Columns.Contains("Estado"))       dgvOrdenes.Columns["Estado"].HeaderText = IdiomaManager_GO44.T("recep.colEstado");
             }
 
             lblAvisoSinOrdenes.Visible = (ordenes == null || ordenes.Count == 0);
@@ -122,8 +165,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
                     CantidadRecibida = l.Cantidad
                 });
 
-            lblDetalleOC.Text = "OC " + _ordenSeleccionada.NumeroOC + "  ·  " +
-                                (_ordenSeleccionada.Proveedor != null ? _ordenSeleccionada.Proveedor.Empresa : "—");
+            lblDetalleOC.Text = string.Format(IdiomaManager_GO44.T("recep.detalleOC"),
+                                _ordenSeleccionada.NumeroOC,
+                                _ordenSeleccionada.Proveedor != null ? _ordenSeleccionada.Proveedor.Empresa : "—");
             RefrescarGrillaLineas();
             btnRecibir.Enabled = true;
         }
@@ -140,13 +184,13 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 foreach (var col in new[] { "Id", "IdRecepcion", "Componente", "ComponenteCategoria" })
                     if (dgvLineas.Columns.Contains(col)) dgvLineas.Columns[col].Visible = false;
-                if (dgvLineas.Columns.Contains("ComponenteCodigo")) { dgvLineas.Columns["ComponenteCodigo"].HeaderText = "Código"; dgvLineas.Columns["ComponenteCodigo"].ReadOnly = true; }
-                if (dgvLineas.Columns.Contains("ComponenteNombre")) { dgvLineas.Columns["ComponenteNombre"].HeaderText = "Componente"; dgvLineas.Columns["ComponenteNombre"].ReadOnly = true; }
-                if (dgvLineas.Columns.Contains("CantidadPedida"))   { dgvLineas.Columns["CantidadPedida"].HeaderText = "Pedida"; dgvLineas.Columns["CantidadPedida"].ReadOnly = true; }
-                if (dgvLineas.Columns.Contains("Discrepancia"))     { dgvLineas.Columns["Discrepancia"].HeaderText = "Faltante"; dgvLineas.Columns["Discrepancia"].ReadOnly = true; }
+                if (dgvLineas.Columns.Contains("ComponenteCodigo")) { dgvLineas.Columns["ComponenteCodigo"].HeaderText = IdiomaManager_GO44.T("recep.colCodigo"); dgvLineas.Columns["ComponenteCodigo"].ReadOnly = true; }
+                if (dgvLineas.Columns.Contains("ComponenteNombre")) { dgvLineas.Columns["ComponenteNombre"].HeaderText = IdiomaManager_GO44.T("recep.colComponente"); dgvLineas.Columns["ComponenteNombre"].ReadOnly = true; }
+                if (dgvLineas.Columns.Contains("CantidadPedida"))   { dgvLineas.Columns["CantidadPedida"].HeaderText = IdiomaManager_GO44.T("recep.colPedida"); dgvLineas.Columns["CantidadPedida"].ReadOnly = true; }
+                if (dgvLineas.Columns.Contains("Discrepancia"))     { dgvLineas.Columns["Discrepancia"].HeaderText = IdiomaManager_GO44.T("recep.colFaltante"); dgvLineas.Columns["Discrepancia"].ReadOnly = true; }
                 if (dgvLineas.Columns.Contains("CantidadRecibida"))
                 {
-                    dgvLineas.Columns["CantidadRecibida"].HeaderText = "Recibida";
+                    dgvLineas.Columns["CantidadRecibida"].HeaderText = IdiomaManager_GO44.T("recep.colRecibida");
                     dgvLineas.Columns["CantidadRecibida"].ReadOnly = false;
                     dgvLineas.Columns["CantidadRecibida"].DefaultCellStyle.BackColor = Color.LightYellow;
                 }
@@ -184,7 +228,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             _ordenSeleccionada = null;
             _recepcionEnCurso = null;
-            lblDetalleOC.Text = "Seleccione una orden de compra pagada";
+            lblDetalleOC.Text = IdiomaManager_GO44.T("recep.seleccioneOrdenDetalle");
             _bsLineas.DataSource = null;
             _bsLineas.ResetBindings(false);
             txtObservaciones.Text = "";
@@ -195,7 +239,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_ordenSeleccionada == null || _recepcionEnCurso == null)
             {
-                MessageBox.Show("Seleccione una orden de compra", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("recep.seleccioneOrden"), IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -204,22 +248,22 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             bool hayFaltantes = _bllRecepcion.TieneFaltantes(_recepcionEnCurso);
             string msg = hayFaltantes
-                ? "Hay componentes con faltantes. La orden quedará en estado 'Recibida con faltantes'.\n\n¿Confirmar la recepción?"
-                : "¿Confirmar la recepción completa de la orden " + _ordenSeleccionada.NumeroOC + "?";
-            var r = MessageBox.Show(msg, "Confirmar recepción", MessageBoxButtons.YesNo,
+                ? IdiomaManager_GO44.T("recep.confFaltantes")
+                : string.Format(IdiomaManager_GO44.T("recep.confCompleta"), _ordenSeleccionada.NumeroOC);
+            var r = MessageBox.Show(msg, IdiomaManager_GO44.T("recep.confirmarTit"), MessageBoxButtons.YesNo,
                 hayFaltantes ? MessageBoxIcon.Warning : MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
             var vo = _bllRecepcion.RecibirMercaderia(_ordenSeleccionada, _recepcionEnCurso);
             if (vo.Resultado == BLLRecepcionMercaderia_GO44.ResultadoRecepcion.Exitoso)
             {
-                MessageBox.Show(vo.Mensaje, "Recepción registrada",
+                MessageBox.Show(vo.Mensaje, IdiomaManager_GO44.T("recep.recepcionRegistrada"),
                     MessageBoxButtons.OK, vo.ConFaltantes ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
                 CargarOrdenes();
             }
             else
             {
-                MessageBox.Show(vo.Mensaje, "No se pudo recibir", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(vo.Mensaje, IdiomaManager_GO44.T("recep.noSePudoRecibir"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

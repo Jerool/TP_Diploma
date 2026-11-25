@@ -42,22 +42,16 @@ namespace Servicios
 
         public static bool EsCvuValido(string cvu) => !string.IsNullOrWhiteSpace(cvu) && Regex.IsMatch(cvu, REGEX_CVU);
 
-        public const string MENSAJE_DNI = "El DNI debe tener exactamente 8 dígitos numéricos (sin puntos ni espacios). Ej: 46947544";
-
-        public const string MENSAJE_EMAIL = "El email no tiene un formato válido. Debe contener @ y un dominio. Ej: jeremias@gmail.com";
-
-        public const string MENSAJE_NOMBRE ="El nombre solo puede contener letras y espacios (mínimo 2 caracteres).";
-
-        public const string MENSAJE_APELLIDO ="El apellido solo puede contener letras y espacios (mínimo 2 caracteres).";
-
-        public const string MENSAJE_CONTRASENA ="La contraseña debe tener al menos 6 caracteres, una letra y un número.";
-
-        public const string MENSAJE_LOGIN ="El usuario solo puede contener letras, números y puntos (mínimo 3 caracteres).";
-
-        public const string MENSAJE_TELEFONO = "El teléfono debe tener exactamente 10 dígitos numéricos (sin guiones ni espacios). Ej: 1159024801";
-
-        public const string MENSAJE_CUIT = "El CUIT debe tener exactamente 11 dígitos numéricos (sin guiones). Ej: 20469475447";
-
-        public const string MENSAJE_CVU = "El CVU debe tener exactamente 22 dígitos numéricos. Ej: 0000003100099999999999";
+        // Mensajes de validación: salen traducidos del IdiomaManager según el idioma activo.
+        // Se mantiene la misma sintaxis de uso que antes (Validaciones_GO44.MENSAJE_X).
+        public static string MENSAJE_DNI        => IdiomaManager_GO44.T("valid.dni");
+        public static string MENSAJE_EMAIL      => IdiomaManager_GO44.T("valid.email");
+        public static string MENSAJE_NOMBRE     => IdiomaManager_GO44.T("valid.nombre");
+        public static string MENSAJE_APELLIDO   => IdiomaManager_GO44.T("valid.apellido");
+        public static string MENSAJE_CONTRASENA => IdiomaManager_GO44.T("valid.contrasena");
+        public static string MENSAJE_LOGIN      => IdiomaManager_GO44.T("valid.login");
+        public static string MENSAJE_TELEFONO   => IdiomaManager_GO44.T("valid.telefono");
+        public static string MENSAJE_CUIT       => IdiomaManager_GO44.T("valid.cuit");
+        public static string MENSAJE_CVU        => IdiomaManager_GO44.T("valid.cvu");
     }
 }

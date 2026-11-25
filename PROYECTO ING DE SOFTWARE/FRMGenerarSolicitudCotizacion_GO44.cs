@@ -18,7 +18,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
     ///   - Botones: Agregar / Quitar / Finalizar / Cancelar
     /// Al apretar "Finalizar" muestra un preview antes de guardar.
     /// </summary>
-    public partial class FRMGenerarSolicitudCotizacion_GO44 : Form
+    public partial class FRMGenerarSolicitudCotizacion_GO44 : Form, IObservadorIdioma_GO44
     {
         private readonly BLLComponente_GO44 _bllComponente;
         private readonly BLLProveedor_GO44  _bllProveedor;
@@ -36,6 +36,9 @@ namespace PROYECTO_ING_DE_SOFTWARE
             _bllComponente = new BLLComponente_GO44();
             _bllProveedor  = new BLLProveedor_GO44();
             _bllSC         = new BLLSolicitudCotizacion_GO44();
+
+            IdiomaManager_GO44.Instancia.Suscribir(this);
+            this.FormClosed += (s, e) => IdiomaManager_GO44.Instancia.Desuscribir(this);
         }
 
         private void FRMGenerarSolicitudCotizacion_GO44_Load(object sender, EventArgs e)
@@ -51,6 +54,52 @@ namespace PROYECTO_ING_DE_SOFTWARE
             {
                 if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar)) ev.Handled = true;
             };
+
+            ActualizarIdioma();
+        }
+
+        /// <summary>Aplica los textos del idioma activo a títulos, etiquetas, botones y encabezados de las grillas.</summary>
+        public void ActualizarIdioma()
+        {
+            this.Text = IdiomaManager_GO44.T("sc.titulo");
+            if (lblTitulo != null)              lblTitulo.Text              = IdiomaManager_GO44.T("sc.titulo");
+            if (grpProveedor != null)           grpProveedor.Text           = IdiomaManager_GO44.T("sc.grpProveedor");
+            if (lblProveedor != null)           lblProveedor.Text           = IdiomaManager_GO44.T("sc.lblProveedor");
+            if (btnRegistrarProveedor != null)  btnRegistrarProveedor.Text  = IdiomaManager_GO44.T("sc.btnRegistrarProveedor");
+            if (lblAvisoSinProveedores != null) lblAvisoSinProveedores.Text = IdiomaManager_GO44.T("sc.avisoSinProveedores");
+            if (grpComponentes != null)         grpComponentes.Text         = IdiomaManager_GO44.T("sc.grpComponentes");
+            if (lblBuscar != null)              lblBuscar.Text              = IdiomaManager_GO44.T("sc.lblBuscar");
+            if (chkBajoStock != null)           chkBajoStock.Text           = IdiomaManager_GO44.T("sc.chkBajoStock");
+            if (lblCantidad != null)            lblCantidad.Text            = IdiomaManager_GO44.T("sc.lblCantidad");
+            if (btnAgregar != null)             btnAgregar.Text             = IdiomaManager_GO44.T("sc.btnAgregar");
+            if (grpCotizacion != null)          grpCotizacion.Text          = IdiomaManager_GO44.T("sc.grpCotizacion");
+            if (btnQuitar != null)              btnQuitar.Text              = IdiomaManager_GO44.T("sc.btnQuitar");
+            if (btnFinalizar != null)           btnFinalizar.Text           = IdiomaManager_GO44.T("sc.btnFinalizar");
+            if (btnCancelar != null)            btnCancelar.Text            = IdiomaManager_GO44.T("sc.btnCancelar");
+            if (btnSalir != null)               btnSalir.Text               = IdiomaManager_GO44.T("sc.btnSalir");
+            ActualizarEncabezadosGrillas();
+            if (lblContadorLineas != null && _solicitudEnCurso != null)
+                lblContadorLineas.Text = string.Format(IdiomaManager_GO44.T("sc.contador"),
+                    _solicitudEnCurso.Lineas.Count, _solicitudEnCurso.CantidadItems);
+        }
+
+        /// <summary>Traduce los encabezados de las dos grillas (componentes y líneas de la cotización).</summary>
+        private void ActualizarEncabezadosGrillas()
+        {
+            if (dgvComponentes.Columns.Count > 0)
+            {
+                if (dgvComponentes.Columns.Contains("Codigo"))      dgvComponentes.Columns["Codigo"].HeaderText      = IdiomaManager_GO44.T("sc.colCodigo");
+                if (dgvComponentes.Columns.Contains("Nombre"))      dgvComponentes.Columns["Nombre"].HeaderText      = IdiomaManager_GO44.T("sc.colNombre");
+                if (dgvComponentes.Columns.Contains("Categoria"))   dgvComponentes.Columns["Categoria"].HeaderText   = IdiomaManager_GO44.T("sc.colCategoria");
+                if (dgvComponentes.Columns.Contains("StockActual")) dgvComponentes.Columns["StockActual"].HeaderText = IdiomaManager_GO44.T("sc.colStock");
+                if (dgvComponentes.Columns.Contains("StockMinimo")) dgvComponentes.Columns["StockMinimo"].HeaderText = IdiomaManager_GO44.T("sc.colStockMin");
+            }
+            if (dgvLineas.Columns.Count > 0)
+            {
+                if (dgvLineas.Columns.Contains("ComponenteCodigo"))    dgvLineas.Columns["ComponenteCodigo"].HeaderText    = IdiomaManager_GO44.T("sc.colCodigo");
+                if (dgvLineas.Columns.Contains("ComponenteNombre"))    dgvLineas.Columns["ComponenteNombre"].HeaderText    = IdiomaManager_GO44.T("sc.colComponente");
+                if (dgvLineas.Columns.Contains("ComponenteCategoria")) dgvLineas.Columns["ComponenteCategoria"].HeaderText = IdiomaManager_GO44.T("sc.colCategoria");
+            }
         }
 
         private void NuevaSolicitud()
@@ -113,9 +162,11 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 if (dgvComponentes.Columns.Contains("Descripcion")) dgvComponentes.Columns["Descripcion"].Visible = false;
                 if (dgvComponentes.Columns.Contains("Precio"))      dgvComponentes.Columns["Precio"].Visible = false;
                 if (dgvComponentes.Columns.Contains("Activo"))      dgvComponentes.Columns["Activo"].Visible = false;
-                if (dgvComponentes.Columns.Contains("Codigo"))      dgvComponentes.Columns["Codigo"].HeaderText = "Código";
-                if (dgvComponentes.Columns.Contains("StockActual")) dgvComponentes.Columns["StockActual"].HeaderText = "Stock";
-                if (dgvComponentes.Columns.Contains("StockMinimo")) dgvComponentes.Columns["StockMinimo"].HeaderText = "Stock mín.";
+                if (dgvComponentes.Columns.Contains("Codigo"))      dgvComponentes.Columns["Codigo"].HeaderText = IdiomaManager_GO44.T("sc.colCodigo");
+                if (dgvComponentes.Columns.Contains("Nombre"))      dgvComponentes.Columns["Nombre"].HeaderText = IdiomaManager_GO44.T("sc.colNombre");
+                if (dgvComponentes.Columns.Contains("Categoria"))   dgvComponentes.Columns["Categoria"].HeaderText = IdiomaManager_GO44.T("sc.colCategoria");
+                if (dgvComponentes.Columns.Contains("StockActual")) dgvComponentes.Columns["StockActual"].HeaderText = IdiomaManager_GO44.T("sc.colStock");
+                if (dgvComponentes.Columns.Contains("StockMinimo")) dgvComponentes.Columns["StockMinimo"].HeaderText = IdiomaManager_GO44.T("sc.colStockMin");
             }
 
             foreach (DataGridViewRow row in dgvComponentes.Rows)
@@ -165,7 +216,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvComponentes.CurrentRow == null)
             {
-                MessageBox.Show("Seleccione un componente de la grilla", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("sc.seleccioneComponente"), IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -175,7 +226,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
             int cantidad;
             if (!int.TryParse(txtCantidad.Text.Trim(), out cantidad) || cantidad < 1 || cantidad > 999)
             {
-                MessageBox.Show("La cantidad debe estar entre 1 y 999", "Cantidad inválida",
+                MessageBox.Show(IdiomaManager_GO44.T("sc.cantidadRango"), IdiomaManager_GO44.T("sc.cantidadInvalida"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtCantidad.Focus();
                 return;
@@ -190,7 +241,7 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (dgvLineas.CurrentRow == null)
             {
-                MessageBox.Show("Seleccione una línea de la cotización", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("sc.seleccioneLinea"), IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -212,12 +263,12 @@ namespace PROYECTO_ING_DE_SOFTWARE
                 if (dgvLineas.Columns.Contains("Id"))                 dgvLineas.Columns["Id"].Visible = false;
                 if (dgvLineas.Columns.Contains("IdSolicitud"))        dgvLineas.Columns["IdSolicitud"].Visible = false;
                 if (dgvLineas.Columns.Contains("Componente"))         dgvLineas.Columns["Componente"].Visible = false;
-                if (dgvLineas.Columns.Contains("ComponenteCodigo"))   dgvLineas.Columns["ComponenteCodigo"].HeaderText = "Código";
-                if (dgvLineas.Columns.Contains("ComponenteNombre"))   dgvLineas.Columns["ComponenteNombre"].HeaderText = "Componente";
-                if (dgvLineas.Columns.Contains("ComponenteCategoria"))dgvLineas.Columns["ComponenteCategoria"].HeaderText = "Categoría";
+                if (dgvLineas.Columns.Contains("ComponenteCodigo"))   dgvLineas.Columns["ComponenteCodigo"].HeaderText = IdiomaManager_GO44.T("sc.colCodigo");
+                if (dgvLineas.Columns.Contains("ComponenteNombre"))   dgvLineas.Columns["ComponenteNombre"].HeaderText = IdiomaManager_GO44.T("sc.colComponente");
+                if (dgvLineas.Columns.Contains("ComponenteCategoria"))dgvLineas.Columns["ComponenteCategoria"].HeaderText = IdiomaManager_GO44.T("sc.colCategoria");
             }
 
-            lblContadorLineas.Text = $"Items: {_solicitudEnCurso.Lineas.Count}  ·  Unidades totales: {_solicitudEnCurso.CantidadItems}";
+            lblContadorLineas.Text = string.Format(IdiomaManager_GO44.T("sc.contador"), _solicitudEnCurso.Lineas.Count, _solicitudEnCurso.CantidadItems);
         }
 
         // ===== Finalizar (preview + confirmar) =====
@@ -226,14 +277,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (_bllSC.EstaVacia(_solicitudEnCurso))
             {
-                MessageBox.Show("Debe agregar al menos un componente a la cotización", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("sc.agregarComponente"), IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             var prov = cmbProveedor.SelectedItem as BE_Proveedor_GO44;
             if (prov == null)
             {
-                MessageBox.Show("Debe seleccionar un proveedor", "Aviso",
+                MessageBox.Show(IdiomaManager_GO44.T("sc.seleccioneProveedor"), IdiomaManager_GO44.T("general.advertencia"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -241,8 +292,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
 
             // Preview — texto resumen
             string resumen = ConstruirPreview();
-            var r = MessageBox.Show(resumen + "\n\n¿Confirmar y guardar la solicitud?",
-                "Preview — Solicitud de Cotización",
+            var r = MessageBox.Show(resumen + "\n\n" + IdiomaManager_GO44.T("sc.confirmarGuardar"),
+                IdiomaManager_GO44.T("sc.previewTitulo"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
@@ -250,14 +301,14 @@ namespace PROYECTO_ING_DE_SOFTWARE
             var vo = _bllSC.GenerarSolicitud(_solicitudEnCurso);
             if (vo.Resultado == BLLSolicitudCotizacion_GO44.ResultadoGeneracion.Exitoso)
             {
-                MessageBox.Show(vo.Mensaje, "Solicitud generada",
+                MessageBox.Show(vo.Mensaje, IdiomaManager_GO44.T("sc.solicitudGenerada"),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 NuevaSolicitud();
                 CargarComponentes(); // refresca stocks por si cambiaron
             }
             else
             {
-                MessageBox.Show(vo.Mensaje, "No se pudo generar",
+                MessageBox.Show(vo.Mensaje, IdiomaManager_GO44.T("sc.noSeGenero"),
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -266,17 +317,17 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             var prov = _solicitudEnCurso.Proveedor;
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine("── SOLICITUD DE COTIZACIÓN ──");
-            sb.AppendLine($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}");
-            sb.AppendLine($"Proveedor: {prov.Empresa}");
-            sb.AppendLine($"CUIT: {prov.CUIT}");
+            sb.AppendLine(IdiomaManager_GO44.T("sc.pvEncabezado"));
+            sb.AppendLine(string.Format(IdiomaManager_GO44.T("sc.pvFecha"), DateTime.Now.ToString("dd/MM/yyyy HH:mm")));
+            sb.AppendLine(string.Format(IdiomaManager_GO44.T("sc.pvProveedor"), prov.Empresa));
+            sb.AppendLine(string.Format(IdiomaManager_GO44.T("sc.pvCuit"), prov.CUIT));
             sb.AppendLine();
-            sb.AppendLine("── COMPONENTES ──");
+            sb.AppendLine(IdiomaManager_GO44.T("sc.pvComponentes"));
             foreach (var l in _solicitudEnCurso.Lineas)
                 sb.AppendLine($"  · {l.ComponenteCodigo} - {l.ComponenteNombre}  ×{l.Cantidad}");
             sb.AppendLine();
-            sb.AppendLine($"Total items: {_solicitudEnCurso.Lineas.Count}");
-            sb.AppendLine($"Unidades totales: {_solicitudEnCurso.CantidadItems}");
+            sb.AppendLine(string.Format(IdiomaManager_GO44.T("sc.pvTotalItems"), _solicitudEnCurso.Lineas.Count));
+            sb.AppendLine(string.Format(IdiomaManager_GO44.T("sc.pvUnidades"), _solicitudEnCurso.CantidadItems));
             return sb.ToString();
         }
 
@@ -284,8 +335,8 @@ namespace PROYECTO_ING_DE_SOFTWARE
         {
             if (!_bllSC.EstaVacia(_solicitudEnCurso))
             {
-                var r = MessageBox.Show("¿Cancelar la solicitud actual? Se perderán las líneas cargadas.",
-                    "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var r = MessageBox.Show(IdiomaManager_GO44.T("sc.cancelarConfirm"),
+                    IdiomaManager_GO44.T("sc.confirmar"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (r != DialogResult.Yes) return;
             }
             NuevaSolicitud();
